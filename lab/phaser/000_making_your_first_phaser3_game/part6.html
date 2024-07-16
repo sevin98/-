@@ -30,31 +30,28 @@
         },
       };
 
-      var player;
-      var platforms;
-
-      var game = new Phaser.Game(config);
+      const game = new Phaser.Game(config);
 
       function preload() {
         this.load.image("sky", "assets/sky.png");
         this.load.image("ground", "assets/platform.png");
         this.load.image("star", "assets/star.png");
         this.load.image("bomb", "assets/bomb.png");
+        // Physic sprite sheet가 만들어지면 자동으로 Arcade Physics Body를 가리키는 body 속성을 가짐
+        // 이는 스프라이트를 Phaser의 Arcade Physic 엔진이 물리적으로 처리할 수 있도록 함
         this.load.spritesheet("dude", "assets/dude.png", { frameWidth: 32, frameHeight: 48 });
       }
 
       function create() {
         this.add.image(400, 300, "sky");
 
-        platforms = this.physics.add.staticGroup();
-
+        const platforms = this.physics.add.staticGroup();
         platforms.create(400, 568, "ground").setScale(2).refreshBody();
-
         platforms.create(600, 400, "ground");
         platforms.create(50, 250, "ground");
         platforms.create(750, 220, "ground");
 
-        player = this.physics.add.sprite(100, 450, "dude");
+        const player = this.physics.add.sprite(100, 450, "dude");
 
         player.setBounce(0.2);
         player.setCollideWorldBounds(true);
@@ -79,6 +76,8 @@
           repeat: -1,
         });
 
+        // Collider 객체를 만드는 것으로, 이 객체는 두 물리적 객체들(그룹 포함)을 모니터링 하다가
+        // 충돌이 발생하는지 체크하여 추가적인 처리를 할 수 있도록 함
         this.physics.add.collider(player, platforms);
       }
 

@@ -30,11 +30,7 @@
         },
       };
 
-      var player;
-      var platforms;
-      var cursors;
-
-      var game = new Phaser.Game(config);
+      const game = new Phaser.Game(config);
 
       function preload() {
         this.load.image("sky", "assets/sky.png");
@@ -44,10 +40,13 @@
         this.load.spritesheet("dude", "assets/dude.png", { frameWidth: 32, frameHeight: 48 });
       }
 
+      let cursors;
+      let player;
+
       function create() {
         this.add.image(400, 300, "sky");
 
-        platforms = this.physics.add.staticGroup();
+        const platforms = this.physics.add.staticGroup();
 
         platforms.create(400, 568, "ground").setScale(2).refreshBody();
 
@@ -80,6 +79,7 @@
           repeat: -1,
         });
 
+        // 방향키, 스페이스, Shift 키를 인식
         cursors = this.input.keyboard.createCursorKeys();
 
         this.physics.add.collider(player, platforms);
@@ -87,16 +87,13 @@
 
       function update() {
         if (cursors.left.isDown) {
-          player.setVelocityX(-160);
-
           player.anims.play("left", true);
+          player.setVelocityX(-160);
         } else if (cursors.right.isDown) {
           player.setVelocityX(160);
-
           player.anims.play("right", true);
         } else {
           player.setVelocityX(0);
-
           player.anims.play("turn");
         }
 
