@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Making your first Phaser 3 Game - Part 5</title>
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
+    <style type="text/css">
+      body {
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="text/javascript">
+      var config = {
+        type: Phaser.AUTO,
+        width: 800,
+        height: 600,
+        physics: {
+          default: "arcade",
+          arcade: {
+            gravity: { y: 300 },
+            debug: false,
+          },
+        },
+        scene: {
+          preload: preload,
+          create: create,
+          update: update,
+        },
+      };
+
+      var game = new Phaser.Game(config);
+
+      function preload() {
+        this.load.image("sky", "assets/sky.png");
+        this.load.image("ground", "assets/platform.png");
+        this.load.image("star", "assets/star.png");
+        this.load.image("bomb", "assets/bomb.png");
+        // 이미지가 아닌 sprite sheet로 로드 되어 있는데, 애니메이션 프레임을 포함하고 있기 때문임
+        // (원래는 프레임 절약을 위해 스프라이트 뒤집기가 지원되는데, 일단 예전 방법을 사용)
+        this.load.spritesheet("dude", "assets/dude.png", { frameWidth: 32, frameHeight: 48 });
+      }
+
+      function create() {
+        this.add.image(400, 300, "sky");
+
+        const platforms = this.physics.add.staticGroup();
+        platforms.create(400, 568, "ground").setScale(2).refreshBody();
+        platforms.create(600, 400, "ground");
+        platforms.create(50, 250, "ground");
+        platforms.create(750, 220, "ground");
+
+        // Scene의 Physic Game Object Factory(this.physics.add)에게
+        // (100, 450) 위치에 새 스프라이트 생성할 것을 요청 (기본값은 Dynamic Physics Group)
+        const player = this.physics.add.sprite(100, 450, "dude");
+
+        // 부딪혔을 때 0.2만큼 튕기도록 설정 (1로 설정하면 떨어진 위치만큼 튕겨져 나옴)
+        player.setBounce(0.2);
+        // 월드의 경계에 부딪히도록 설정했는데, 기본적으로는 빠져나갈 수 있도록 되어 있음
+        player.setCollideWorldBounds(true);
+
+        // 애니메이션을 추가함
+        this.anims.create({
+          key: "left",
+          frames: this.anims.generateFrameNumbers("dude", { start: 0, end: 3 }),
+          frameRate: 10,
+          repeat: -1,
+        });
+
+        this.anims.create({
+          key: "turn",
+          frames: [{ key: "dude", frame: 4 }],
+          frameRate: 20,
+        });
+
+        this.anims.create({
+          key: "right",
+          frames: this.anims.generateFrameNumbers("dude", { start: 5, end: 8 }),
+          frameRate: 10,
+          repeat: -1,
+        });
+      }
+
+      function update() {}
+    </script>
+  </body>
+</html>
