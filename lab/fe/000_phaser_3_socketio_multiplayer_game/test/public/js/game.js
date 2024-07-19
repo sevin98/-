@@ -76,10 +76,8 @@ function update() {
     if (self.ship) {
         // 키보드 입력에 따른 플레이어의 이동 처리
         if (self.cursors.left.isDown) {
-            console.log('left');
             self.ship.setVelocityX(-200); // 왼쪽 방향으로 이동
         } else if (self.cursors.right.isDown) {
-            console.log('right');
             self.ship.setVelocityX(200); // 오른쪽 방향으로 이동
         } else {
             self.ship.setVelocityX(0); // 이동 중이 아닐 때 속도 0

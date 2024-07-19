@@ -34,11 +34,11 @@ io.on('connection', function (socket) {
     // when a player moves, update the player data
     socket.on('playerMovement', function (movementData) {
         if (players[socket.id]) {
-            players[socket.id].x = movementData.x;
-            players[socket.id].y = movementData.y;
-            players[socket.id].rotation = movementData.rotation;
-            // emit a message to all players about the player that moved
-            socket.broadcast.emit('playerMoved', players[socket.id]);
+        //유효성 검사
+        players[socket.id].x = Math.max(0, Math.min(800, movementData.x)); // 범위 제한
+        players[socket.id].y = Math.max(0, Math.min(600, movementData.y)); // 범위 제한
+        players[socket.id].rotation = movementData.rotation;
+        socket.broadcast.emit('playerMoved', players[socket.id]);
         }
     });
 });
