@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.eventlooppractice2.EventLoopPractice2ApplicationTests" tests="1" skipped="0" failures="1" errors="0" timestamp="2024-07-19T03:19:58" hostname="DESKTOP-MMCQPV1" time="0.768">
+  <properties/>
+  <testcase name="testPlayerJoinedEvent()" classname="com.example.eventlooppractice2.EventLoopPractice2ApplicationTests" time="0.768">
+    <failure message="java.lang.AssertionError" type="java.lang.AssertionError">java.lang.AssertionError
+	at com.example.eventlooppractice2.EventLoopPractice2ApplicationTests.testPlayerJoinedEvent(EventLoopPractice2ApplicationTests.java:62)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <system-out><![CDATA[Captured Log Output: 
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

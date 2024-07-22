@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${title}">기본 제목</title>
+</head>
+<body>
+<header th:fragment="header">
+    <h1>헤더 섹션</h1>
+</header>
+
+<main th:fragment="content">
+    <p>기본 컨텐츠</p>
+</main>
+
+<footer th:fragment="footer">
+    <p>푸터 섹션</p>
+</footer>
+</body>
+</html>
