@@ -1,0 +1,1 @@
+소프트웨어 교육 서비스 ZENVA에 투고된 ["Create a Basic Multiplayer Game in Phaser 3 with Socket.io"](https://gamedevacademy.org/create-a-basic-multiplayer-game-in-phaser-3-with-socket-io-part-1/)를 따라하며 만든 프로젝트입니다.
