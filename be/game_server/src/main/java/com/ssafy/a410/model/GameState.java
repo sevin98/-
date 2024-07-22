@@ -13,8 +13,8 @@ public class GameState {
     private List<Player> players = new ArrayList<>();
     private String phase = "WAIT";
     private boolean gameRunning = false;
-    private String team1Role = "HIDE"; // 팀 1의 초기 역할
-    private String team2Role = "SEEK"; // 팀 2의 초기 역할
+    private String team1Role = "HIDE";
+    private String team2Role = "SEEK";
 
     public void addPlayer(Player player) {
         if (players.size() < 8) {

@@ -50,15 +50,14 @@ public class GameServiceImpl implements GameService {
     private void startGame() {
         new Thread(() -> {
             try {
-                // 게임 시작 전 대기 시간
+                //대기시간 전부 다 일단 5초로 통일
                 Thread.sleep(5000);
                 gameState.setGameRunning(true);
                 while (gameState.isGameRunning()) {
-                    gameState.switchRoles();
-                    // 숨기 팀 활동 시간
+
                     gameState.setPhase("HIDE");
                     Thread.sleep(5000);
-                    // 찾기 팀 활동 시간
+
                     gameState.setPhase("SEEK");
                     Thread.sleep(5000);
                     gameState.switchRoles();

@@ -25,7 +25,6 @@ public class GameController {
     @Autowired
     private GameService gameService;
 
-    // 현재 참가하고 있는 방에 자신의 현재 위치를 알린다.
     @MessageMapping("/rooms/{roomId}/players/position")
     public void handlePlayerPosition(@Validated @Payload SocketClientRequestVO<PlayerPositionVO> vo, @DestinationVariable String roomId) {
         log.info("Player {} shared position: {}", vo.getRequestId(), vo.getData());
