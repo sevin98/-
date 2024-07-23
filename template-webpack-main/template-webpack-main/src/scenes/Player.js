@@ -1,11 +1,9 @@
 import { Scene } from 'phaser';
 import Phaser from 'phaser'
 
-
 import webSocketClient from '../network/index'
 
 console.log('>>>', webSocketClient);
-
 //키인식
 export const Direction = Object.freeze({
     Up: 'Up',
