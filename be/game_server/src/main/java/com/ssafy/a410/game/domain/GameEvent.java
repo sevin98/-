@@ -1,4 +1,4 @@
-package com.ssafy.a410.model;
+package com.ssafy.a410.game.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

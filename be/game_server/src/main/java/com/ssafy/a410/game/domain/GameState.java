@@ -1,4 +1,4 @@
-package com.ssafy.a410.model;
+package com.ssafy.a410.game.domain;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -9,7 +9,6 @@ import java.util.List;
 @Getter
 @Setter
 public class GameState {
-
     private List<Player> players = new ArrayList<>();
     private String phase = "WAIT";
     private boolean gameRunning = false;
@@ -57,13 +56,13 @@ public class GameState {
     }
 
     private void assignTeam(Player player) {
-        long team1Count = players.stream().filter(p -> "team1".equals(p.getTeam())).count();
-        long team2Count = players.stream().filter(p -> "team2".equals(p.getTeam())).count();
+//        long team1Count = players.stream().filter(p -> "team1".equals(p.getTeam())).count();
+//        long team2Count = players.stream().filter(p -> "team2".equals(p.getTeam())).count();
 
-        if (team1Count <= team2Count) {
-            player.setTeam("team1");
-        } else {
-            player.setTeam("team2");
-        }
+//        if (team1Count <= team2Count) {
+//            player.setTeam("team1");
+//        } else {
+//            player.setTeam("team2");
+//        }
     }
 }

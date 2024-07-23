@@ -1,14 +1,13 @@
 package com.ssafy.a410.game.controller;
 
 import com.ssafy.a410.common.controller.dto.SocketClientRequestVO;
-import com.ssafy.a410.game.service.GameService;
+import com.ssafy.a410.game.domain.GameState;
+import com.ssafy.a410.game.domain.Player;
 import com.ssafy.a410.game.service.PlayerBroadcastService;
+import com.ssafy.a410.game.service.RoomService;
 import com.ssafy.a410.game.service.dto.PlayerPositionVO;
-import com.ssafy.a410.model.GameState;
-import com.ssafy.a410.model.Player;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -21,9 +20,7 @@ import org.springframework.validation.annotation.Validated;
 @Controller
 public class GameController {
     private final PlayerBroadcastService playerBroadcastService;
-
-    @Autowired
-    private GameService gameService;
+    private final RoomService roomService;
 
     @MessageMapping("/rooms/{roomId}/players/position")
     public void handlePlayerPosition(@Validated @Payload SocketClientRequestVO<PlayerPositionVO> vo, @DestinationVariable String roomId) {
@@ -31,27 +28,21 @@ public class GameController {
         playerBroadcastService.broadcastPlayerPosition(roomId, vo.getData(), vo.getRequestId());
     }
 
-    @MessageMapping("/join")
+    @MessageMapping("/rooms/join")
     @SendTo("/topic/game")
     public GameState join(Player player) {
-        return gameService.joinGame(player);
+        return roomService.joinGame(player);
     }
 
     @MessageMapping("/leave")
     @SendTo("/topic/game")
     public GameState leave(Player player) {
-        return gameService.leaveGame(player);
+        return roomService.leaveGame(player);
     }
 
     @MessageMapping("/ready")
     @SendTo("/topic/game")
     public GameState ready(Player player) {
-        return gameService.readyPlayer(player);
-    }
-
-    @MessageMapping("/update")
-    @SendTo("/topic/game")
-    public GameState update(GameState gameState) {
-        return gameService.updateGameState(gameState);
+        return roomService.readyPlayer(player);
     }
 }

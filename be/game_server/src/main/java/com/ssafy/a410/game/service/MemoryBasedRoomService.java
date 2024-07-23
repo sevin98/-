@@ -1,23 +1,22 @@
 package com.ssafy.a410.game.service;
 
 import com.ssafy.a410.common.exception.handler.GameException;
-import com.ssafy.a410.model.GameState;
-import com.ssafy.a410.model.Player;
-import com.ssafy.a410.model.Room;
+import com.ssafy.a410.game.domain.GameState;
+import com.ssafy.a410.game.domain.Player;
+import com.ssafy.a410.game.domain.Room;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Service
-public class GameServiceImpl implements GameService {
-
-    private GameState gameState = new GameState();
-    private ConcurrentLinkedQueue<String> messageQueue = new ConcurrentLinkedQueue<>();
-    private Room room = new Room();
+public class MemoryBasedRoomService implements RoomService {
+    private final ConcurrentLinkedQueue<String> messageQueue = new ConcurrentLinkedQueue<>();
+    private final Room room = new Room("1");
+    private final GameState gameState = new GameState();
 
     @Override
     public GameState joinGame(Player player) {
-        if (room.isFull()) {
+        if (room.canJoin(player)) {
             throw new GameException("Room is full");
         }
         room.addPlayer(player);
@@ -27,6 +26,9 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public GameState leaveGame(Player player) {
+        if (room.isIn(player)) {
+            throw new GameException("Player is not in room");
+        }
         room.removePlayer(player);
         gameState.removePlayer(player);
         return gameState;
@@ -38,12 +40,6 @@ public class GameServiceImpl implements GameService {
         if (gameState.isReadyToStart()) {
             startGame();
         }
-        return gameState;
-    }
-
-    @Override
-    public GameState updateGameState(GameState state) {
-        this.gameState = state;
         return gameState;
     }
 

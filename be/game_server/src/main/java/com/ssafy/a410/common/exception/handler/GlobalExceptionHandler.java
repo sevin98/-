@@ -1,6 +1,5 @@
-package com.ssafy.a410.exception;
+package com.ssafy.a410.common.exception.handler;
 
-import com.ssafy.a410.common.exception.handler.GameException;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.web.bind.annotation.ControllerAdvice;
