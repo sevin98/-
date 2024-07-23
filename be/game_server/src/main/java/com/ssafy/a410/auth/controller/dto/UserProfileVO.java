@@ -1,4 +1,6 @@
 package com.ssafy.a410.auth.controller.dto;
 
-public record UserProfileVO(String uuid, String nickname, String role) {
+import com.ssafy.a410.auth.domain.UserRole;
+
+public record UserProfileVO(String uuid, String nickname, UserRole role) {
 }
