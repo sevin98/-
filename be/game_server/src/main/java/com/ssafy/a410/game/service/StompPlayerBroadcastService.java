@@ -1,7 +1,7 @@
 package com.ssafy.a410.game.service;
 
 import com.ssafy.a410.common.controller.dto.SocketClientResponseVO;
-import com.ssafy.a410.game.service.dto.PlayerPositionVO;
+import com.ssafy.a410.game.controller.dto.PlayerPositionVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;

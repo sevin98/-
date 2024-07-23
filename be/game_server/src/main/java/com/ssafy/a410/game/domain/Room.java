@@ -22,28 +22,42 @@ public class Room {
         players = new ConcurrentHashMap<>();
     }
 
-    public void addPlayer(Player player) {
+    protected void addPlayer(Player player) {
         if (!canJoin(player)) {
-            throw new GameException("Cannot join to room");
+            throw new GameException("Player cannot join to room");
         } else {
             players.put(player.getId(), player);
         }
     }
 
-    public void removePlayer(Player player) {
-        players.remove(player.getId());
+    protected void removePlayer(Player player) {
+        if (!has(player)) {
+            throw new GameException("Player is not in room");
+        } else {
+            players.remove(player.getId());
+        }
     }
 
-    private boolean isFull() {
+    protected boolean isFull() {
         return players.size() >= NUM_OF_MAX_PLAYERS;
     }
 
-    public boolean isIn(Player player) {
+    public boolean has(Player player) {
         return players.containsKey(player.getId());
     }
 
     public boolean canJoin(Player player) {
-        // 방에 사람이 더 들어올 수 있고, 게임이 시작되지 않아야 함
-        return !isFull() && playingGame == null && !isIn(player);
+        // 방에 사람이 더 들어올 수 있고, 게임이 준비되지 않아야 함
+        return !isFull() && !isGameInitialized() && !this.has(player);
+    }
+
+    public boolean isGameInitialized() {
+        return playingGame != null;
+    }
+
+    public boolean isReadyToStartGame() {
+        // 참가한 인원의 과반수 이상이 레디 상태여야 함
+        long readyCount = players.values().stream().filter(Player::isReadyToStart).count();
+        return readyCount > players.size() / 2;
     }
 }

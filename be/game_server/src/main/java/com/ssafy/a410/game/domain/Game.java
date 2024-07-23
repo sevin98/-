@@ -10,12 +10,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Game {
+    // 플레이어들이 속해 있는 방
+    private final Room room;
     // 숨는 팀 플레이어 모음
     private final Map<String, Player> hidingTeamPlayers;
     // 찾는 팀 플레이어 모음
     private final Map<String, Player> seekingTeamPlayers;
-    // 플레이어들이 속해 있는 방
-    private final Room room;
     // 현재 게임이 머물러 있는 상태(단계)
     @Setter
     private Phase currentPhase;
@@ -42,6 +42,21 @@ public class Game {
         return newGame;
     }
 
+    private void initialize() {
+        if (isInitialized) {
+            throw new GameException("Game is already initialized");
+        } else {
+            isInitialized = true;
+        }
+
+        // 랜덤으로 플레이어 편 나누기
+        randomAssignPlayersToTeam();
+        // TODO : 봇 채우기
+
+        // 게임을 시작할 준비가 되었음을 표시
+        this.currentPhase = Phase.NOT_STARTED;
+    }
+
     private void randomAssignPlayersToTeam() {
         // 모든 멤버를 섞고
         List<Player> allPlayers = new ArrayList<>(room.getPlayers().values());
@@ -56,21 +71,6 @@ public class Game {
                 seekingTeamPlayers.put(player.getId(), player);
             }
         }
-    }
-
-    private void initialize() {
-        if (isInitialized) {
-            throw new GameException("Game is already initialized");
-        } else {
-            isInitialized = true;
-        }
-
-        // 랜덤으로 플레이어 편 나누기
-        randomAssignPlayersToTeam();
-        // TODO : 봇 채우기
-
-        // 게임을 시작할 준비가 되었음을 표시
-        this.currentPhase = Phase.NOT_STARTED;
     }
 
     public boolean isGameRunning() {

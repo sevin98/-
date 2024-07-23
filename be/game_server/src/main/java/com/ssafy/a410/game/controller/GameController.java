@@ -1,11 +1,10 @@
 package com.ssafy.a410.game.controller;
 
 import com.ssafy.a410.common.controller.dto.SocketClientRequestVO;
-import com.ssafy.a410.game.domain.GameState;
+import com.ssafy.a410.game.controller.dto.PlayerPositionVO;
 import com.ssafy.a410.game.domain.Player;
 import com.ssafy.a410.game.service.PlayerBroadcastService;
 import com.ssafy.a410.game.service.RoomService;
-import com.ssafy.a410.game.service.dto.PlayerPositionVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -30,19 +29,19 @@ public class GameController {
 
     @MessageMapping("/rooms/join")
     @SendTo("/topic/game")
-    public GameState join(Player player) {
-        return roomService.joinGame(player);
+    public void join(Player player) {
+        throw new UnsupportedOperationException("Not implemented yet");
     }
 
     @MessageMapping("/leave")
     @SendTo("/topic/game")
-    public GameState leave(Player player) {
-        return roomService.leaveGame(player);
+    public void leave(Player player) {
+        throw new UnsupportedOperationException("Not implemented yet");
     }
 
     @MessageMapping("/ready")
     @SendTo("/topic/game")
-    public GameState ready(Player player) {
-        return roomService.readyPlayer(player);
+    public void ready(Player player) {
+        throw new UnsupportedOperationException("Not implemented yet");
     }
 }

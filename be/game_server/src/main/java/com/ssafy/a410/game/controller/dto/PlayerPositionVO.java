@@ -1,5 +1,6 @@
-package com.ssafy.a410.game.service.dto;
+package com.ssafy.a410.game.controller.dto;
 
+import com.ssafy.a410.game.domain.PlayerDirection;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
