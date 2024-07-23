@@ -1,6 +1,6 @@
-package auth.model.entity;
+package com.ssafy.a410.auth.model.entity;
 
-import auth.domain.UserRole;
+import com.ssafy.a410.auth.domain.UserRole;
 import jakarta.persistence.*;
 
 @Entity

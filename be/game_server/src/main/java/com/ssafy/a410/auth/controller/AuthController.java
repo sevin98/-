@@ -1,7 +1,7 @@
-package auth.controller;
+package com.ssafy.a410.auth.controller;
 
-import auth.controller.dto.GuestSignUpRequest;
-import auth.controller.dto.GuestSignUpResponse;
+import com.ssafy.a410.auth.controller.dto.GuestSignUpRequest;
+import com.ssafy.a410.auth.controller.dto.GuestSignUpResponse;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

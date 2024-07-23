@@ -1,4 +1,4 @@
-package auth.domain;
+package com.ssafy.a410.auth.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

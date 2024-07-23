@@ -1,6 +1,6 @@
-package auth.service;
+package com.ssafy.a410.auth.service;
 
-import auth.domain.UserProfile;
+import com.ssafy.a410.auth.domain.UserProfile;
 
 public interface UserService {
     UserProfile getUserProfileById(int id);
