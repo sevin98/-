@@ -1,6 +1,5 @@
 package com.ssafy.a410.auth.controller;
 
-import com.ssafy.a410.auth.controller.dto.GuestSignUpRequest;
 import com.ssafy.a410.auth.controller.dto.GuestSignUpResponse;
 import com.ssafy.a410.auth.controller.dto.UserProfileVO;
 import com.ssafy.a410.auth.domain.UserProfile;
@@ -8,7 +7,6 @@ import com.ssafy.a410.auth.service.AuthService;
 import com.ssafy.a410.auth.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,8 +24,8 @@ public class AuthController {
      * @see com.ssafy.a410.common.interceptor.CustomChannelInterceptor
      */
     @PostMapping("/guest/sign-up")
-    public GuestSignUpResponse guestSignUp(@RequestBody GuestSignUpRequest requestDTO) {
-        UserProfile guestUserProfile = userService.createGuestUserProfile(requestDTO.nickname());
+    public GuestSignUpResponse guestSignUp() {
+        UserProfile guestUserProfile = userService.createGuestUserProfile();
         String accessToken = authService.getAccessTokenOf(guestUserProfile);
         return new GuestSignUpResponse(accessToken, new UserProfileVO(guestUserProfile));
     }
