@@ -1,10 +1,15 @@
 package com.ssafy.a410.socket.controller;
 
 import com.ssafy.a410.socket.model.ChatMessage;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
 
+import java.security.Principal;
+
+@Slf4j
 @Controller
 public class SimpleChatController {
     /**
@@ -13,7 +18,8 @@ public class SimpleChatController {
      */
     @MessageMapping("/send-message")
     @SendTo("/topic/messages")
-    public ChatMessage handleChatMessage(String message) {
-        return new ChatMessage(message);
+    public ChatMessage handleChatMessage(Message<String> message, Principal principal) {
+        String senderId = principal.getName();
+        return new ChatMessage(message.getPayload(), senderId);
     }
 }

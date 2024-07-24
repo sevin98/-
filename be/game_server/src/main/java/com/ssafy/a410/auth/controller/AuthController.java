@@ -19,9 +19,9 @@ public class AuthController {
 
     /**
      * 게스트 사용자가 사용할 닉네임을 전달 받아, 생성된 게스트 사용자 정보와 Access Token을 반환한다.
-     * 반환된 Access Token은 WebSocket handshake 과정에서 header에 포함될 것이 요구된다..
+     * 반환된 Access Token은 WebSocket handshake 과정에서 HTTP header에 포함되어야 한다.
      *
-     * @see com.ssafy.a410.common.interceptor.CustomChannelInterceptor
+     * @see com.ssafy.a410.common.filter.HTTPJWTAuthFilter
      */
     @PostMapping("/guest/sign-up")
     public GuestSignUpResponse guestSignUp() {
