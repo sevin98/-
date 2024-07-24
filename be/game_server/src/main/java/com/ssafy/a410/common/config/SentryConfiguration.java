@@ -18,12 +18,6 @@ public class SentryConfiguration {
             Sentry.init(options -> {
                 options.setDsn(sentryDsn);
             });
-
-            try {
-                throw new Exception("Sentry Test");
-            } catch (Exception e) {
-                Sentry.captureException(e);
-            }
         }
     }
 }
