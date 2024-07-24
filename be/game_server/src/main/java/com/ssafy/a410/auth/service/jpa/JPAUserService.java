@@ -5,13 +5,29 @@ import com.ssafy.a410.auth.domain.UserRole;
 import com.ssafy.a410.auth.model.entity.UserProfileEntity;
 import com.ssafy.a410.auth.model.repository.UserProfileRepository;
 import com.ssafy.a410.auth.service.UserService;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-@RequiredArgsConstructor
+import java.util.List;
+
 @Service
 public class JPAUserService implements UserService {
     private final UserProfileRepository userProfileRepository;
+
+    // 랜덤하게 클라이언트의 이름을 조합하기 위한 단어 목록
+    private final List<String> randomNicknamePrefixes;
+    private final List<String> randomNicknameBodies;
+    private final List<String> randomNicknameSuffixes;
+
+    public JPAUserService(@Value("${guest.nickname.prefix}") String rawNicknamePrefixes,
+                          @Value("${guest.nickname.body}") String rawNicknameBodies,
+                          @Value("${guest.nickname.suffix}") String rawNicknameSuffixes,
+                          UserProfileRepository userProfileRepository) {
+        this.userProfileRepository = userProfileRepository;
+        this.randomNicknamePrefixes = List.of(rawNicknamePrefixes.split(" "));
+        this.randomNicknameBodies = List.of(rawNicknameBodies.split(" "));
+        this.randomNicknameSuffixes = List.of(rawNicknameSuffixes.split(" "));
+    }
 
     private UserProfile getUserProfileById(int id) {
         UserProfileEntity userProfile = userProfileRepository.findById(id)
