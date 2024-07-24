@@ -1,3 +1,5 @@
 spring:
   application:
     name: game_server
+  profiles:
+    active: dev

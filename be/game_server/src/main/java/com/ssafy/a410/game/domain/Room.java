@@ -22,7 +22,7 @@ public class Room {
         players = new ConcurrentHashMap<>();
     }
 
-    protected void addPlayer(Player player) {
+    public void addPlayer(Player player) {
         if (!canJoin(player)) {
             throw new GameException("Player cannot join to room");
         } else {
@@ -30,7 +30,7 @@ public class Room {
         }
     }
 
-    protected void removePlayer(Player player) {
+    public void removePlayer(Player player) {
         if (!has(player)) {
             throw new GameException("Player is not in room");
         } else {
