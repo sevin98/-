@@ -1,8 +1,10 @@
-package com.ssafy.a410.auth.service;
+package com.ssafy.a410.auth.service.jpa;
 
 import com.ssafy.a410.auth.domain.UserProfile;
+import com.ssafy.a410.auth.domain.UserRole;
 import com.ssafy.a410.auth.model.entity.UserProfileEntity;
 import com.ssafy.a410.auth.model.repository.UserProfileRepository;
+import com.ssafy.a410.auth.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,10 +28,14 @@ public class JPAUserService implements UserService {
 
     @Override
     public UserProfile createGuestUserProfile(String nickname) {
+        // 게스트 정보 저장하고
         UserProfileEntity requestEntity = UserProfileEntity.builder()
                 .nickname(nickname)
+                .uuid(java.util.UUID.randomUUID().toString())
+                .role(UserRole.GUEST)
                 .build();
         UserProfileEntity createdEntity = userProfileRepository.save(requestEntity);
+        // 도메인 객체로 바꿔 반환
         return UserProfile.fromEntity(createdEntity);
     }
 }

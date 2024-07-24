@@ -36,4 +36,12 @@ public class JWTService {
                 .signWith(secretKey) // 서명
                 .compact();
     }
+
+    public String getUuidFromToken(String token) {
+        return (String) getClaims(token).get("uuid");
+    }
+
+    public Claims getClaims(String token) {
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
+    }
 }
