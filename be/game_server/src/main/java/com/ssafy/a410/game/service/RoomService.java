@@ -8,7 +8,7 @@ import java.util.Optional;
 
 // 방의 운영
 public interface RoomService {
-    Room createRoom(String userProfileUuid);
+    Room createRoom(String userProfileUuid, String password);
 
     void joinRoom(Room room, Player player);
 

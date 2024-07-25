@@ -1,6 +1,7 @@
 package com.ssafy.a410.game.controller;
 
 import com.ssafy.a410.game.controller.dto.RoomVO;
+import com.ssafy.a410.game.domain.CreateRoomRequest;
 import com.ssafy.a410.game.domain.Message;
 import com.ssafy.a410.game.domain.Room;
 import com.ssafy.a410.game.service.RoomService;
@@ -27,8 +28,8 @@ public class RoomController {
     private final SimpMessagingTemplate messagingTemplate;
 
     @PostMapping
-    public ResponseEntity<RoomVO> createRoom(Principal principal) {
-        Room newRoom = roomService.createRoom(principal.getName());
+    public ResponseEntity<RoomVO> createRoom(CreateRoomRequest createRoomRequest, Principal principal) {
+        Room newRoom = roomService.createRoom(principal.getName(), createRoomRequest.password());
         RoomVO roomVO = new RoomVO(newRoom);
         return ResponseEntity.status(HttpStatus.CREATED).body(roomVO);
     }

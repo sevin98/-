@@ -25,7 +25,7 @@ public class MemoryBasedRoomService implements RoomService {
     }
 
     @Override
-    public Room createRoom(String userProfileUuid) {
+    public Room createRoom(String userProfileUuid, String password) {
         // 실제로 존재하는 사용자만 방을 만들 수 있음
         if (!userService.isExistUserProfile(userProfileUuid)) {
             throw new GameException("User profile not found");
@@ -42,7 +42,7 @@ public class MemoryBasedRoomService implements RoomService {
         }
 
         // 다음 번호로 방을 만들고, 방 목록에 추가한 다음
-        Room room = new Room(Integer.toString(roomNumber));
+        Room room = new Room(Integer.toString(roomNumber), password);
         rooms.put(room.getRoomNumber(), room);
         return room;
     }
