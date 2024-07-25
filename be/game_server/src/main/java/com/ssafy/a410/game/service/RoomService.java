@@ -2,14 +2,14 @@ package com.ssafy.a410.game.service;
 
 import com.ssafy.a410.game.domain.Player;
 import com.ssafy.a410.game.domain.Room;
-import com.ssafy.a410.game.domain.RoomRequest;
+import com.ssafy.a410.game.domain.CreateRoomRequestDTO;
 
 import java.util.List;
 import java.util.Optional;
 
 // 방의 운영
 public interface RoomService {
-    Room createRoom(RoomRequest roomRequest);
+    Room createRoom(CreateRoomRequestDTO createRoomRequestDTO);
 
     void joinRoom(Room room, Player player);
 
