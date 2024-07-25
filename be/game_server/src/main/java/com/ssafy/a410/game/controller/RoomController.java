@@ -1,10 +1,12 @@
 package com.ssafy.a410.game.controller;
 
+import com.ssafy.a410.game.domain.CreateRoomRequestDTO;
 import com.ssafy.a410.game.domain.Message;
 import com.ssafy.a410.game.domain.Room;
-import com.ssafy.a410.game.domain.CreateRoomRequestDTO;
 import com.ssafy.a410.game.service.RoomService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.ssafy.a410.socket.controller.dto.SubscribableResp;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -14,20 +16,18 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Set;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/rooms")
 public class RoomController {
 
-    @Autowired
-    private RoomService roomService;
-
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
+    private final RoomService roomService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @PostMapping
-    public ResponseEntity<Room> createRoom(@RequestBody CreateRoomRequestDTO createRoomRequestDTO) {
+    public ResponseEntity<SubscribableResp<Room>> createRoom(@RequestBody CreateRoomRequestDTO createRoomRequestDTO) {
         Room newRoom = roomService.createRoom(createRoomRequestDTO);
-        return ResponseEntity.ok(newRoom);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new SubscribableResp<>(newRoom));
     }
 
     // 개발완료되면 삭제할 메소드
