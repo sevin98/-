@@ -2,9 +2,11 @@ package com.ssafy.a410.game.service.memory;
 
 import com.ssafy.a410.auth.service.UserService;
 import com.ssafy.a410.common.exception.handler.GameException;
+import com.ssafy.a410.game.controller.dto.RoomVO;
 import com.ssafy.a410.game.domain.Player;
 import com.ssafy.a410.game.domain.Room;
 import com.ssafy.a410.game.service.RoomService;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,9 +20,10 @@ public class MemoryBasedRoomService implements RoomService {
 
     private final UserService userService;
     private final Map<String, Room> rooms;
-
-    public MemoryBasedRoomService(UserService userService) {
+    private final SimpMessagingTemplate messagingTemplate;
+    public MemoryBasedRoomService(UserService userService, SimpMessagingTemplate messagingTemplate) {
         this.userService = userService;
+        this.messagingTemplate = messagingTemplate;
         this.rooms = new ConcurrentHashMap<>();
     }
 
@@ -48,7 +51,7 @@ public class MemoryBasedRoomService implements RoomService {
     }
 
     @Override
-    public Room joinRoom(String roomId, Player player, String password) {
+    public void joinRoom(String roomId, Player player, String password) {
         Room room = findRoomById(roomId).orElseThrow(() -> new GameException("Room not found"));
 
         // 비밀번호가 틀리다면
@@ -60,22 +63,26 @@ public class MemoryBasedRoomService implements RoomService {
         //사람추가
         room.addPlayer(player);
         //subscribeTopic -> 클라이언트단
-        return room;
-    }
-
-    @Override
-    public void leaveRoom(Room room, Player player) {
-        if (!room.has(player)) {
-            throw new GameException("Player is not in room");
-        }
-        room.removePlayer(player);
+        RoomVO roomVO = new RoomVO(room);
+        messagingTemplate.convertAndSend("/topic/room/" + roomId, roomVO);
     }
 
     @Override
     public void leaveRoom(String roomId, Player player) {
         Room room = findRoomById(roomId).orElseThrow(() -> new GameException("Room not found"));
-        leaveRoom(room, player);
+
+        //방에 해당 플레이어가 없으면
+        if (!room.has(player))
+            throw new GameException("Player is not in room");
+        //게임이 진행중이거나, 카운트다운이 시작되었다면
+        if (room.isGameRunning() || room.isReadyToStartGame())
+            throw new GameException("Cannot leave room during game or countdown");
+
+        room.removePlayer(player);
+        RoomVO roomVO = new RoomVO(room);
+        messagingTemplate.convertAndSend("/topic/room/" + roomId, roomVO);
     }
+
 
     @Override
     public List<Room> getAllRooms() {
