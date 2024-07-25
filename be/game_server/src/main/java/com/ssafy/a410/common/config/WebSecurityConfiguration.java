@@ -27,6 +27,7 @@ public class WebSecurityConfiguration {
         security
                 .addFilterBefore(httpJWTAuthFilter(), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(registry -> registry
+                        .requestMatchers("/error").permitAll()
                         .requestMatchers(anonymousAllowedPaths).permitAll()
                         .anyRequest().authenticated()
                 ).csrf(AbstractHttpConfigurer::disable);

@@ -3,14 +3,14 @@
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
+  "dependencies": {
+    "@stomp/stompjs": "^7.0.0",
+    "ws": "^8.18.0"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "@stomp/stompjs": "^7.0.0",
-    "ws": "^8.18.0"
-  }
+  "description": ""
 }

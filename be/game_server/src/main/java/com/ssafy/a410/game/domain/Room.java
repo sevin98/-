@@ -12,17 +12,17 @@ public class Room {
     // 한 방에 참가할 수 있는 최대 플레이어 수
     private static final int NUM_OF_MAX_PLAYERS = 8;
 
-    private final String id;
+    private final String roomNumber;
     private final Map<String, Player> players;
     @Setter
     private Game playingGame;
 
-    public Room(String id) {
-        this.id = id;
+    public Room(String roomNumber) {
+        this.roomNumber = roomNumber;
         players = new ConcurrentHashMap<>();
     }
 
-    protected void addPlayer(Player player) {
+    public void addPlayer(Player player) {
         if (!canJoin(player)) {
             throw new GameException("Player cannot join to room");
         } else {
@@ -30,7 +30,7 @@ public class Room {
         }
     }
 
-    protected void removePlayer(Player player) {
+    public void removePlayer(Player player) {
         if (!has(player)) {
             throw new GameException("Player is not in room");
         } else {
