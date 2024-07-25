@@ -20,10 +20,10 @@ public class UserProfileEntity {
     @Column(name = "id")
     private int id;
 
-    @Column(name = "uuid")
+    @Column(name = "uuid", unique = true, nullable = false)
     private String uuid;
 
-    @Column(name = "nickname")
+    @Column(name = "nickname", unique = true, nullable = false)
     private String nickname;
 
     @Column(name = "role", nullable = false)

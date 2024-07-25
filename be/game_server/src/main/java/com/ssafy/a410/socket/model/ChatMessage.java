@@ -9,11 +9,13 @@ import java.util.UUID;
 public class ChatMessage {
     private final String id;
     private final String content;
+    private final String senderId;
     private final long sentAt;
 
-    public ChatMessage(String content) {
+    public ChatMessage(String content, String senderId) {
         this.id = UUID.randomUUID().toString();
         this.content = content;
+        this.senderId = senderId;
         this.sentAt = Instant.now().toEpochMilli();
     }
 }

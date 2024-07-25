@@ -6,5 +6,7 @@ public interface UserService {
 
     UserProfile getUserProfileByUuid(String uuid);
 
-    UserProfile createGuestUserProfile(String nickname);
+    UserProfile createGuestUserProfile();
+
+    String generateUniqueRandomNickname();
 }
