@@ -1,11 +1,11 @@
 package com.ssafy.a410.game.controller;
 
 import com.ssafy.a410.game.controller.dto.RoomVO;
-import com.ssafy.a410.game.domain.CreateRoomRequestDTO;
 import com.ssafy.a410.game.domain.Message;
 import com.ssafy.a410.game.domain.Room;
 import com.ssafy.a410.game.service.RoomService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -14,8 +14,10 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.Set;
 
+@Slf4j
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/rooms")
@@ -25,8 +27,8 @@ public class RoomController {
     private final SimpMessagingTemplate messagingTemplate;
 
     @PostMapping
-    public ResponseEntity<RoomVO> createRoom(@RequestBody CreateRoomRequestDTO createRoomRequestDTO) {
-        Room newRoom = roomService.createRoom(createRoomRequestDTO);
+    public ResponseEntity<RoomVO> createRoom(Principal principal) {
+        Room newRoom = roomService.createRoom(principal.getName());
         RoomVO roomVO = new RoomVO(newRoom);
         return ResponseEntity.status(HttpStatus.CREATED).body(roomVO);
     }

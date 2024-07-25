@@ -1,13 +1,11 @@
 package com.ssafy.a410.game.service.memory;
 
+import com.ssafy.a410.auth.service.UserService;
 import com.ssafy.a410.common.exception.handler.GameException;
-import com.ssafy.a410.game.domain.CreateRoomRequestDTO;
 import com.ssafy.a410.game.domain.Player;
 import com.ssafy.a410.game.domain.Room;
 import com.ssafy.a410.game.service.RoomService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import java.util.List;
 import java.util.Map;
@@ -16,20 +14,35 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class MemoryBasedRoomService implements RoomService {
+    private static int nextRoomNumber = 1000;
+
+    private final UserService userService;
     private final Map<String, Room> rooms;
 
-    @Autowired
-    private WebSocketStompClient stompClient;
-
-    public MemoryBasedRoomService() {
-        rooms = new ConcurrentHashMap<>();
+    public MemoryBasedRoomService(UserService userService) {
+        this.userService = userService;
+        this.rooms = new ConcurrentHashMap<>();
     }
 
     @Override
-    public Room createRoom(CreateRoomRequestDTO createRoomRequestDTO) {
-        Room room = new Room(createRoomRequestDTO.roomNumber());
-        Player player = createRoomRequestDTO.player();
-        room.addPlayer(player);
+    public Room createRoom(String userProfileUuid) {
+        // 실제로 존재하는 사용자만 방을 만들 수 있음
+        if (!userService.isExistUserProfile(userProfileUuid)) {
+            throw new GameException("User profile not found");
+        }
+
+        // 클래스 레벨로 방 참여 코드 동기화
+        int roomNumber = -1;
+        synchronized (MemoryBasedRoomService.class) {
+            roomNumber = nextRoomNumber++;
+            // [1000, 9999] 구간의 코드만 사용
+            if (nextRoomNumber > 9999) {
+                nextRoomNumber = 1000;
+            }
+        }
+
+        // 다음 번호로 방을 만들고, 방 목록에 추가한 다음
+        Room room = new Room(Integer.toString(roomNumber));
         rooms.put(room.getRoomNumber(), room);
         return room;
     }
@@ -70,10 +83,5 @@ public class MemoryBasedRoomService implements RoomService {
     @Override
     public Optional<Room> findRoomById(String roomId) {
         return Optional.ofNullable(rooms.get(roomId));
-    }
-
-    private void startGame() {
-        throw new UnsupportedOperationException("Not implemented yet");
-        // Game start logic can be implemented here
     }
 }
