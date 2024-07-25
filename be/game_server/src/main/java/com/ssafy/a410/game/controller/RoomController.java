@@ -5,7 +5,6 @@ import com.ssafy.a410.game.domain.Room;
 import com.ssafy.a410.game.domain.CreateRoomRequestDTO;
 import com.ssafy.a410.game.service.RoomService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
