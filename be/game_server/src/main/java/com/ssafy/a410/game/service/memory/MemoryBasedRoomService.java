@@ -3,7 +3,7 @@ package com.ssafy.a410.game.service.memory;
 import com.ssafy.a410.common.exception.handler.GameException;
 import com.ssafy.a410.game.domain.Player;
 import com.ssafy.a410.game.domain.Room;
-import com.ssafy.a410.game.domain.RoomRequest;
+import com.ssafy.a410.game.domain.CreateRoomRequestDTO;
 import com.ssafy.a410.game.service.RoomService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.stomp.StompSession;
@@ -29,9 +29,9 @@ public class MemoryBasedRoomService implements RoomService {
     }
 
     @Override
-    public Room createRoom(RoomRequest roomRequest) {
-        Room room = new Room(roomRequest.getId());
-        Player player = roomRequest.getPlayer();
+    public Room createRoom(CreateRoomRequestDTO createRoomRequestDTO) {
+        Room room = new Room(createRoomRequestDTO.roomNumber());
+        Player player = createRoomRequestDTO.player();
         room.addPlayer(player);
         rooms.put(room.getId(), room);
         subscribePlayerToRoomTopic(room.getId(), player);
