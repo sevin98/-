@@ -1,0 +1,134 @@
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f0f0f0;
+  margin: 0;
+  padding: 0;
+}
+
+.waiting-room {
+  width: 800px;
+  height: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+}
+
+.player-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.player-slot {
+  background-color: #e0e0e0;
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+  transition: all 0.3s ease;
+  height: 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.player-slot.ready {
+  background-color: #a5d6a7;
+}
+
+.player-slot.empty {
+  background-color: #f5f5f5;
+  color: #999;
+}
+
+.player-icon {
+  font-size: 24px;
+  margin-bottom: 5px;
+}
+
+.player-nickname {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.player-ready-status {
+  font-size: 12px;
+  color: #666;
+}
+
+.ready-button {
+  display: block;
+  width: 200px;
+  margin: 0 auto;
+  padding: 15px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #fff;
+  background-color: #4caf50;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.ready-button:hover {
+  background-color: #45a049;
+}
+
+.ready-button:disabled {
+  background-color: #a5d6a7;
+  cursor: not-allowed;
+}
+
+.back-to-lobby-button,
+.share-room-code-button {
+  padding: 8px 15px;
+  font-size: 14px;
+  color: #fff;
+  background-color: #2196f3;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-bottom: 15px;
+}
+
+.back-to-lobby-button:hover,
+.share-room-code-button:hover {
+  background-color: #1e88e5;
+}
+
+.back-to-lobby-button {
+  float: left;
+}
+
+.share-room-code-button {
+  float: right;
+}
+
+.chat-box {
+  background-color: #333;
+  color: #fff;
+  padding: 10px;
+  border-radius: 5px;
+  margin-top: 20px;
+  height: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.chat-box .game-status {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.chat-box .copied-message {
+  font-size: 14px;
+  color: #4caf50;
+  margin-top: 5px;
+}
