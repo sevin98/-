@@ -1,14 +1,11 @@
 package com.ssafy.a410.game.service.memory;
 
 import com.ssafy.a410.common.exception.handler.GameException;
+import com.ssafy.a410.game.domain.CreateRoomRequestDTO;
 import com.ssafy.a410.game.domain.Player;
 import com.ssafy.a410.game.domain.Room;
-import com.ssafy.a410.game.domain.CreateRoomRequestDTO;
 import com.ssafy.a410.game.service.RoomService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.simp.stomp.StompSession;
-import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
-import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
@@ -33,8 +30,7 @@ public class MemoryBasedRoomService implements RoomService {
         Room room = new Room(createRoomRequestDTO.roomNumber());
         Player player = createRoomRequestDTO.player();
         room.addPlayer(player);
-        rooms.put(room.getId(), room);
-        subscribePlayerToRoomTopic(room.getId(), player);
+        rooms.put(room.getRoomNumber(), room);
         return room;
     }
 
@@ -44,7 +40,6 @@ public class MemoryBasedRoomService implements RoomService {
             throw new GameException("Room is full or game has started");
         }
         room.addPlayer(player);
-        subscribePlayerToRoomTopic(room.getId(), player);
     }
 
     @Override
@@ -75,21 +70,6 @@ public class MemoryBasedRoomService implements RoomService {
     @Override
     public Optional<Room> findRoomById(String roomId) {
         return Optional.ofNullable(rooms.get(roomId));
-    }
-
-    private void subscribePlayerToRoomTopic(String roomId, Player player) {
-        stompClient.connect("ws://localhost:8080/ws", new StompSessionHandlerAdapter() {
-            @Override
-            public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
-                session.subscribe("/topic/room/" + roomId, new StompSessionHandlerAdapter() {
-                    @Override
-                    public void handleFrame(StompHeaders headers, Object payload) {
-                        // 메시지 처리 로직
-                        System.out.println("Player " + player.getId() + " received message: " + payload);
-                    }
-                });
-            }
-        });
     }
 
     private void startGame() {
