@@ -52,14 +52,26 @@ public class RoomController {
         // 해당 uuid에 맞는 사용자 프로필 가져옴
         UserProfile userProfile = userService.getUserProfileByUuid(uuid);
         Player player = new Player(userProfile.getUuid(), userProfile.getNickname());
-
         String password = (joinRoomRequestDTO != null) ? joinRoomRequestDTO.password() : "";
-
-        Room room = roomService.joinRoom(roomId, player, password);
+        roomService.joinRoom(roomId, player, password);
+        Room room = roomService.findRoomById(roomId).orElseThrow(() -> new RuntimeException("Room not found"));
         RoomVO roomVO = new RoomVO(room);
 
-        messagingTemplate.convertAndSend("/topic/room/" + roomId, roomVO);
         return ResponseEntity.ok(roomVO);
+    }
+
+    //방 나가기
+    @PostMapping("/{roomId}/leave")
+    public ResponseEntity<RoomVO> leaveRoom(@PathVariable String roomId) {
+        //위의 join API와 동일
+        String uuid = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserProfile userProfile = userService.getUserProfileByUuid(uuid);
+        Player player = new Player(userProfile.getUuid(), userProfile.getNickname());
+        roomService.leaveRoom(roomId, player);
+        Room room = roomService.findRoomById(roomId).orElseThrow(() -> new RuntimeException("Room not found"));
+        RoomVO roomVO = new RoomVO(room);
+
+        return  ResponseEntity.ok(roomVO);
     }
 
     // 개발 완료되면 삭제
