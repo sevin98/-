@@ -2,7 +2,7 @@ package com.ssafy.a410.game.controller;
 
 import com.ssafy.a410.game.domain.Message;
 import com.ssafy.a410.game.domain.Room;
-import com.ssafy.a410.game.domain.RoomRequest;
+import com.ssafy.a410.game.domain.CreateRoomRequestDTO;
 import com.ssafy.a410.game.service.RoomService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -24,12 +24,13 @@ public class RoomController {
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
-    @PostMapping("/create")
-    public ResponseEntity<Room> createRoom(@RequestBody RoomRequest roomRequest) {
-        Room newRoom = roomService.createRoom(roomRequest);
+    @PostMapping
+    public ResponseEntity<Room> createRoom(@RequestBody CreateRoomRequestDTO createRoomRequestDTO) {
+        Room newRoom = roomService.createRoom(createRoomRequestDTO);
         return ResponseEntity.ok(newRoom);
     }
 
+    // 개발완료되면 삭제할 메소드
     @GetMapping("/api/rooms/{roomId}/players")
     public ResponseEntity<Set<String>> getRoomPlayers(@PathVariable String roomId) {
         Room room = roomService.findRoomById(roomId).orElseThrow(() -> new RuntimeException("Room not found"));
@@ -37,6 +38,7 @@ public class RoomController {
         return ResponseEntity.ok(playerIds);
     }
 
+    // 개발완료되면 삭제할 메소드
     @MessageMapping("/check/{roomId}")
     @SendTo("/topic/check/{roomId}")
     public String checkPlayerInRoom(@DestinationVariable String roomId, Message message) {
