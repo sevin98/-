@@ -1,11 +1,11 @@
 package com.ssafy.a410.game.controller;
 
+import com.ssafy.a410.game.controller.dto.RoomVO;
 import com.ssafy.a410.game.domain.CreateRoomRequestDTO;
 import com.ssafy.a410.game.domain.Message;
 import com.ssafy.a410.game.domain.Room;
 import com.ssafy.a410.game.service.RoomService;
 import lombok.RequiredArgsConstructor;
-import com.ssafy.a410.socket.controller.dto.SubscribableResp;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -25,9 +25,10 @@ public class RoomController {
     private final SimpMessagingTemplate messagingTemplate;
 
     @PostMapping
-    public ResponseEntity<SubscribableResp<Room>> createRoom(@RequestBody CreateRoomRequestDTO createRoomRequestDTO) {
+    public ResponseEntity<RoomVO> createRoom(@RequestBody CreateRoomRequestDTO createRoomRequestDTO) {
         Room newRoom = roomService.createRoom(createRoomRequestDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new SubscribableResp<>(newRoom));
+        RoomVO roomVO = new RoomVO(newRoom);
+        return ResponseEntity.status(HttpStatus.CREATED).body(roomVO);
     }
 
     // 개발완료되면 삭제할 메소드
