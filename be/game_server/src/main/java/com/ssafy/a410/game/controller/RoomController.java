@@ -57,6 +57,8 @@ public class RoomController {
 
         Room room = roomService.joinRoom(roomId, player, password);
         RoomVO roomVO = new RoomVO(room);
+
+        messagingTemplate.convertAndSend("/topic/room/" + roomId, roomVO);
         return ResponseEntity.ok(roomVO);
     }
 
