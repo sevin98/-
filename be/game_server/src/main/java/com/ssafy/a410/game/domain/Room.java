@@ -12,13 +12,18 @@ public class Room {
     // 한 방에 참가할 수 있는 최대 플레이어 수
     private static final int NUM_OF_MAX_PLAYERS = 8;
 
+    // 방 참여 코드 (고유값)
     private final String roomNumber;
+    // 방 비밀 번호
+    private final String password;
+
     private final Map<String, Player> players;
     @Setter
     private Game playingGame;
 
-    public Room(String roomNumber) {
+    public Room(String roomNumber, String password) {
         this.roomNumber = roomNumber;
+        this.password = password;
         players = new ConcurrentHashMap<>();
     }
 
@@ -59,5 +64,9 @@ public class Room {
         // 참가한 인원의 과반수 이상이 레디 상태여야 함
         long readyCount = players.values().stream().filter(Player::isReadyToStart).count();
         return readyCount > players.size() / 2;
+    }
+
+    public boolean isPublic() {
+        return password == null || password.isEmpty();
     }
 }

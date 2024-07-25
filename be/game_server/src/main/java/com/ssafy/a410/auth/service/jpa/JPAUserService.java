@@ -68,6 +68,11 @@ public class JPAUserService implements UserService {
         throw new GameException("Failed to generate a unique random nickname");
     }
 
+    @Override
+    public boolean isExistUserProfile(String uuid) {
+        return userProfileRepository.existsByUuid(uuid);
+    }
+
     // 랜덤 닉네임을 생성
     public String generateRandomNickname() {
         String prefix = randomNicknamePrefixes.get(random.nextInt(randomNicknamePrefixes.size()));

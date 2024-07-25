@@ -9,4 +9,6 @@ public interface UserService {
     UserProfile createGuestUserProfile();
 
     String generateUniqueRandomNickname();
+
+    boolean isExistUserProfile(String uuid);
 }
