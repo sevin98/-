@@ -15,6 +15,12 @@ const LoginForm = () => {
 
     const navigate = useNavigate(); 
 
+    //간단하게 WaitingRoom으로 가는 기능. 대기실로 바로 이동 버튼을 클릭할때 실행됨
+    const handleDirectToWaitingRoom = () => {
+        navigate('/WaitingRoom'); // WaitingRoom 컴포넌트의 경로로 이동
+        console.log('대기실로 이동');
+    }; // Lobby 구현 후 세 컴포넌트를 이은 후에는 반드시 삭제 필요
+
     const movetoRoom = (e) =>{
         e.preventDefault();
         navigate('../Lobby/Lobby.jsx')
@@ -54,6 +60,12 @@ const LoginForm = () => {
                     <button className="guest" type="button" onClick={movetoRoom}>
                     게스트 접속하기
                     </button>
+
+                    //대기실로 바로이동 버튼
+                    <button className="direct-to-waiting-room" onClick={handleDirectToWaitingRoom}>
+                        대기실로 바로 이동
+                    </button>
+                    //추후 삭제 필요
                 </form>
             </div>
 
