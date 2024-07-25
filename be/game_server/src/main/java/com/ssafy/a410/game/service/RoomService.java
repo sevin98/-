@@ -10,9 +10,8 @@ import java.util.Optional;
 public interface RoomService {
     Room createRoom(String userProfileUuid, String password);
 
-    void joinRoom(Room room, Player player);
 
-    void joinRoom(String roomId, Player player);
+    Room joinRoom(String roomId, Player player, String password);
 
     void leaveRoom(Room room, Player player);
 
