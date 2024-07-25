@@ -48,17 +48,19 @@ public class MemoryBasedRoomService implements RoomService {
     }
 
     @Override
-    public void joinRoom(Room room, Player player) {
-        if (!room.canJoin(player)) {
-            throw new GameException("Room is full or game has started");
-        }
-        room.addPlayer(player);
-    }
-
-    @Override
-    public void joinRoom(String roomId, Player player) {
+    public Room joinRoom(String roomId, Player player, String password) {
         Room room = findRoomById(roomId).orElseThrow(() -> new GameException("Room not found"));
-        joinRoom(room, player);
+
+        // 비밀번호가 틀리다면
+        if (room.getPassword() != null && !room.getPassword().isEmpty() && !room.getPassword().equals(password))
+            throw new GameException("Invalid room password");
+
+        // 방에 사람이 더 들어올 수 없거나, 게임이 시작되었다면.
+        if(!room.canJoin(player)) throw new GameException("Room is full or game has started");
+        //사람추가
+        room.addPlayer(player);
+        //subscribeTopic -> 클라이언트단
+        return room;
     }
 
     @Override
