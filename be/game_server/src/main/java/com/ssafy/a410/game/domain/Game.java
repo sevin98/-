@@ -1,10 +1,14 @@
 package com.ssafy.a410.game.domain;
 
+import com.ssafy.a410.common.constant.MilliSecOf;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class Game {
+@Slf4j
+public class Game implements Runnable {
     // 플레이어들이 속해 있는 방
     private final Room room;
     // 숨는 팀
@@ -52,10 +56,51 @@ public class Game {
     }
 
     public boolean canJoin() {
-        return this.currentPhase != null || this.currentPhase.isNowOrBefore(Phase.INITIALIZING);
+        return this.currentPhase != null && this.currentPhase.isNowOrBefore(Phase.INITIALIZING);
     }
 
     public boolean isGameRunning() {
         return this.currentPhase.isNowOrAfter(Phase.INITIALIZED);
+    }
+
+    @Override
+    public void run() {
+        int currentRound = 1;
+        this.currentPhase = Phase.READY;
+        log.info("Game start!");
+
+        while (isGameRunning() && currentRound <= 3 && !isGameFinished()) {
+            log.info("Round: {}", currentRound);
+            // READY Phase ============================================================================================
+            long timeToSwitchPhase = System.currentTimeMillis() + 3L * MilliSecOf.SECONDS; // READY -> MAIN
+            while (System.currentTimeMillis() < timeToSwitchPhase && !isGameFinished()) {
+                if (isTimeToSwitch(timeToSwitchPhase)) {
+                    log.info("Switching phase from READY to MAIN");
+                    break;
+                }
+            }
+
+            // MAIN Phase =============================================================================================
+            timeToSwitchPhase = System.currentTimeMillis() + 3L * MilliSecOf.SECONDS; // MAIN -> END
+            while (System.currentTimeMillis() < timeToSwitchPhase && !isGameFinished()) {
+                if (isTimeToSwitch(timeToSwitchPhase)) {
+                    log.info("Switching phase from MAIN to END");
+                    break;
+                }
+            }
+
+            // END Phase ==============================================================================================
+            log.info("END PHASE");
+            currentRound++;
+        }
+    }
+
+    private boolean isTimeToSwitch(long timeToSwitchPhase) {
+        return System.currentTimeMillis() >= timeToSwitchPhase;
+    }
+
+    // 게임의 승패가 결정되었는지 확인
+    private boolean isGameFinished() {
+        return false;
     }
 }

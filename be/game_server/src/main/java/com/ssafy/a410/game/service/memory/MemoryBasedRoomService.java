@@ -2,6 +2,7 @@ package com.ssafy.a410.game.service.memory;
 
 import com.ssafy.a410.auth.service.UserService;
 import com.ssafy.a410.common.exception.handler.GameException;
+import com.ssafy.a410.game.domain.Game;
 import com.ssafy.a410.game.domain.Player;
 import com.ssafy.a410.game.domain.Room;
 import com.ssafy.a410.game.service.RoomService;
@@ -44,6 +45,11 @@ public class MemoryBasedRoomService implements RoomService {
         // 다음 번호로 방을 만들고, 방 목록에 추가한 다음
         Room room = new Room(Integer.toString(roomNumber), password);
         rooms.put(room.getRoomNumber(), room);
+
+        Game game = new Game(room);
+        Thread gameThread = new Thread(game);
+        gameThread.start();
+
         return room;
     }
 
