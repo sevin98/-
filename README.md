@@ -1,6 +1,6 @@
 # A410 (포텐)
 
-## 07.24 (유안)
+## 07.25 (유안)
 
     phaser+react 파일 첫번째로 커밋
 
@@ -50,3 +50,45 @@
 
     - 방 참여 불가 : 입장을 요청한 방에 8명의 플레이어가 접속해 있거나, 비밀 방의 비밀번호가 틀렸다면 입장이 거부되는 화면과 기능 구성
     - 각 프롬프트 연결 확인 후 정비
+
+-----------------------
+
+## 07.26 (유안)
+
+### 완성된 내용
+
+    ---
+    naviate 활용시 주의
+    **App.jsx에서 이하와 같이 특정 path를 설정한경우 **
+    <Route path="/Lobby" element={<Lobby />} />
+    **navigate의 인자로 path값 넣어줘야함**
+    navigate("/Lobby");
+
+
+    **.src/LoginForm**
+    LoginForm 의 내부 로그인 동작 함수 추가 ex. onchange, [username,setusername]등
+    - Login
+      -  submit 누를 경우 onChange로 nickname, password 콘솔창에 뱉음
+      -  LoginCheck = True 로 바뀌도록 구현 
+      -  콘솔에 로그인체크 뜨게 만듦
+    - Registration
+      - submit 누를 경우 onChange로 registnickname, registpassword 콘솔창 뱉음
+      - LoginCheck = True 로 바뀌도록 구현 
+
+    **.src/Lobby**
+    로그인 폼에서 게스트 접속 시 로비 페이지로 이동 
+
+    lobby
+
+    - Nickname(className임)
+      - 닉네임 수정 일단 추가해놓음
+    - navigateRoom(className임)
+      - 방생성 버튼은 LobbyCreate
+      - 방 참여 버튼은 LobbyJoin
+      - 랜덤 매칭은 WaitingRoom 
+        - **(이후 서버 연결 받아 특정 방으로 가도록 수정해야함)**
+
+
+### 이후 할 내용
+  - lobbyCreate: 방생성 페이지 이후 완성
+  - lobbyJoin: 방참여 페이지 이후 완성

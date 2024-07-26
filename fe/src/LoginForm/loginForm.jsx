@@ -1,10 +1,17 @@
-import React, { useState } from "react";
-import {useNavigate} from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import "./loginForm.css";
 import { FaUser, FaLock } from "react-icons/fa";
 
 const LoginForm = () => {
     const [action, setAction] = useState("");
+
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [registUsername, setregistUsername] = useState("");
+    const [registPassword, setregistPassword] = useState("");
+
+    const [loginCheck, setLoginCheck] = useState(false); // 로그인 상태 체크
 
     const registerLink = () => {
         setAction("active");
@@ -13,20 +20,29 @@ const LoginForm = () => {
         setAction("");
     };
 
-    const navigate = useNavigate(); 
+    const navigate = useNavigate();
 
-    //간단하게 WaitingRoom으로 가는 기능. 대기실로 바로 이동 버튼을 클릭할때 실행됨
-    const handleDirectToWaitingRoom = () => {
-        navigate('/WaitingRoom'); // WaitingRoom 컴포넌트의 경로로 이동
-        console.log('대기실로 이동');
-    }; // Lobby 구현 후 세 컴포넌트를 이은 후에는 반드시 삭제 필요
+    // 게스트 접속 선택할 경우 로비이동
+    const movetoRoom = () => {
+        navigate("/Lobby");
+        console.log("로비로 이동");
+    };
 
-    const movetoRoom = (e) =>{
+    // 로그인 버튼 누를때 콘솔창에 아이디 패스워드 출력
+    const onClickLogin = (e, username, password) => {
         e.preventDefault();
-        navigate('../Lobby/Lobby.jsx')
-        console.log('로비로 이동')
-        // 게스트 접속은 룸으로 바로 이동 
-    }
+        console.log(`username:${username}`);
+        console.log(`password:${password}`);
+        setLoginCheck(true); // 로그인 상태 true로 변경
+        movetoRoom();
+    };
+
+    // loginCheck 상태 변경된 경우 콘솔창에 출력
+    useEffect(() => {
+        if (loginCheck) {
+            console.log(loginCheck);
+        }
+    }, [loginCheck]);
 
     return (
         <div className={`wrapper ${action}`}>
@@ -34,19 +50,32 @@ const LoginForm = () => {
                 <form action="">
                     <h1> Login</h1>
                     <div className="input-box">
-                        <input type="text" placeholder="Username" required />
+                        <input
+                            type="text"
+                            placeholder="Username"
+                            id="username"
+                            onChange={(e) => setUsername(e.target.value)}
+                            required
+                        />
                         <FaUser className="icon" />
                     </div>
                     <div className="input-box">
                         <input
                             type="password"
                             placeholder="Password"
+                            id="password"
+                            onChange={(e) => setPassword(e.target.value)}
                             required
                         />
                         <FaLock className="icon" />
                     </div>
-
-                    <button type="submit"> LOGIN </button>
+                    <button
+                        type="submit"
+                        onClick={(e) => onClickLogin(e, username, password)}
+                    >
+                        {" "}
+                        LOGIN{" "}
+                    </button>
                     <div className="register-link">
                         <p>
                             Don't have an account?
@@ -56,16 +85,14 @@ const LoginForm = () => {
                             </a>
                         </p>
                     </div>
-
-                    <button className="guest" type="button" onClick={movetoRoom}>
-                    게스트 접속하기
+                    <button
+                        className="guest"
+                        type="button"
+                        onClick={movetoRoom}
+                    >
+                        게스트 접속하기
                     </button>
 
-                    //대기실로 바로이동 버튼
-                    <button className="direct-to-waiting-room" onClick={handleDirectToWaitingRoom}>
-                        대기실로 바로 이동
-                    </button>
-                    //추후 삭제 필요
                 </form>
             </div>
 
@@ -73,19 +100,35 @@ const LoginForm = () => {
                 <form action="">
                     <h1> Registration</h1>
                     <div className="input-box">
-                        <input type="text" placeholder="Username" required />
+                        <input
+                            type="text"
+                            placeholder="Username"
+                            id="registUsername"
+                            onChange={(e) => setregistUsername(e.target.value)}
+                            required
+                        />
                         <FaUser className="icon" />
                     </div>
                     <div className="input-box">
                         <input
                             type="password"
                             placeholder="Password"
+                            id="registPassword"
+                            onChange={(e) => setregistPassword(e.target.value)}
                             required
                         />
                         <FaLock className="icon" />
                     </div>
 
-                    <button type="submit"> REGISTER </button>
+                    <button
+                        type="submit"
+                        onClick={(e) =>
+                            onClickLogin(e, registUsername, registPassword)
+                        }
+                    >
+                        {" "}
+                        REGISTER{" "}
+                    </button>
                     <div className="register-link">
                         <p>
                             Already have an account?
@@ -96,7 +139,11 @@ const LoginForm = () => {
                         </p>
                     </div>
 
-                    <button className="guest" type="button" onClick={movetoRoom}>
+                    <button
+                        className="guest"
+                        type="button"
+                        onClick={movetoRoom}
+                    >
                         게스트 접속하기
                     </button>
                 </form>

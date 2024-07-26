@@ -4,8 +4,7 @@
     height:520px; 
     display:flex;
     overflow:hidden;
-    /* align-items: center;
-    transition: height .2s ease; */
+    align-items: center;
 }
 
 .wrapper .form-box {
@@ -43,16 +42,14 @@
 
 .form-box .input-box {
     position: relative;
-    width: 100%;
+    width: calc(100% - 25px); /* 25px 왼쪽 패딩 + 24px 테두리 */
     height: 50px;
     margin: 30px 0;
 }
 
 .form-box .input-box input {
-    padding-left: 25px;
-    width: calc(100% - 25px); /* 25px 왼쪽 패딩 + 24px 테두리 */
-    height: 100%;
     background: transparent;
+    padding-left: 25px;
     outline: none;
     border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: 40px;
@@ -65,14 +62,11 @@ form .input-box input::placeholder {
 }
 
 form .input-box .icon {
-    position: absolute;
-    right: 20px;
-    top: 40%;
-    transform: 0, -50%;
-    font-size: 16px;
+    top: 100% !important;
 }
 
 .form-box button {
+    margin-top: 30px;
     border-radius: 20px;
     border: none;
     width: 100%;
@@ -85,6 +79,7 @@ form .input-box .icon {
 }
 
 form .guest {
+    margin: 0px;
     border-radius: 5px;
     border: none;
     background: rgb(0, 0, 0);
@@ -94,7 +89,6 @@ form .guest {
 form .register-link {
     font-size: 14.5px;
     text-align: center;
-    margin: 20px 0 15px;
     
 }
 
