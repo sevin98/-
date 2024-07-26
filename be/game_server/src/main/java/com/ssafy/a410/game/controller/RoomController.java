@@ -96,4 +96,15 @@ public class RoomController {
             return "Player " + message.getSender() + " is not in room " + roomId;
         }
     }
+
+    @PostMapping("/{roomId}/ready")
+    public ResponseEntity<RoomVO> setPlayerReady(@PathVariable String roomId) {
+        String uuid = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserProfile userProfile = userService.getUserProfileByUuid(uuid);
+        Player player = new Player(userProfile.getUuid(), userProfile.getNickname());
+        roomService.setPlayerReady(roomId, player);
+        Room room = roomService.findRoomById(roomId).orElseThrow(() -> new RuntimeException("Room not found"));
+        RoomVO roomVO = new RoomVO(room);
+        return ResponseEntity.ok(roomVO);
+    }
 }

@@ -64,7 +64,23 @@ public class MemoryBasedRoomService implements RoomService {
         room.addPlayer(player);
         //subscribeTopic -> 클라이언트단
         RoomVO roomVO = new RoomVO(room);
-        messagingTemplate.convertAndSend("/topic/room/" + roomId, roomVO);
+        messagingTemplate.convertAndSend(roomVO.getTopic(), roomVO);
+    }
+
+    @Override
+    public void setPlayerReady(String roomId, Player player) {
+        Room room = findRoomById(roomId).orElseThrow(() -> new GameException("Room not found"));
+
+        // 해당 유저가 방에 없다면.
+        if(!room.has(player)) throw new GameException("Player not found");
+
+        player.setReady();
+
+        //해당 방의 사용자들 과반수가 ready 상태가 되었다면 게임 시작을 하라고 topic 을 보냄
+        if(room.isReadyToStartGame()){
+            RoomVO roomVO = new RoomVO(room);
+            messagingTemplate.convertAndSend(roomVO.getTopic(), roomVO);
+        }
     }
 
     @Override
@@ -80,7 +96,7 @@ public class MemoryBasedRoomService implements RoomService {
 
         room.removePlayer(player);
         RoomVO roomVO = new RoomVO(room);
-        messagingTemplate.convertAndSend("/topic/room/" + roomId, roomVO);
+        messagingTemplate.convertAndSend(roomVO.getTopic(), roomVO);
     }
 
 
