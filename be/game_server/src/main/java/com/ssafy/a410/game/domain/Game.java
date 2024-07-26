@@ -6,16 +6,14 @@ import lombok.Setter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class Game {
     // 플레이어들이 속해 있는 방
     private final Room room;
-    // 숨는 팀 플레이어 모음
-    private final Map<String, Player> hidingTeamPlayers;
-    // 찾는 팀 플레이어 모음
-    private final Map<String, Player> seekingTeamPlayers;
+    // 숨는 팀
+    private final Team hidingTeam;
+    // 찾는 팀
+    private final Team seekingTeam;
     // 현재 게임이 머물러 있는 상태(단계)
     @Setter
     private Phase currentPhase;
@@ -23,10 +21,9 @@ public class Game {
     private boolean isInitialized = false;
 
     private Game(Room room) {
-        // 멤버 초기화
-        this.hidingTeamPlayers = new ConcurrentHashMap<>();
-        this.seekingTeamPlayers = new ConcurrentHashMap<>();
         this.room = room;
+        this.hidingTeam = new Team(Team.Character.RACOON);
+        this.seekingTeam = new Team(Team.Character.FOX);
 
         // 방에 실행 중인 게임으로 연결
         room.setPlayingGame(this);
@@ -66,9 +63,9 @@ public class Game {
         for (int i = 0; i < allPlayers.size(); i++) {
             Player player = allPlayers.get(i);
             if (i % 2 == 0) {
-                hidingTeamPlayers.put(player.getId(), player);
+                hidingTeam.addPlayer(player);
             } else {
-                seekingTeamPlayers.put(player.getId(), player);
+                seekingTeam.addPlayer(player);
             }
         }
     }
