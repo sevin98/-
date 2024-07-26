@@ -11,9 +11,7 @@ public interface RoomService {
     Room createRoom(String userProfileUuid, String password);
 
 
-    Room joinRoom(String roomId, Player player, String password);
-
-    void leaveRoom(Room room, Player player);
+    void joinRoom(String roomId, Player player, String password);
 
     void leaveRoom(String roomId, Player player);
 

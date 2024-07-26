@@ -19,7 +19,7 @@ public class Room {
 
     private final Map<String, Player> players;
     @Setter
-    private Game playingGame;
+    public Game playingGame;
 
     public Room(String roomNumber, String password) {
         this.roomNumber = roomNumber;
@@ -64,6 +64,10 @@ public class Room {
         // 참가한 인원의 과반수 이상이 레디 상태여야 함
         long readyCount = players.values().stream().filter(Player::isReadyToStart).count();
         return readyCount > players.size() / 2;
+    }
+
+    public boolean isGameRunning() {
+        return playingGame != null && playingGame.isGameRunning();
     }
 
     public boolean isPublic() {
