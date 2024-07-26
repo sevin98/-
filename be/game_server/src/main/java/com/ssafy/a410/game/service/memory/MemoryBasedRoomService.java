@@ -6,6 +6,7 @@ import com.ssafy.a410.game.domain.Game;
 import com.ssafy.a410.game.domain.Player;
 import com.ssafy.a410.game.domain.Room;
 import com.ssafy.a410.game.service.RoomService;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,10 +19,12 @@ public class MemoryBasedRoomService implements RoomService {
     private static int nextRoomNumber = 1000;
 
     private final UserService userService;
+    private final SimpMessagingTemplate messagingTemplate;
     private final Map<String, Room> rooms;
 
-    public MemoryBasedRoomService(UserService userService) {
+    public MemoryBasedRoomService(UserService userService, SimpMessagingTemplate messagingTemplate) {
         this.userService = userService;
+        this.messagingTemplate = messagingTemplate;
         this.rooms = new ConcurrentHashMap<>();
     }
 
@@ -46,7 +49,7 @@ public class MemoryBasedRoomService implements RoomService {
         Room room = new Room(Integer.toString(roomNumber), password);
         rooms.put(room.getRoomNumber(), room);
 
-        Game game = new Game(room);
+        Game game = new Game(room, messagingTemplate);
         Thread gameThread = new Thread(game);
         gameThread.start();
 
