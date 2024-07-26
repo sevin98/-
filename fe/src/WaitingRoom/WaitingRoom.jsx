@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Client } from '@stomp/stompjs';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useStompClient } from '../network/StompContext';
 import { useNavigate } from 'react-router-dom';
-import PlayerGrid from './PlayerGrid.jsx';
-import ReadyButton from './ReadyButton.jsx';
-import BackToLobbyButton from './BackToLobbyButton.jsx';
-import ShareRoomCodeButton from './ShareRoomCodeButton.jsx';
-import ChatBox from './ChatBox.jsx';
+import PlayerGrid from './PlayerGrid';
+import ReadyButton from './ReadyButton';
+import BackToLobbyButton from './BackToLobbyButton';
+import ShareRoomCodeButton from './ShareRoomCodeButton';
+import ChatBox from './ChatBox';
 import "./WaitingRoom.css";
 
 function WaitingRoom() {
@@ -16,76 +16,12 @@ function WaitingRoom() {
   const [gameStatusMessage, setGameStatusMessage] = useState("게임 준비를 기다리고 있습니다.");
   const [isCountdownStarted, setIsCountdownStarted] = useState(false);
   const [isBackDisabled, setIsBackDisabled] = useState(false);
+  const [playerId, setPlayerId] = useState('');
 
-  const stompClient = useRef(null);
+  const stompClient = useStompClient();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // STOMP 클라이언트 설정 및 연결
-    stompClient.current = new Client({
-      brokerURL: 'ws://your-websocket-server-url', // 실제 WebSocket 서버 URL로 변경해야 함
-      onConnect: () => {
-        console.log('Connected to STOMP');
-        subscribeToRoom();
-      },
-    });
-
-    stompClient.current.activate();
-
-    return () => {
-      if (stompClient.current) {
-        stompClient.current.deactivate();
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    setIsBackDisabled(isReady || isCountdownStarted);
-  }, [isReady, isCountdownStarted]);
-
-  const subscribeToRoom = () => {
-    if (stompClient.current.connected) {
-      // 방 정보 구독
-      stompClient.current.subscribe(`/topic/room/${roomCode}`, (message) => {
-        const data = JSON.parse(message.body);
-        handleRoomUpdate(data);
-      });
-
-      // 게임 시작 신호 구독
-      stompClient.current.subscribe(`/topic/room/${roomCode}/start`, () => {
-        startCountdown();//신호 구독 성공시 메세지 세팅 및 카운트다운 시작
-      });
-
-      // 초기 방 정보 요청
-      stompClient.current.publish({
-        destination: `/app/room/${roomCode}/join`,
-        body: JSON.stringify({ playerId: 'your-player-id' }) // 실제 플레이어 ID로 변경해야 함
-      });
-    }
-  };
-
-  const handleRoomUpdate = (data) => {
-    setPlayers(data.players);
-    setRoomCode(data.roomCode);
-  };
-
-  const handleCopySuccess = () => {
-    setShowCopiedMessage(true);
-    setTimeout(() => setShowCopiedMessage(false), 2000); // 클립보드 카피 성공 2초 후 카피완료 메시지 숨기기
-  };
-
-  const handleReady = () => {
-    if (!isReady) {
-      setIsReady(true);
-      // 서버로 레디 상태 전송
-      stompClient.current.publish({
-        destination: `/app/room/${roomCode}/ready`,
-        body: JSON.stringify({ playerId: 'your-player-id', isReady: true })
-      });
-    }
-  };
-
-  const startCountdown = () => {
+  const startCountdown = useCallback(() => {
     setIsCountdownStarted(true);
     setGameStatusMessage("곧 게임이 시작됩니다.");
     let count = 5;
@@ -99,24 +35,109 @@ function WaitingRoom() {
         startGame();
       }
     }, 1000);
+  }, []);
+
+  const subscribeToRoom = useCallback(() => {
+    if (stompClient && stompClient.connected && roomCode) {
+      const roomSubscription = stompClient.subscribe(`/topic/room/${roomCode}`, (message) => {
+        try {
+          const data = JSON.parse(message.body);
+          handleRoomUpdate(data);
+        } catch (error) {
+          console.error('Failed to parse room update:', error);
+        }
+      });
+
+      const startSubscription = stompClient.subscribe(`/topic/room/${roomCode}/start`, () => {
+        startCountdown();
+      });
+
+      stompClient.publish({
+        destination: `/app/room/${roomCode}/join`,
+        body: JSON.stringify({ playerId })
+      });
+
+      return () => {
+        roomSubscription.unsubscribe();
+        startSubscription.unsubscribe();
+      };
+    }
+  }, [stompClient, roomCode, playerId, startCountdown]);
+
+  useEffect(() => {
+    if (!stompClient) {
+      console.log("STOMP client is not available yet");
+      return;
+    }
+
+    console.log("STOMP Client:", stompClient);
+
+    const fetchPlayerId = async () => {
+      try {
+        // const response = await fetch('/api/player/id');
+        // const data = await response.json();
+        // setPlayerId(data.playerId);
+        
+        // 임시 해결책: 랜덤 ID 생성
+        setPlayerId(`player_${Math.random().toString(36).substr(2, 9)}`);
+      } catch (error) {
+        console.error('Failed to fetch player ID:', error);
+      }
+    };
+
+    fetchPlayerId();
+  }, [stompClient]);
+
+  useEffect(() => {
+    if (stompClient && roomCode) {
+      const unsubscribe = subscribeToRoom();
+      return () => {
+        if (unsubscribe) unsubscribe();
+      };
+    }
+  }, [stompClient, roomCode, subscribeToRoom]);
+
+  useEffect(() => {
+    setIsBackDisabled(isReady || isCountdownStarted);
+  }, [isReady, isCountdownStarted]);
+
+  const handleRoomUpdate = (data) => {
+    setPlayers(data.players);
+    setRoomCode(data.roomCode);
+  };
+
+  const handleCopySuccess = () => {
+    setShowCopiedMessage(true);
+    setTimeout(() => setShowCopiedMessage(false), 2000);
+  };
+
+  const handleReady = () => {
+    if (!isReady && stompClient && stompClient.connected) {
+      setIsReady(true);
+      stompClient.publish({
+        destination: `/app/room/${roomCode}/ready`,
+        body: JSON.stringify({ playerId, isReady: true })
+      });
+    }
   };
 
   const startGame = () => {
-    // 게임 화면으로 전환
-    navigate('/game'); // '/game'은 게임 화면의 라우트 경로입니다. 실제 경로에 맞게 수정해야 함.
+    navigate('/game');
   };
 
   const handleBackToLobby = () => {
-    if (!isBackDisabled) {
-      // 서버에 방 나가기 요청
-      stompClient.current.publish({
+    if (!isBackDisabled && stompClient && stompClient.connected) {
+      stompClient.publish({
         destination: `/app/room/${roomCode}/leave`,
-        body: JSON.stringify({ playerId: 'your-player-id' })
+        body: JSON.stringify({ playerId })
       });
-      // 로비로 이동
-      navigate('/lobby'); // '/lobby'는 로비 화면의 라우트 경로(임시). 실제 경로에 맞게 수정해야 함.
+      navigate('/lobby');
     }
   };
+
+  if (!stompClient || !stompClient.connected) {
+    return <div>게임 서버에 연결 중...</div>;
+  }
 
   return (
     <div className="waiting-room">
