@@ -92,3 +92,11 @@
 ### 이후 할 내용
   - lobbyCreate: 방생성 페이지 이후 완성
   - lobbyJoin: 방참여 페이지 이후 완성
+
+
+  ## 07/26 (수연)
+  ### 완성된 내용
+    - Stomp를 StompClient, StompContext.jsx로 network폴더 안으로 분리했다. App에서 라우터들을 StompProvider로 감싸 적용하고, 기존의 WaitingRoom을 대폭 수정함.
+    - WaitingRoom과 유안이가 올린 Looby를 연결시키고 커밋
+  ### 앞으로 할 일
+    - 서버(백엔드)와 연결되면 API 명세서 참고해 서버에서 정보 통신하는 부분 수정, 입장 요청-거부 및 방 제거 부분 만들기
