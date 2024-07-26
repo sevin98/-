@@ -9,8 +9,7 @@ import org.springframework.stereotype.Service;
 public class MemoryBasedOutGameService implements OutGameService {
     @Override
     public Game getGame(Room room) {
-        Game newGame = Game.createNewGame(room);
-        return newGame;
+        return new Game(room);
     }
 
     @Override
