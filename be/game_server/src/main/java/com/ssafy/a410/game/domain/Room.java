@@ -1,6 +1,7 @@
 package com.ssafy.a410.game.domain;
 
 import com.ssafy.a410.common.exception.handler.GameException;
+import com.ssafy.a410.socket.domain.Subscribable;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,7 +9,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
-public class Room {
+public class Room implements Subscribable {
     // 한 방에 참가할 수 있는 최대 플레이어 수
     private static final int NUM_OF_MAX_PLAYERS = 8;
 
@@ -72,5 +73,26 @@ public class Room {
 
     public boolean isPublic() {
         return password == null || password.isEmpty();
+    }
+
+    public boolean hasAuthority(Player player, String password) {
+        return isPublic() || this.password.equals(password) || has(player);
+    }
+
+    public boolean hasPlayingGame() {
+        return playingGame != null;
+    }
+
+    public boolean canJoin(Player player, String password) {
+        boolean isFull = isFull();
+        boolean isAuthenticated = hasAuthority(player, password);
+        boolean isGameRunning = isGameRunning();
+        return !isFull && isAuthenticated && hasPlayingGame() && isGameRunning;
+    }
+
+    @Override
+    public String getTopic() {
+        return "/topic/rooms/" + roomNumber;
+
     }
 }
