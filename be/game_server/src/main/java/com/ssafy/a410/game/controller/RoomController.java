@@ -1,8 +1,11 @@
 package com.ssafy.a410.game.controller;
 
+import com.ssafy.a410.auth.domain.UserProfile;
+import com.ssafy.a410.auth.service.UserService;
 import com.ssafy.a410.game.controller.dto.CreateRoomRequestDTO;
 import com.ssafy.a410.game.controller.dto.RoomVO;
 import com.ssafy.a410.game.domain.Message;
+import com.ssafy.a410.game.domain.Player;
 import com.ssafy.a410.game.domain.Room;
 import com.ssafy.a410.game.service.RoomService;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +16,7 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -25,6 +29,7 @@ import java.util.Set;
 public class RoomController {
 
     private final RoomService roomService;
+    private final UserService userService;
     private final SimpMessagingTemplate messagingTemplate;
 
     @PostMapping
@@ -52,5 +57,16 @@ public class RoomController {
         } else {
             return "Player " + message.getSender() + " is not in room " + roomId;
         }
+    }
+
+    @PostMapping("/{roomId}/ready")
+    public ResponseEntity<RoomVO> setPlayerReady(@PathVariable String roomId) {
+        String uuid = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserProfile userProfile = userService.getUserProfileByUuid(uuid);
+        Room room = roomService.findRoomById(roomId).orElseThrow(() -> new RuntimeException("Room not found"));
+        Player player = new Player(userProfile.getUuid(), userProfile.getNickname(), room);
+        roomService.setPlayerReady(roomId, player);
+        RoomVO roomVO = new RoomVO(room);
+        return ResponseEntity.ok(roomVO);
     }
 }

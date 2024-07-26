@@ -10,13 +10,17 @@ import java.util.Optional;
 public interface RoomService {
     Room createRoom(String userProfileUuid, String password);
 
-    void joinRoom(Room room, Player player);
+    void joinRoom(Room room, Player player, String password);
 
-    void joinRoom(String roomId, Player player);
+    void joinRoom(String roomId, Player player, String password);
 
     void leaveRoom(Room room, Player player);
 
     void leaveRoom(String roomId, Player player);
+
+    void setPlayerReady(Room room, Player player);
+
+    void setPlayerReady(String roomId, Player player);
 
     List<Room> getAllRooms();
 

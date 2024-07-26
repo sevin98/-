@@ -2,6 +2,7 @@ package com.ssafy.a410.game.service.memory;
 
 import com.ssafy.a410.auth.service.UserService;
 import com.ssafy.a410.common.exception.handler.GameException;
+import com.ssafy.a410.game.controller.dto.RoomVO;
 import com.ssafy.a410.game.domain.Game;
 import com.ssafy.a410.game.domain.Player;
 import com.ssafy.a410.game.domain.Room;
@@ -35,18 +36,8 @@ public class MemoryBasedRoomService implements RoomService {
             throw new GameException("User profile not found");
         }
 
-        // 클래스 레벨로 방 참여 코드 동기화
-        int roomNumber = -1;
-        synchronized (MemoryBasedRoomService.class) {
-            roomNumber = nextRoomNumber++;
-            // [1000, 9999] 구간의 코드만 사용
-            if (nextRoomNumber > 9999) {
-                nextRoomNumber = 1000;
-            }
-        }
-
         // 다음 번호로 방을 만들고, 방 목록에 추가한 다음
-        Room room = new Room(Integer.toString(roomNumber), password);
+        Room room = new Room(Integer.toString(getNextRoomNumber()), password);
         rooms.put(room.getRoomNumber(), room);
 
         Game game = new Game(room, messagingTemplate);
@@ -56,8 +47,18 @@ public class MemoryBasedRoomService implements RoomService {
         return room;
     }
 
+    private int getNextRoomNumber() {
+        synchronized (MemoryBasedRoomService.class) {
+            int roomNumber = nextRoomNumber++;
+            if (nextRoomNumber > 9999) {
+                nextRoomNumber = 1000;
+            }
+            return roomNumber;
+        }
+    }
+
     @Override
-    public void joinRoom(Room room, Player player) {
+    public void joinRoom(Room room, Player player, String password) {
         if (!room.canJoin(player)) {
             throw new GameException("Room is full or game has started");
         }
@@ -65,9 +66,9 @@ public class MemoryBasedRoomService implements RoomService {
     }
 
     @Override
-    public void joinRoom(String roomId, Player player) {
+    public void joinRoom(String roomId, Player player, String password) {
         Room room = findRoomById(roomId).orElseThrow(() -> new GameException("Room not found"));
-        joinRoom(room, player);
+        joinRoom(room, player, password);
     }
 
     @Override
@@ -76,12 +77,32 @@ public class MemoryBasedRoomService implements RoomService {
             throw new GameException("Player is not in room");
         }
         room.removePlayer(player);
+        RoomVO roomVO = new RoomVO(room);
+        messagingTemplate.convertAndSend(roomVO.getTopic(), roomVO);
     }
 
     @Override
     public void leaveRoom(String roomId, Player player) {
         Room room = findRoomById(roomId).orElseThrow(() -> new GameException("Room not found"));
         leaveRoom(room, player);
+    }
+
+    @Override
+    public void setPlayerReady(Room room, Player player) {
+        if (!room.has(player)) {
+            throw new GameException("Player is not in room");
+        }
+        player.setReady();
+        if (room.isReadyToStartGame()) {
+            RoomVO roomVO = new RoomVO(room);
+            messagingTemplate.convertAndSend(roomVO.getTopic(), roomVO);
+        }
+    }
+
+    @Override
+    public void setPlayerReady(String roomId, Player player) {
+        Room room = findRoomById(roomId).orElseThrow(() -> new GameException("Room not found"));
+        setPlayerReady(room, player);
     }
 
     @Override

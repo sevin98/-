@@ -68,6 +68,9 @@ public class Player implements Subscribable {
 
     // 게임 시작 준비 상태로 변경
     public void setReady() {
+        if(this.readyToStart) {
+            throw new GameException("Player is already ready to start");
+        }
         this.readyToStart = true;
     }
 
