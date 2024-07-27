@@ -1,5 +1,8 @@
 package com.ssafy.a410.common.service;
 
+import com.ssafy.a410.common.constant.MilliSecOf;
+import com.ssafy.a410.socket.controller.dto.SubscriptionTokenResp;
+import com.ssafy.a410.socket.domain.Subscribable;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -13,6 +16,7 @@ import java.util.Map;
 
 @Service
 public class JWTService {
+    private static final long EXPIRATION_AFTER = 10L * MilliSecOf.SECONDS;
     private final SecretKey secretKey;
     private final String issuer;
 
@@ -35,6 +39,14 @@ public class JWTService {
                 .expiration(new Date(now + expirationAfter)) // 만료 시간
                 .signWith(secretKey) // 서명
                 .compact();
+    }
+
+    public String generateSubscriptionToken(Subscribable subscribable, String clientId) {
+        Map<String, Object> payload = Map.of(
+                SubscriptionTokenResp.DESTINATION_KEY, subscribable.getTopic(),
+                SubscriptionTokenResp.CLIENT_ID_KEY, clientId
+        );
+        return generateToken(JWTType.TEMPORARY, payload, EXPIRATION_AFTER);
     }
 
     public String getUuidFromToken(String token) {
