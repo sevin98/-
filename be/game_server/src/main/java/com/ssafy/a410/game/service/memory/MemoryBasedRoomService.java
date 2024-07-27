@@ -1,13 +1,15 @@
 package com.ssafy.a410.game.service.memory;
 
+import com.ssafy.a410.auth.domain.UserProfile;
 import com.ssafy.a410.auth.service.UserService;
 import com.ssafy.a410.common.exception.handler.GameException;
+import com.ssafy.a410.common.service.JWTService;
 import com.ssafy.a410.game.controller.dto.RoomVO;
-import com.ssafy.a410.game.domain.Game;
 import com.ssafy.a410.game.domain.Player;
 import com.ssafy.a410.game.domain.Room;
 import com.ssafy.a410.game.service.RoomService;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import com.ssafy.a410.socket.controller.dto.SubscriptionTokenResp;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,17 +17,17 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @Service
 public class MemoryBasedRoomService implements RoomService {
     private static int nextRoomNumber = 1000;
-
     private final UserService userService;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final JWTService jwtService;
     private final Map<String, Room> rooms;
 
-    public MemoryBasedRoomService(UserService userService, SimpMessagingTemplate messagingTemplate) {
+    public MemoryBasedRoomService(UserService userService, JWTService jwtService) {
         this.userService = userService;
-        this.messagingTemplate = messagingTemplate;
+        this.jwtService = jwtService;
         this.rooms = new ConcurrentHashMap<>();
     }
 
@@ -39,10 +41,6 @@ public class MemoryBasedRoomService implements RoomService {
         // 다음 번호로 방을 만들고, 방 목록에 추가한 다음
         Room room = new Room(Integer.toString(getNextRoomNumber()), password);
         rooms.put(room.getRoomNumber(), room);
-
-        Game game = new Game(room, messagingTemplate);
-        Thread gameThread = new Thread(game);
-        gameThread.start();
 
         return room;
     }
@@ -58,17 +56,17 @@ public class MemoryBasedRoomService implements RoomService {
     }
 
     @Override
-    public void joinRoom(Room room, Player player, String password) {
-        if (!room.canJoin(player)) {
+    public Player joinRoom(Room room, UserProfile userProfile) {
+        if (!room.canJoin(userProfile)) {
             throw new GameException("Room is full or game has started");
         }
-        room.addPlayer(player);
+        return room.join(userProfile);
     }
 
     @Override
-    public void joinRoom(String roomId, Player player, String password) {
+    public Player joinRoom(String roomId, UserProfile userProfile) {
         Room room = findRoomById(roomId).orElseThrow(() -> new GameException("Room not found"));
-        joinRoom(room, player, password);
+        return joinRoom(room, userProfile);
     }
 
     @Override
@@ -76,9 +74,7 @@ public class MemoryBasedRoomService implements RoomService {
         if (!room.has(player)) {
             throw new GameException("Player is not in room");
         }
-        room.removePlayer(player);
-        RoomVO roomVO = new RoomVO(room);
-        messagingTemplate.convertAndSend(roomVO.getTopic(), roomVO);
+        room.kick(player);
     }
 
     @Override
@@ -95,7 +91,6 @@ public class MemoryBasedRoomService implements RoomService {
         player.setReady();
         if (room.isReadyToStartGame()) {
             RoomVO roomVO = new RoomVO(room);
-            messagingTemplate.convertAndSend(roomVO.getTopic(), roomVO);
         }
     }
 
@@ -113,5 +108,17 @@ public class MemoryBasedRoomService implements RoomService {
     @Override
     public Optional<Room> findRoomById(String roomId) {
         return Optional.ofNullable(rooms.get(roomId));
+    }
+
+    @Override
+    public SubscriptionTokenResp getRoomJoinToken(String roomId, String userProfileUuid, String password) {
+        Room room = findRoomById(roomId).orElseThrow(() -> new GameException("Room not found"));
+        UserProfile userProfile = userService.getUserProfileByUuid(userProfileUuid);
+        if (!room.canJoin(userProfile)) {
+            throw new GameException("Room is full or game has started");
+        }
+
+        String token = jwtService.generateSubscriptionToken(room, userProfileUuid);
+        return new SubscriptionTokenResp(token);
     }
 }

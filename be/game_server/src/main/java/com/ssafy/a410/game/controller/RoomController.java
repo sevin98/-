@@ -3,11 +3,13 @@ package com.ssafy.a410.game.controller;
 import com.ssafy.a410.auth.domain.UserProfile;
 import com.ssafy.a410.auth.service.UserService;
 import com.ssafy.a410.game.controller.dto.CreateRoomRequestDTO;
+import com.ssafy.a410.game.controller.dto.JoinRoomRequest;
 import com.ssafy.a410.game.controller.dto.RoomVO;
 import com.ssafy.a410.game.domain.Message;
 import com.ssafy.a410.game.domain.Player;
 import com.ssafy.a410.game.domain.Room;
 import com.ssafy.a410.game.service.RoomService;
+import com.ssafy.a410.socket.controller.dto.SubscriptionTokenResp;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -15,7 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,16 +28,20 @@ import java.util.Set;
 @RestController
 @RequestMapping("/api/rooms")
 public class RoomController {
-
     private final RoomService roomService;
     private final UserService userService;
-    private final SimpMessagingTemplate messagingTemplate;
 
     @PostMapping
     public ResponseEntity<RoomVO> createRoom(CreateRoomRequestDTO createRoomRequest, Principal principal) {
         Room newRoom = roomService.createRoom(principal.getName(), createRoomRequest.password());
         RoomVO roomVO = new RoomVO(newRoom);
         return ResponseEntity.status(HttpStatus.CREATED).body(roomVO);
+    }
+
+    @PostMapping("/{roomId}/join")
+    public ResponseEntity<SubscriptionTokenResp> getJoinRoomToken(@PathVariable String roomId, Principal principal, @RequestBody JoinRoomRequest req) {
+        SubscriptionTokenResp token = roomService.getRoomJoinToken(roomId, principal.getName(), req.password());
+        return ResponseEntity.ok(token);
     }
 
     // 개발완료되면 삭제할 메소드
