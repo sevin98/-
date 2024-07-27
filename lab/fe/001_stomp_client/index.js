@@ -1,35 +1,71 @@
 import { Client } from "@stomp/stompjs";
 import { WebSocket } from "ws";
+import axios from "axios";
 
-// 로그인을 통해 발급 받은 Access Token
-const token =
-  "eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJsb2NhbGhvc3QiLCJ1dWlkIjoiMjMxMTY2NDQtM2I3MS00ODc5LWI0YTctMTFiN2I0MDgyYTcwIiwicm9sZSI6IkdVRVNUIiwidHlwZSI6IkFVVEhfQUNDRVNTIiwiaWF0IjoxNzIxODM0MDUyLCJleHAiOjE3MjE4MzQwNTN9._3cJ1RNy57YTUQf5oEMTxeoGtogn3-NALd_6mgnYe2g_Hi4SLQ682_uMTuaMUd3Ea2SSk2H29kZ7DrKFwocK-g";
+const HTTP_API_URL_PREFIX = "http://localhost:8080/api";
+const { accessToken, userProfile } = (await axios.post(`${HTTP_API_URL_PREFIX}/auth/guest/sign-up`)).data;
 
 // Web Socket Client
 const client = new Client({
-  // Stomp 연결에 사용할 WebSocket 객체를 받아오는 factory function
   webSocketFactory: () => {
     return new WebSocket("ws://localhost:8080/ws", undefined, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     });
   },
-  // 연결이 수립되었을 때 처리
-  onConnect: () => {
-    // 로그 남겨주고
-    console.log("connected!");
+  onConnect: async () => {
+    // 방 만들기
+    const createdRoom = (
+      await axios.post(
+        `${HTTP_API_URL_PREFIX}/rooms`,
+        {
+          password: null,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      )
+    ).data;
+
+    // 방 입장에 필요한 토큰 발급
+    const token = (
+      await axios.post(
+        `${HTTP_API_URL_PREFIX}/rooms/${createdRoom.roomNumber}/join`,
+        {
+          password: null,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      )
+    ).data.token;
+
+    // 방 입장 토큰을 사용하여 방 구독
+    client.subscribe(
+      `/topic/rooms/${createdRoom.roomNumber}`,
+      async (message) => {
+        console.log(`Message from room ${createdRoom.roomNumber}: ${message.body}`);
+      },
+      {
+        subscriptionToken: token,
+      }
+    );
 
     // 메시지 수신 처리부터 해주고 (구독!!!)
-    client.subscribe("/topic/messages", (message) => {
-      console.log(message.body);
-    });
+    // client.subscribe("/topic/messages", (message) => {
+    //   console.log(message.body);
+    // });
 
-    // 메시지 전송해서 보낸 메시지가 그대로 돌아오면 성공
-    client.publish({
-      destination: "/ws/send-message",
-      body: "Hello, STOMP",
-    });
+    // // 메시지 전송해서 보낸 메시지가 그대로 돌아오면 성공
+    // client.publish({
+    //   destination: "/ws/send-message",
+    //   body: "Hello, STOMP",
+    // });
   },
   // 연결이 끊겼을 때 처리
   onDisconnect: () => {

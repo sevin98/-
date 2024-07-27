@@ -71,10 +71,10 @@ public class Game implements Runnable, Subscribable {
     }
 
     public boolean canJoin() {
-        return this.currentPhase != null && this.currentPhase.isNowOrBefore(Phase.INITIALIZING);
+        return this.currentPhase == null;
     }
 
-    public boolean isGameRunning() {
+    public boolean isRunning() {
         return this.currentPhase.isNowOrAfter(Phase.INITIALIZED);
     }
 
