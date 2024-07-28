@@ -37,18 +37,18 @@ const LoginForm = () => {
 
     // 게스트 접속 선택할 경우 로비이동
     const movetoRoom = () => {
-        // axios.post("http://i11a410.p.ssafy.io/staging", {
-        //     accessToken: "", 
-        //     userProfile: "",
-        // })
-        // .then((res) => {
-        //     setRole('Anonymous');
-        //     setAccessToken(res.data.accessToken);
-        //     setUserProfile(res.data.userProfile);
-        // })
-        // .catch((err) => { // 'cath' -> 'catch'로 수정
-        //     console.log(err);
-        // });
+        axios.post("http://i11a410.p.ssafy.io/staging", {
+            accessToken: "", 
+            userProfile: "",
+        })
+        .then((res) => {
+            setRole('Anonymous');
+            setAccessToken(res.data.accessToken);
+            setUserProfile(res.data.userProfile);
+        })
+        .catch((err) => { // 'cath' -> 'catch'로 수정
+            console.log(err);
+        });
 
         navigate("/Lobby");
         // console.log("로비로 이동");
