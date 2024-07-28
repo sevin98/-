@@ -3,8 +3,12 @@ package com.ssafy.a410.game.domain.message;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-@Getter
+/**
+ * 서버로부터 클라이언트에 전달되는 제어 메시지
+ */
 @RequiredArgsConstructor
-public class ServerMessage {
+@Getter
+public class ControlMessage {
+    private final String type;
     private final Object data;
 }
