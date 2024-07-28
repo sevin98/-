@@ -1,12 +1,17 @@
 package com.ssafy.a410.game.domain;
 
-import com.ssafy.a410.game.domain.message.GamePlayerControlMessage;
-import com.ssafy.a410.game.domain.message.GamePlayerControlType;
-import com.ssafy.a410.game.domain.message.GamePlayerRequest;
+import com.ssafy.a410.game.domain.message.game.control.GameStartMessage;
+import com.ssafy.a410.game.domain.message.game.control.PhaseChangeControlMessage;
+import com.ssafy.a410.game.domain.message.game.control.RoundChangeControlMessage;
+import com.ssafy.a410.game.domain.message.player.control.PlayerCoverScreenMessage;
+import com.ssafy.a410.game.domain.message.player.control.PlayerFreezeMessage;
+import com.ssafy.a410.game.domain.message.player.control.PlayerUncoverScreenMessage;
+import com.ssafy.a410.game.domain.message.player.control.PlayerUnfreezeMessage;
+import com.ssafy.a410.game.domain.message.player.request.GamePlayerRequest;
+import com.ssafy.a410.game.service.GameBroadcastService;
 import com.ssafy.a410.socket.domain.Subscribable;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,8 +21,8 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 
 @Getter
 @Slf4j
-public class Game implements Runnable, Subscribable {
-    private static final int MAX_ROUND = 3;
+public class Game extends Subscribable implements Runnable {
+    private static final int TOTAL_ROUND = 3;
 
     // 플레이어들이 속해 있는 방
     private final Room room;
@@ -27,17 +32,17 @@ public class Game implements Runnable, Subscribable {
     // 찾는 팀
     private final Team seekingTeam;
     private final Queue<GamePlayerRequest> seekingTeamRequests;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final GameBroadcastService broadcastService;
     // 현재 게임이 머물러 있는 상태(단계)
     private Phase currentPhase;
 
-    public Game(Room room, SimpMessagingTemplate messagingTemplate) {
+    public Game(Room room, GameBroadcastService broadcastService) {
         this.room = room;
         this.hidingTeam = new Team(Team.Character.RACOON, this);
         this.hidingTeamRequests = new ConcurrentLinkedDeque<>();
         this.seekingTeam = new Team(Team.Character.FOX, this);
         this.seekingTeamRequests = new ConcurrentLinkedDeque<>();
-        this.messagingTemplate = messagingTemplate;
+        this.broadcastService = broadcastService;
         initialize();
     }
 
@@ -80,14 +85,21 @@ public class Game implements Runnable, Subscribable {
 
     @Override
     public void run() {
-        log.info("Game start!");
-        for (int round = 1; round <= MAX_ROUND && !isGameFinished(); round++) {
-            log.info("Round {} of room {} ==================================", round, room.getRoomNumber());
-            log.info("READY Phase start ------------------------------------");
+        // 게임 시작 알림
+        log.debug("방 번호 {}의 게임이 시작되었습니다.", this.room.getRoomNumber());
+        broadcastService.broadcastTo(this, new GameStartMessage());
+        for (int round = 1; round <= TOTAL_ROUND && !isGameFinished(); round++) {
+            // 라운드 변경 알림
+            log.debug("Room {} round {} start =======================================", room.getRoomNumber(), round);
+            broadcastService.broadcastTo(this, new RoundChangeControlMessage(round, TOTAL_ROUND));
+
+            log.debug("Room {} READY Phase start ------------------------------------", room.getRoomNumber());
             runReadyPhase();
-            log.info("MAIN Phase start -------------------------------------");
+
+            log.debug("Room {} MAIN Phase start -------------------------------------", room.getRoomNumber());
             runMainPhase();
-            log.info("END Phase start --------------------------------------");
+
+            log.debug("Room {} END Phase start --------------------------------------", room.getRoomNumber());
             runEndPhase();
         }
     }
@@ -98,21 +110,23 @@ public class Game implements Runnable, Subscribable {
 
     // 게임의 승패가 결정되었는지 확인
     private boolean isGameFinished() {
+        // TODO : Implement game finish logic
         return false;
     }
 
     private void runReadyPhase() {
         // 상태 전환
         this.currentPhase = Phase.READY;
+        broadcastService.broadcastTo(this, new PhaseChangeControlMessage(Phase.READY));
 
         // 숨는 팀만 움직일 수 있으며, 화면 가리기 해제 설정
-        messagingTemplate.convertAndSend(hidingTeam.getTopic(), new GamePlayerControlMessage(GamePlayerControlType.UNCOVER_SCREEN, null));
-        messagingTemplate.convertAndSend(hidingTeam.getTopic(), new GamePlayerControlMessage(GamePlayerControlType.UNFREEZE, null));
+        broadcastService.broadcastTo(hidingTeam, new PlayerUnfreezeMessage());
+        broadcastService.broadcastTo(hidingTeam, new PlayerUncoverScreenMessage());
         hidingTeam.unfreezePlayers();
 
         // 찾는 팀은 움직일 수 없으며, 화면 가리기 설정
-        messagingTemplate.convertAndSend(seekingTeam.getTopic(), new GamePlayerControlMessage(GamePlayerControlType.FREEZE, null));
-        messagingTemplate.convertAndSend(seekingTeam.getTopic(), new GamePlayerControlMessage(GamePlayerControlType.COVER_SCREEN, null));
+        broadcastService.broadcastTo(seekingTeam, new PlayerFreezeMessage());
+        broadcastService.broadcastTo(seekingTeam, new PlayerCoverScreenMessage());
         seekingTeam.freezePlayers();
 
         // 요청 처리 큐 초기화
@@ -131,15 +145,16 @@ public class Game implements Runnable, Subscribable {
 
     private void runMainPhase() {
         this.currentPhase = Phase.MAIN;
+        broadcastService.broadcastTo(this, new PhaseChangeControlMessage(Phase.MAIN));
 
         // 숨는 팀은 움직일 수 없으며, 화면 가리기 해제 설정
-        messagingTemplate.convertAndSend(hidingTeam.getTopic(), new GamePlayerControlMessage(GamePlayerControlType.FREEZE, null));
-        messagingTemplate.convertAndSend(hidingTeam.getTopic(), new GamePlayerControlMessage(GamePlayerControlType.UNCOVER_SCREEN, null));
+        broadcastService.broadcastTo(hidingTeam, new PlayerFreezeMessage());
+        broadcastService.broadcastTo(hidingTeam, new PlayerUncoverScreenMessage());
         hidingTeam.freezePlayers();
 
         // 찾는 팀은 움직일 수 있으며, 화면 가리기 해제 설정
-        messagingTemplate.convertAndSend(seekingTeam.getTopic(), new GamePlayerControlMessage(GamePlayerControlType.UNFREEZE, null));
-        messagingTemplate.convertAndSend(seekingTeam.getTopic(), new GamePlayerControlMessage(GamePlayerControlType.UNCOVER_SCREEN, null));
+        broadcastService.broadcastTo(seekingTeam, new PlayerUnfreezeMessage());
+        broadcastService.broadcastTo(seekingTeam, new PlayerUncoverScreenMessage());
         seekingTeam.unfreezePlayers();
 
         // 요청 처리 큐 초기화
@@ -157,6 +172,8 @@ public class Game implements Runnable, Subscribable {
     }
 
     private void runEndPhase() {
+        this.currentPhase = Phase.END;
+        broadcastService.broadcastTo(this, new PhaseChangeControlMessage(Phase.END));
     }
 
     @Override
