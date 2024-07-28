@@ -1,4 +1,4 @@
-import "./loby.css";
+import "./Loby.css";
 
 const LobbyJoin = () => {
 

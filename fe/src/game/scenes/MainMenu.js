@@ -22,7 +22,9 @@ export class MainMenu extends Scene
             align: 'center'
         }).setDepth(100).setOrigin(0.5);
         
-        EventBus.emit('current-scene-ready', this);
+        this.time.delayedCall(100, () => {
+            EventBus.emit('current-scene-ready', this);
+        })
     }
 
     changeScene ()

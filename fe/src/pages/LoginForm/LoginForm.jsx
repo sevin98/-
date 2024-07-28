@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import "./loginForm.css";
+import "./LoginForm.css";
 import { FaUser, FaLock } from "react-icons/fa";
 
 const LoginForm = () => {
@@ -21,6 +21,11 @@ const LoginForm = () => {
     };
 
     const navigate = useNavigate();
+
+    //게임시작 버튼, 이후 지울것 
+    const startGame  = ()=>{
+        navigate("/GameComponent");
+    };
 
     // 게스트 접속 선택할 경우 로비이동
     const movetoRoom = () => {
@@ -92,8 +97,8 @@ const LoginForm = () => {
                     >
                         게스트 접속하기
                     </button>
-
                 </form>
+                    <button onClick={startGame}>게임으로 이동</button>
             </div>
 
             <div className="form-box register">

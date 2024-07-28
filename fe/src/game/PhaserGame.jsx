@@ -38,6 +38,7 @@ export const PhaserGame = forwardRef(function PhaserGame ({ currentActiveScene }
             if (currentActiveScene instanceof Function)
             {
                 currentActiveScene(currentScene);
+            
             }
             ref.current.scene = currentScene;
             
@@ -56,6 +57,8 @@ export const PhaserGame = forwardRef(function PhaserGame ({ currentActiveScene }
     );
 
 });
+
+export default PhaserGame;
 
 // Props definitions
 PhaserGame.propTypes = {

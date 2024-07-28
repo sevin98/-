@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { ImPencil2 } from "react-icons/im";
 import { useNavigate } from "react-router-dom";
-import "./loby.css";
+import "./Loby.css";
 
 const Lobby = () => {
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useStompClient } from '../network/StompContext';
+import { useStompClient } from '../../network/StompContext';
 import { useNavigate } from 'react-router-dom';
 import PlayerGrid from './PlayerGrid';
 import ReadyButton from './ReadyButton';
