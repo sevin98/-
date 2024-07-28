@@ -1,15 +1,13 @@
 package com.ssafy.a410.game.controller;
 
-import com.ssafy.a410.auth.domain.UserProfile;
-import com.ssafy.a410.auth.service.UserService;
-import com.ssafy.a410.game.controller.dto.CreateRoomRequestDTO;
-import com.ssafy.a410.game.controller.dto.JoinRoomRequest;
-import com.ssafy.a410.game.controller.dto.RoomVO;
+import com.ssafy.a410.game.controller.dto.CreateRoomReqDTO;
+import com.ssafy.a410.game.controller.dto.JoinRoomReqDTO;
+import com.ssafy.a410.game.controller.dto.JoinRoomRespDTO;
+import com.ssafy.a410.game.controller.dto.RoomRespDTO;
 import com.ssafy.a410.game.domain.Message;
 import com.ssafy.a410.game.domain.Player;
 import com.ssafy.a410.game.domain.Room;
 import com.ssafy.a410.game.service.RoomService;
-import com.ssafy.a410.socket.controller.dto.SubscriptionTokenResp;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -17,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -26,22 +23,25 @@ import java.util.Set;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/rooms")
 public class RoomController {
     private final RoomService roomService;
-    private final UserService userService;
 
-    @PostMapping
-    public ResponseEntity<RoomVO> createRoom(CreateRoomRequestDTO createRoomRequest, Principal principal) {
-        Room newRoom = roomService.createRoom(principal.getName(), createRoomRequest.password());
-        RoomVO roomVO = new RoomVO(newRoom);
-        return ResponseEntity.status(HttpStatus.CREATED).body(roomVO);
+    // 새 방을 생성한다.
+    @PostMapping("/api/rooms")
+    public ResponseEntity<RoomRespDTO> createRoom(CreateRoomReqDTO reqDTO, Principal principal) {
+        Room newRoom = roomService.createRoom(principal.getName(), reqDTO.password());
+        RoomRespDTO roomRespDTO = new RoomRespDTO(newRoom);
+        return ResponseEntity.status(HttpStatus.CREATED).body(roomRespDTO);
     }
 
-    @PostMapping("/{roomId}/join")
-    public ResponseEntity<SubscriptionTokenResp> getJoinRoomToken(@PathVariable String roomId, Principal principal, @RequestBody JoinRoomRequest req) {
-        SubscriptionTokenResp token = roomService.getRoomJoinToken(roomId, principal.getName(), req.password());
-        return ResponseEntity.ok(token);
+    // 해당 방에 입장하기 위한 토큰들을 반환한다.
+    @PostMapping("/api/rooms/{roomId}/join")
+    public ResponseEntity<JoinRoomRespDTO> joinRoom(@PathVariable String roomId, Principal principal, @RequestBody JoinRoomReqDTO req) {
+        // 방에 입장시켜 플레이어를 만들고,
+        Player player = roomService.joinRoomWithPassword(roomId, principal.getName(), req.password());
+        // 방에 입장함과 동시에 구독할 수 있는 token들에 대한 정보를 반환한다.
+        JoinRoomRespDTO tokens = roomService.getJoinRoomSubscriptionTokens(roomId, player.getId());
+        return ResponseEntity.ok(tokens);
     }
 
     // 개발완료되면 삭제할 메소드
@@ -64,14 +64,9 @@ public class RoomController {
         }
     }
 
-    @PostMapping("/{roomId}/ready")
-    public ResponseEntity<RoomVO> setPlayerReady(@PathVariable String roomId) {
-        String uuid = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        UserProfile userProfile = userService.getUserProfileByUuid(uuid);
-        Room room = roomService.findRoomById(roomId).orElseThrow(() -> new RuntimeException("Room not found"));
-        Player player = new Player(userProfile.getUuid(), userProfile.getNickname(), room);
-        roomService.setPlayerReady(roomId, player);
-        RoomVO roomVO = new RoomVO(room);
-        return ResponseEntity.ok(roomVO);
+    // 해당 방에 현재 접속해 있을 때, 레디 상태로 전환된다.
+    @MessageMapping("/rooms/{roomId}/ready")
+    public void setPlayerReady(@DestinationVariable String roomId, Principal principal) {
+        roomService.setPlayerReady(roomId, principal.getName());
     }
 }
