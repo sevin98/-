@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, Component } from "react";
+import axios from 'axios';
 import { useNavigate } from "react-router-dom";
 import "./LoginForm.css";
 import { FaUser, FaLock } from "react-icons/fa";
@@ -12,6 +13,11 @@ const LoginForm = () => {
     const [registPassword, setregistPassword] = useState("");
 
     const [loginCheck, setLoginCheck] = useState(false); // 로그인 상태 체크
+
+    const [accessToken, setAccessToken] = useState("");
+    const [userProfile, setUserProfile] = useState("");
+
+    const [role, setRole] = useState("");
 
     const registerLink = () => {
         setAction("active");
@@ -27,27 +33,35 @@ const LoginForm = () => {
         navigate("/GameStart");
     };
 
+    
+
     // 게스트 접속 선택할 경우 로비이동
     const movetoRoom = () => {
+        // axios.post("http://i11a410.p.ssafy.io/staging", {
+        //     accessToken: "", 
+        //     userProfile: "",
+        // })
+        // .then((res) => {
+        //     setRole('Anonymous');
+        //     setAccessToken(res.data.accessToken);
+        //     setUserProfile(res.data.userProfile);
+        // })
+        // .catch((err) => { // 'cath' -> 'catch'로 수정
+        //     console.log(err);
+        // });
+
         navigate("/Lobby");
-        console.log("로비로 이동");
+        // console.log("로비로 이동");
     };
 
-    // 로그인 버튼 누를때 콘솔창에 아이디 패스워드 출력
+    // 로그인 
     const onClickLogin = (e, username, password) => {
         e.preventDefault();
         console.log(`username:${username}`);
         console.log(`password:${password}`);
         setLoginCheck(true); // 로그인 상태 true로 변경
-        movetoRoom();
+        // 로그인 axios
     };
-
-    // loginCheck 상태 변경된 경우 콘솔창에 출력
-    useEffect(() => {
-        if (loginCheck) {
-            console.log(loginCheck);
-        }
-    }, [loginCheck]);
 
     return (
         <div className={`wrapper ${action}`}>

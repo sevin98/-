@@ -116,3 +116,11 @@
       export 를 통해 외부에서 접근 가능하게 만들어줌
     2. router에 등록해서 url 생성
     3. navigate로 해당 url로 이동 가능
+    4. 게스트 로그인, 방생성에 axios요청 추가
+  
+
+
+  ### 이후 할 것 
+  1. guest 접속시 accessToken과 userProfile은 서버가 주는지?
+  2. 
+  3. **redux 로 로그인, 접속권한, 토큰, 아이디 비번 등 상태관리 하기 **

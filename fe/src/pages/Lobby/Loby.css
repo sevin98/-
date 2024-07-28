@@ -9,9 +9,15 @@
     justify-content: center;
 }
 
+form {
+    display: flex;
+    justify-content: space-evenly;
+    flex-direction: column;
+}
 
 h1 {
     margin:10px;
+    color: #333;
 }
 
 button {
