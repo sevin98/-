@@ -6,6 +6,7 @@ import LobbyCreate from "../pages/Lobby/LobbyCreate";
 import LobbyJoin from "../pages/Lobby/LobbyJoin";
 import WaitingRoom from "../pages/WaitingRoom/WaitingRoom";
 import PhaserGame from '../game/PhaserGame';
+
 const Router = createBrowserRouter ([
     {
         path:'/',
@@ -33,7 +34,7 @@ const Router = createBrowserRouter ([
         // errorElement:<NotFound />
     },
     {
-        path:'/GameComponent',
+        path:'/GameStart',
         element:<PhaserGame/>,
         // errorElement:<NotFound />
     },

@@ -24,7 +24,7 @@ const LoginForm = () => {
 
     //게임시작 버튼, 이후 지울것 
     const startGame  = ()=>{
-        navigate("/GameComponent");
+        navigate("/GameStart");
     };
 
     // 게스트 접속 선택할 경우 로비이동

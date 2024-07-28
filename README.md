@@ -110,3 +110,9 @@
    - 앞으로 자주 쓸 버튼등 컴포넌트에 넣어두기 
   3. pages 폴더 생성
    - 페이지 따로 넣어두기 
+
+  4. phaser를 컴포넌트 형태로 화면에서 넘어갈 수 있음
+    1. phaser.jsx 파일에서 div(id-gamecontainter)가 생성됨
+      export 를 통해 외부에서 접근 가능하게 만들어줌
+    2. router에 등록해서 url 생성
+    3. navigate로 해당 url로 이동 가능
