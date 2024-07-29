@@ -8,7 +8,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class Player implements Subscribable {
+public class Player extends Subscribable {
     // 플레이어 식별자
     private final String id;
     // 플레이어 이름

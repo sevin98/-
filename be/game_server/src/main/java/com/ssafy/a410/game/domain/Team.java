@@ -7,7 +7,7 @@ import lombok.Getter;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Team implements Subscribable {
+public class Team extends Subscribable {
     private static final int MAX_NUM_OF_PLAYERS = 4;
     @Getter
     private final Character character;
