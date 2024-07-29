@@ -130,6 +130,18 @@ public class MemoryBasedRoomService implements RoomService {
     }
 
     @Override
+    public Optional<Room> findRoomByPlayerId(String playerId){
+        return rooms.values().stream()
+                .filter(room -> room.hasPlayerWith(playerId))
+                .findFirst();
+    }
+
+    @Override
+    public void removeRoom(String roomId) {
+        rooms.remove(roomId);
+    }
+
+    @Override
     public Room getRoomById(String roomId) {
         return findRoomById(roomId).orElseThrow(() -> new GameException("Room not found"));
     }
