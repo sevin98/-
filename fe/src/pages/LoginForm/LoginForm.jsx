@@ -12,12 +12,11 @@ const LoginForm = () => {
     const [registUsername, setregistUsername] = useState("");
     const [registPassword, setregistPassword] = useState("");
 
+
+    const [userProfile, setUserProfile] = useState("");
     const [loginCheck, setLoginCheck] = useState(false); // 로그인 상태 체크
     const [role, setRole] = useState("");
 
-    const fixedRoomNumber = 1000;
-    const roomPassword = null;
-    // const HTTP_API_URL_PREFIX = "http://localhost:8080/api";
     const HTTP_API_URL_PREFIX = "https://i11a410.p.ssafy.io/staging/api";
 
     const registerLink = () => {
@@ -34,20 +33,20 @@ const LoginForm = () => {
         navigate("/GameStart");
     };
 
-    
-    
+    // redux 에 accesTooken, userProfile, webSocketConnectionToken 저장 해두면 좋을 듯 
     // 게스트 접속 선택할 경우 로비이동
-    const movetoRoom = () => {
-        navigate("/Lobby");
-        // try {
-        //     await axios.post(`${HTTP_API_URL_PREFIX}/auth/guest/sign-up`)
-        //     . then((res)=>{
-        //         const { accessToken, userProfile } = res.data
-        //         console.log("로그인한 게스트의 닉네임: ", userProfile.nickname);
-        //     })
-        // } catch (err){
-        //     console.log(err)
-        // }
+    const movetoRoom = async() => {
+        try {
+            await axios.post(`${HTTP_API_URL_PREFIX}/auth/guest/sign-up`)
+            . then((res)=>{
+                const { accessToken, userProfile, webSocketConnectionToken } = res.data
+                console.log("로그인한 게스트의 닉네임: ", userProfile.nickname);
+                setUserProfile(userProfile.nickname)
+                navigate("/Lobby", {state:{nickname:userProfile.nickname}});
+            })
+        } catch (err){
+            console.log(err)
+        }
     };
 
     // 로그인 
