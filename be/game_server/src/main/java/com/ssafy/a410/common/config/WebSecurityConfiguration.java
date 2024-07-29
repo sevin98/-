@@ -24,6 +24,8 @@ public class WebSecurityConfiguration {
             "/",
             // AuthController
             "/api/auth/guest/sign-up",
+            // `ConnectionAuthHandshakingInterceptor`에서 처리
+            "/ws"
     };
 
     private final String allowedOrigin;

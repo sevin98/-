@@ -1,5 +1,8 @@
 package com.ssafy.a410.socket.config;
 
+import com.ssafy.a410.auth.service.UserService;
+import com.ssafy.a410.common.service.JWTService;
+import com.ssafy.a410.socket.interceptor.ConnectionAuthHandshakingInterceptor;
 import com.ssafy.a410.socket.interceptor.DispatchingInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -20,13 +23,18 @@ import org.springframework.web.socket.messaging.WebSocketStompClient;
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Autowired
     private DispatchingInterceptor dispatchingInterceptor;
+    @Autowired
+    private JWTService jwtService;
+    @Autowired
+    private UserService userService;
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         // WebSocket handshake를 수행할 endpoint를 설정
         registry
                 .addEndpoint("/ws")
-                .setAllowedOrigins("*");
+                .setAllowedOrigins("*")
+                .addInterceptors(connectionAuthHandshakingInterceptor());
     }
 
     @Override
@@ -53,5 +61,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         return new StompSessionHandlerAdapter() {
             // Add necessary overrides for your StompSessionHandlerAdapter
         };
+    }
+
+    @Bean
+    public ConnectionAuthHandshakingInterceptor connectionAuthHandshakingInterceptor() {
+        return new ConnectionAuthHandshakingInterceptor(jwtService, userService);
     }
 }
