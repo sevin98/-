@@ -1,10 +1,7 @@
 package com.ssafy.a410.socket.interceptor;
 
 import com.ssafy.a410.socket.controller.dto.SubscriptionTokenResp;
-import com.ssafy.a410.socket.handler.GameSubscriptionHandler;
-import com.ssafy.a410.socket.handler.PlayerSubscriptionHandler;
-import com.ssafy.a410.socket.handler.RoomSubscriptionHandler;
-import com.ssafy.a410.socket.handler.SocketSubscriptionHandler;
+import com.ssafy.a410.socket.handler.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -19,10 +16,12 @@ import java.util.List;
 @Component
 public class DispatchingInterceptor implements ChannelInterceptor {
     private final List<SocketSubscriptionHandler> socketSubscriptionHandlers;
+    private final RoomDisconnectHandler roomDisconnectHandler;
 
     // 사용자의 구독 요청을 가로채오 적절한 핸들러로 전달하기 위한 Interceptor
-    public DispatchingInterceptor(RoomSubscriptionHandler roomSubscriptionHandler, PlayerSubscriptionHandler playerSubscriptionHandler, GameSubscriptionHandler gameSubscriptionHandler) {
+    public DispatchingInterceptor(RoomSubscriptionHandler roomSubscriptionHandler, PlayerSubscriptionHandler playerSubscriptionHandler, GameSubscriptionHandler gameSubscriptionHandler, RoomDisconnectHandler roomDisconnectHandler) {
         socketSubscriptionHandlers = List.of(roomSubscriptionHandler, playerSubscriptionHandler, gameSubscriptionHandler);
+        this.roomDisconnectHandler = roomDisconnectHandler;
     }
 
     @Override
@@ -46,6 +45,10 @@ public class DispatchingInterceptor implements ChannelInterceptor {
             if (!isHandled) {
                 return null;
             }
+        } else if(command.equals(StompCommand.DISCONNECT)){
+            String clientId = accessor.getUser().getName();
+            log.debug("클라이언트 {}가 연결 해제되었습니다.", clientId);
+            roomDisconnectHandler.handleDisconnect(clientId);
         }
 
         return ChannelInterceptor.super.preSend(message, channel);

@@ -161,4 +161,13 @@ public class Room extends Subscribable {
     public String getTopic() {
         return "/topic/rooms/" + roomNumber;
     }
+
+    public void notifyDisconnection(Player player) {
+        RoomControlMessage message = new RoomControlMessage(
+
+                RoomControlType.PLAYER_DISCONNECTED,
+                PlayerInfo.getAllInfoListFrom(this)
+        );
+        broadcastService.broadcastTo(this, message);
+    }
 }
