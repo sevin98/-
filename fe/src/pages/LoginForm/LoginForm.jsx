@@ -13,11 +13,12 @@ const LoginForm = () => {
     const [registPassword, setregistPassword] = useState("");
 
     const [loginCheck, setLoginCheck] = useState(false); // 로그인 상태 체크
-
-    const [accessToken, setAccessToken] = useState("");
-    const [userProfile, setUserProfile] = useState("");
-
     const [role, setRole] = useState("");
+
+    const fixedRoomNumber = 1000;
+    const roomPassword = null;
+    // const HTTP_API_URL_PREFIX = "http://localhost:8080/api";
+    const HTTP_API_URL_PREFIX = "https://i11a410.p.ssafy.io/staging/api";
 
     const registerLink = () => {
         setAction("active");
@@ -34,24 +35,19 @@ const LoginForm = () => {
     };
 
     
-
+    
     // 게스트 접속 선택할 경우 로비이동
     const movetoRoom = () => {
-        axios.post("http://i11a410.p.ssafy.io/staging", {
-            accessToken: "", 
-            userProfile: "",
-        })
-        .then((res) => {
-            setRole('Anonymous');
-            setAccessToken(res.data.accessToken);
-            setUserProfile(res.data.userProfile);
-        })
-        .catch((err) => { // 'cath' -> 'catch'로 수정
-            console.log(err);
-        });
-
         navigate("/Lobby");
-        // console.log("로비로 이동");
+        // try {
+        //     await axios.post(`${HTTP_API_URL_PREFIX}/auth/guest/sign-up`)
+        //     . then((res)=>{
+        //         const { accessToken, userProfile } = res.data
+        //         console.log("로그인한 게스트의 닉네임: ", userProfile.nickname);
+        //     })
+        // } catch (err){
+        //     console.log(err)
+        // }
     };
 
     // 로그인 

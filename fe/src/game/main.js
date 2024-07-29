@@ -1,7 +1,7 @@
 import Phaser, { Physics } from 'phaser'
 import {MainMenu}  from './scenes/MainMenu'
 import {Preloader} from './scenes/Preloader'
-import {game} from './scenes/game'
+import {game} from './scenes/Game'
 import GameUI from './scenes/GameUI'
 
 // Find out more information about the Game Config at:
