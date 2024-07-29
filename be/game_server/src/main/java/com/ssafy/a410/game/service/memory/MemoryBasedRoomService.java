@@ -92,6 +92,10 @@ public class MemoryBasedRoomService implements RoomService {
             throw new GameException("Player is not in room");
         }
         room.kick(player);
+        room.notifyDisconnection(player);
+
+        if(room.getPlayers().isEmpty())
+            rooms.remove(room.getRoomNumber());
     }
 
     @Override
