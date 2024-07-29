@@ -26,4 +26,8 @@ public interface RoomService {
     Room getRoomById(String roomId);
 
     JoinRoomRespDTO getJoinRoomSubscriptionTokens(String roomId, String playerId);
+
+    Optional<Room> findRoomByPlayerId(String playerId);
+
+    void removeRoom(String roomId);
 }
