@@ -47,7 +47,7 @@ public class RoomController {
     // 방 나가기
     @PostMapping("/api/rooms/{roomId}/leave")
     public ResponseEntity<Void> leaveRoom(@PathVariable String roomId, Principal principal) {
-        Room room = roomService.getRoomById(roomId);
+        Room room = roomService.findRoomById(roomId).orElseThrow(() -> new RuntimeException("Room not found"));
         Player player = room.getPlayerWith(principal.getName());
         roomService.leaveRoom(room, player);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
