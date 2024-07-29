@@ -22,4 +22,17 @@ public class RoomDisconnectHandler {
               room.notifyDisconnection(player);
         });
     }
+
+    public void gameHandleDisconnect(String playerId) {
+        roomService.findRoomByPlayerId(playerId).
+        gameService.findGameByPlayerid(playerId).ifPresent(game -> {
+            Player player = game.getPlayerWith(playerId);
+            game.kick(player);
+
+            if(game.getPlayers().isEmpty())
+                gameService.removeGame(game.getGameNumber());
+            else
+                game.notifyDisconnection(player);
+        });
+    }
 }
