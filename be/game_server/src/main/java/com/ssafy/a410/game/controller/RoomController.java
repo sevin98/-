@@ -44,6 +44,15 @@ public class RoomController {
         return ResponseEntity.ok(tokens);
     }
 
+    // 방 나가기
+    @PostMapping("/api/rooms/{roomId}/leave")
+    public ResponseEntity<Void> leaveRoom(@PathVariable String roomId, Principal principal) {
+        Room room = roomService.getRoomById(roomId);
+        Player player = room.getPlayerWith(principal.getName());
+        roomService.leaveRoom(room, player);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
     // 개발완료되면 삭제할 메소드
     @GetMapping("/api/rooms/{roomId}/players")
     public ResponseEntity<Set<String>> getRoomPlayers(@PathVariable String roomId) {
