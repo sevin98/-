@@ -37,21 +37,7 @@ export class game extends Phaser.Scene {
     this.m_cursorKeys = this.input.keyboard.createCursorKeys();
 
     this.cameras.main.setBackgroundColor(0xff0000);
-    const map0 = this.make.tilemap({ key: "dungeon" });
-    const tileset = map0.addTilesetImage("dungeon", "tiles");
 
-    map0.createLayer("Ground", tileset);
-    const wallsLayer = map0.createLayer("Walls", tileset);
-
-    wallsLayer.setCollisionByProperty({ collides: true });
-
-    const debugGraphics = this.graphics.setAlpha(0.7);
-    this.physics.add.existing(debugGraphics);
-    wallsLayer.renderDebug(debugGraphics, {
-      tileColor: null,
-      collidingTileColor: new Phaser.Display.Color(243, 243, 48, 255),
-      faceColor: new Phaser.Display.Color(40, 39, 37, 255),
-    });
 
     // this.m_player2 = this.physics.add.sprite(450, 250, 'fauna', 'walk-down-3.png');
     //this.m_player3 = this.physics.add.sprite(400, 260, 'fauna', 'walk-down-3.png');
@@ -60,9 +46,9 @@ export class game extends Phaser.Scene {
     this.m_player = new Player(this, 200, 100, "fauna-idle-down", true);
     this.m_player.IsRacoon = true;
     this.cameras.main.startFollow(this.m_player);
-    this.physics.add.collider(this.m_player, wallsLayer, () => {
-      console.log("WAll!!");
-    });
+    // this.physics.add.collider(this.m_player, wallsLayer, () => {
+    //   console.log("WAll!!");
+    // });
 
     // object 오크통, player1과 상호작용 구현
     this.group = this.physics.add.group({

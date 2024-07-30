@@ -18,6 +18,7 @@ const config = {
         // zoom:2,
     },
     scene: [Preloader, game, MainMenu, GameUI],
+
     physics: {
         default: "arcade",
         arcade: {
