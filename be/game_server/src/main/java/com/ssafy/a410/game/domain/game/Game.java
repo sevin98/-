@@ -15,10 +15,7 @@ import com.ssafy.a410.socket.domain.Subscribable;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 @Getter
@@ -103,8 +100,27 @@ public class Game extends Subscribable implements Runnable {
 
             log.debug("Room {} END Phase start --------------------------------------", room.getRoomNumber());
             runEndPhase();
+
+            swapTeam();
         }
         room.endGame();
+    }
+
+    private void swapTeam() {
+        // 숨는 팀과 찾는 팀의 역할을 교환
+        List<Player> hidingPlayers = new ArrayList<>(hidingTeam.getPlayers().values());
+        List<Player> seekingPlayers = new ArrayList<>(seekingTeam.getPlayers().values());
+
+        hidingTeam.clearPlayers();
+        seekingTeam.clearPlayers();
+
+        for (Player player : hidingPlayers) {
+            seekingTeam.addPlayer(player);
+        }
+
+        for (Player player : seekingPlayers) {
+            hidingTeam.addPlayer(player);
+        }
     }
 
     private boolean isTimeToSwitch(long timeToSwitchPhase) {
