@@ -4,11 +4,9 @@ import com.ssafy.a410.game.domain.Pos;
 import com.ssafy.a410.game.domain.game.message.control.*;
 import com.ssafy.a410.game.domain.player.Player;
 import com.ssafy.a410.game.domain.player.PlayerDirection;
-import com.ssafy.a410.game.domain.player.message.control.PlayerCoverScreenMessage;
-import com.ssafy.a410.game.domain.player.message.control.PlayerFreezeMessage;
-import com.ssafy.a410.game.domain.player.message.control.PlayerUncoverScreenMessage;
-import com.ssafy.a410.game.domain.player.message.control.PlayerUnfreezeMessage;
+import com.ssafy.a410.game.domain.player.message.control.*;
 import com.ssafy.a410.game.domain.player.message.request.GamePlayerRequest;
+import com.ssafy.a410.game.domain.player.message.request.PlayerPositionInfo;
 import com.ssafy.a410.game.domain.team.Team;
 import com.ssafy.a410.game.service.MessageBroadcastService;
 import com.ssafy.a410.room.domain.Room;
@@ -22,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
-import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 @Getter
@@ -127,8 +124,14 @@ public class Game extends Subscribable implements Runnable {
         // 게임 시작 알림
         log.debug("방 번호 {}의 게임이 시작되었습니다.", this.room.getRoomNumber());
         broadcastService.broadcastTo(this, new GameStartMessage());
-        // 게임 정보 알림
+        // 게임 정보 전체 알림
         broadcastService.broadcastTo(this, new GameInfoMessage(new GameInfo(this)));
+        // 각 팀의 플레이어들에게 각자의 초기 위치 전송
+        for (Player player : hidingTeam.getPlayers().values()) {
+            PlayerPositionInfo info = new PlayerPositionInfo(player);
+            PlayerPositionMessage message = new PlayerPositionMessage(info);
+            broadcastService.unicastTo(player, message);
+        }
         for (int round = 1; round <= TOTAL_ROUND && !isGameFinished(); round++) {
             // 라운드 변경 알림
             log.debug("Room {} round {} start =======================================", room.getRoomNumber(), round);

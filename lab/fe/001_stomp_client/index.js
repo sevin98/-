@@ -112,9 +112,18 @@ const client = new Client({
     );
 
     // 플레이어 채널 구독
-    client.subscribe(playerSubscriptionInfo.topic, (stompMessage) => {}, {
-      subscriptionToken: playerSubscriptionInfo.token,
-    });
+    client.subscribe(
+      playerSubscriptionInfo.topic,
+      (stompMessage) => {
+        const message = JSON.parse(stompMessage.body);
+        if (message.type === "INIT_POSITION") {
+          console.log(`초기 위치:`, message.data);
+        }
+      },
+      {
+        subscriptionToken: playerSubscriptionInfo.token,
+      }
+    );
 
     // 레디
     console.log("3초 후 레디...");
