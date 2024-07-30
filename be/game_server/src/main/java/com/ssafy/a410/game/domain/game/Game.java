@@ -144,8 +144,18 @@ public class Game extends Subscribable implements Runnable {
             runEndPhase();
 
             swapTeam();
+            resetHPObjects();
         }
         room.endGame();
+    }
+
+    private void resetHPObjects() {
+        // Map 형식으로 hpObjects를 가져와서 반복하며 null값으로 초기화
+        Map<String, HPObject> hpObjects = gameMap.getHpObjects();
+        for(HPObject hpObject : hpObjects.values()) {
+            hpObject.setHidingPlayerId(null);
+            hpObject.setAppliedItemName(null);
+        }
     }
 
     private void swapTeam() {
