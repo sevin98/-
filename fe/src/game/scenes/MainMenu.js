@@ -8,12 +8,12 @@ export class MainMenu extends Scene
     }
 
     preload(){
-        
+
     }
     create ()
     {
 
-        
+        this.scene.start("game");
     }
 }
 

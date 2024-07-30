@@ -6,7 +6,11 @@ export default class GameUI extends Phaser.Scene{
     constructor(){
         super({ key : 'game-ui'})
     }
+    preload(){
+        this.load.image("racoonhead", "assets/object/racoonhead.png");
+        this.load.image("foxhead", "assets/object/foxhead.png");
 
+    }
     create(){
         //묶음으로 UI 만드는 법.
         this.hearts = this.add.group({

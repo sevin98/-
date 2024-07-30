@@ -1,4 +1,3 @@
-import { Scene } from "phaser";
 import Phaser from "phaser";
 import Player, { Direction } from "./Player";
 
