@@ -1,6 +1,6 @@
 package com.ssafy.a410.common.config;
 
-import com.ssafy.a410.common.filter.HTTPJWTAuthFilter;
+import com.ssafy.a410.auth.filter.HTTPJWTAuthFilter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

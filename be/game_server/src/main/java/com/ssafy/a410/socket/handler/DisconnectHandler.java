@@ -1,8 +1,8 @@
 package com.ssafy.a410.socket.handler;
 
-import com.ssafy.a410.game.domain.Player;
+import com.ssafy.a410.game.domain.player.Player;
 import com.ssafy.a410.game.service.GameService;
-import com.ssafy.a410.game.service.RoomService;
+import com.ssafy.a410.room.service.RoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -18,10 +18,10 @@ public class DisconnectHandler {
             Player player = room.getPlayerWith(playerId);
             room.kick(player);
 
-          if(room.getPlayers().isEmpty())
-              roomService.removeRoom(room.getRoomNumber());
-          else
-              room.notifyDisconnection(player);
+            if (room.getPlayers().isEmpty())
+                roomService.removeRoom(room.getRoomNumber());
+            else
+                room.notifyDisconnection(player);
         });
     }
 

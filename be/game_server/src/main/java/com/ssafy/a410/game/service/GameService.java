@@ -1,6 +1,6 @@
 package com.ssafy.a410.game.service;
 
-import com.ssafy.a410.game.domain.Game;
+import com.ssafy.a410.game.domain.game.Game;
 
 import java.util.Optional;
 
