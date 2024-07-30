@@ -18,13 +18,13 @@ const Lobby = () => {
 
     const createRoom = (e) =>{
         e.preventDefault();
-        navigate('/lobbyCreate');
+        navigate('/RoomCreate');
         console.log("새로운 방 생성");
     }
 
     const encounterRoom = (e) =>{
         e.preventDefault();
-        navigate('/lobbyJoin');
+        navigate('/RoomJoin');
         console.log("기존 방에 참여");
     }
 
