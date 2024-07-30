@@ -20,6 +20,10 @@ public class Team extends Subscribable {
         this.players = new HashMap<>();
     }
 
+    public boolean isEmpty(){
+        return players.isEmpty();
+    }
+
     public void addPlayer(Player player) {
         if (this.isFull()) {
             throw new GameException("Team is full");
