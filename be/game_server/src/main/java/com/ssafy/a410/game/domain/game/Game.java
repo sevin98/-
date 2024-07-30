@@ -121,17 +121,7 @@ public class Game extends Subscribable implements Runnable {
 
     @Override
     public void run() {
-        // 게임 시작 알림
-        log.debug("방 번호 {}의 게임이 시작되었습니다.", this.room.getRoomNumber());
-        broadcastService.broadcastTo(this, new GameStartMessage());
-        // 게임 정보 전체 알림
-        broadcastService.broadcastTo(this, new GameInfoMessage(new GameInfo(this)));
-        // 각 팀의 플레이어들에게 각자의 초기 위치 전송
-        for (Player player : hidingTeam.getPlayers().values()) {
-            PlayerPositionInfo info = new PlayerPositionInfo(player);
-            PlayerPositionMessage message = new PlayerPositionMessage(info);
-            broadcastService.unicastTo(player, message);
-        }
+        initializeGame();
         for (int round = 1; round <= TOTAL_ROUND && !isGameFinished(); round++) {
             // 라운드 변경 알림
             log.debug("Room {} round {} start =======================================", room.getRoomNumber(), round);
@@ -180,6 +170,22 @@ public class Game extends Subscribable implements Runnable {
     private boolean isGameFinished() {
         // TODO : Implement game finish logic
         return hidingTeam.isEmpty() && seekingTeam.isEmpty();
+    }
+
+    private void initializeGame() {
+        // 게임 시작 알림
+        log.debug("방 번호 {}의 게임이 시작되었습니다.", this.room.getRoomNumber());
+        broadcastService.broadcastTo(this, new GameStartMessage());
+        // 게임 정보 전체 알림
+        broadcastService.broadcastTo(this, new GameInfoMessage(new GameInfo(this)));
+
+        // 각 팀의 플레이어들에게 각자의 초기화 정보 전송
+        for (Player player : this.room.getPlayers().values()) {
+            PlayerPositionInfo info = new PlayerPositionInfo(player);
+            Team.Character teamCharacter = hidingTeam.has(player) ? hidingTeam.getCharacter() : seekingTeam.getCharacter();
+            PlayerInitializeMessage message = new PlayerInitializeMessage(teamCharacter, info);
+            broadcastService.unicastTo(player, message);
+        }
     }
 
     private void runReadyPhase() {

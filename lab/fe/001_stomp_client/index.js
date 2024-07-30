@@ -116,8 +116,10 @@ const client = new Client({
       playerSubscriptionInfo.topic,
       (stompMessage) => {
         const message = JSON.parse(stompMessage.body);
-        if (message.type === "INIT_POSITION") {
-          console.log(`초기 위치:`, message.data);
+        if (message.type === "INITIALIZE_PLAYER") {
+          const { teamCharacter, playerPositionInfo } = message.data;
+          console.log("팀:", teamCharacter);
+          console.log("플레이어 시작 위치:", playerPositionInfo);
         }
       },
       {
