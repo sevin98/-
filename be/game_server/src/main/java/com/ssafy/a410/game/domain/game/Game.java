@@ -108,17 +108,21 @@ public class Game extends Subscribable implements Runnable {
 
     private void swapTeam() {
         // 숨는 팀과 찾는 팀의 역할을 교환
-        List<Player> hidingPlayers = new ArrayList<>(hidingTeam.getPlayers().values());
-        List<Player> seekingPlayers = new ArrayList<>(seekingTeam.getPlayers().values());
+        List<Player> hidingTeamPlayers = new ArrayList<>(hidingTeam.getPlayers().values());
+        Team.Character hidingTeamCharacter = hidingTeam.getCharacter();
+        List<Player> seekingTeamPlayers = new ArrayList<>(seekingTeam.getPlayers().values());
+        Team.Character seekingTeamCharacter = seekingTeam.getCharacter();
 
         hidingTeam.clearPlayers();
         seekingTeam.clearPlayers();
 
-        for (Player player : hidingPlayers) {
+        for (Player player : hidingTeamPlayers) {
             seekingTeam.addPlayer(player);
         }
+        seekingTeam.setCharacter(hidingTeamCharacter);
+        hidingTeam.setCharacter(seekingTeamCharacter);
 
-        for (Player player : seekingPlayers) {
+        for (Player player : seekingTeamPlayers) {
             hidingTeam.addPlayer(player);
         }
     }

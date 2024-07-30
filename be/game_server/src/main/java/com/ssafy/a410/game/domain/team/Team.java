@@ -5,6 +5,7 @@ import com.ssafy.a410.game.domain.game.Game;
 import com.ssafy.a410.game.domain.player.Player;
 import com.ssafy.a410.socket.domain.Subscribable;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,7 +13,8 @@ import java.util.Map;
 public class Team extends Subscribable {
     private static final int MAX_NUM_OF_PLAYERS = 4;
     @Getter
-    private final Character character;
+    @Setter
+    private Character character;
     private final Game game;
     @Getter
     private final Map<String, Player> players;
