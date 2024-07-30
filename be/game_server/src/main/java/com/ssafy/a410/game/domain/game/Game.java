@@ -120,11 +120,11 @@ public class Game extends Subscribable implements Runnable {
             seekingTeam.addPlayer(player);
         }
         seekingTeam.setCharacter(hidingTeamCharacter);
-        hidingTeam.setCharacter(seekingTeamCharacter);
 
         for (Player player : seekingTeamPlayers) {
             hidingTeam.addPlayer(player);
         }
+        hidingTeam.setCharacter(seekingTeamCharacter);
     }
 
     private boolean isTimeToSwitch(long timeToSwitchPhase) {
