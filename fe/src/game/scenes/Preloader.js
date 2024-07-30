@@ -19,11 +19,12 @@ export class Preloader extends Scene {
         // this.load.image("blackSide", "assets/blacksideTemp.png");
         //여기서부터 시작
 
-        this.load.image("tiles", "assets/map/map-2024-07-29_tiles.png");
         this.load.tilemapTiledJSON(
-            "map-2024-07-29",
-            "assets/map/map-2024-07-29.json"
+            "dungeon",
+            "/assets/map/map-2024-07-29.json"
         );
+        this.load.image("tiles", "/assets/map/map-2024-07-29_tiles.png");
+        this.load.image("base", "/assets/map/base.png");
 
 
         // 상호작용 확인할 오크통&상호작용 표시 이미지 로드
@@ -33,23 +34,25 @@ export class Preloader extends Scene {
             "assets/object/interactionEffect.png"
         );
         this.graphics = this.add.graphics(); //그래픽 객체 생성
-        this.graphics.setDepth(1000); // 항상 제일 위에 그리기
+        // this.graphics.setDepth(10); // 항상 제일 위에 그리기
     }
     create() {
-        const map = this.make.tilemap({ key: "map-2024-07-29" });
-        const tileset = map.addTilesetImage("map-2024-07-29"," map",32,32,0,0 );
-        // const layer1 = map.createLayer("Tile Layer 1", base, 0, 0);
+        this.cameras.main.setBackgroundColor(0xff0000);
 
+
+       // 첫 번째 타일셋 가져오기
+        // 타일셋 추가
+          
 
         // const map0 = this.make.tilemap({ key: "map" });
-        // const tileset = map0.addTilesetImage("map", "tiles");
+        // const tileset = map.addTilesetImage("base", "tiles");
 
-        // map0.createLayer("Ground", tileset);
-        // const wallsLayer = map0.createLayer("Walls", tileset);
+        // map.createLayer("Ground", tileset);
+        // const wallsLayer = map.createLayer("Walls", tileset);
 
         // wallsLayer.setCollisionByProperty({ collides: true });
 
-        // const debugGraphics = this.graphics.setAlpha(0.7);
+        // const debugGraphics = this.add.graphics.setAlpha(0.7);
         // this.physics.add.existing(debugGraphics);
         // wallsLayer.renderDebug(debugGraphics, {
         //     tileColor: null,
