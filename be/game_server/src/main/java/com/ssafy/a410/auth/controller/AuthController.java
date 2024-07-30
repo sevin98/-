@@ -34,7 +34,7 @@ public class AuthController {
     public GuestSignUpResp guestSignUp() {
         UserProfile guestUserProfile = userService.createGuestUserProfile();
         String accessToken = authService.getAccessTokenOf(guestUserProfile);
-        String webSocketConnectionToken = jwtService.generateToken(JWTType.WEBSOCKET_CONNECTION, Map.of("userProfileUuid", guestUserProfile.getUuid()), 10L * MilliSecOf.SECONDS);
+        String webSocketConnectionToken = jwtService.generateToken(JWTType.WEBSOCKET_CONNECTION, Map.of("userProfileUuid", guestUserProfile.getUuid()), 10L * MilliSecOf.HOURS);
         return new GuestSignUpResp(accessToken, new UserProfileResp(guestUserProfile), webSocketConnectionToken);
     }
 }
