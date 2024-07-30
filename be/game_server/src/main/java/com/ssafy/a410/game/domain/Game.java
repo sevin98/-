@@ -7,8 +7,6 @@ import com.ssafy.a410.game.domain.message.player.control.PlayerUncoverScreenMess
 import com.ssafy.a410.game.domain.message.player.control.PlayerUnfreezeMessage;
 import com.ssafy.a410.game.domain.message.player.request.GamePlayerRequest;
 import com.ssafy.a410.game.domain.message.room.control.PlayerInfo;
-import com.ssafy.a410.game.domain.message.room.control.RoomControlMessage;
-import com.ssafy.a410.game.domain.message.room.control.RoomControlType;
 import com.ssafy.a410.game.service.GameBroadcastService;
 import com.ssafy.a410.socket.domain.Subscribable;
 import lombok.Getter;
@@ -112,6 +110,9 @@ public class Game extends Subscribable implements Runnable {
     // 게임의 승패가 결정되었는지 확인
     private boolean isGameFinished() {
         // TODO : Implement game finish logic
+        if(hidingTeam.isEmpty() && seekingTeam.isEmpty()) {
+            return true;
+        }
         return false;
     }
 
@@ -189,6 +190,7 @@ public class Game extends Subscribable implements Runnable {
         return "/topic/rooms/" + room.getRoomNumber() + "/game";
     }
 
+    // player는 현재 사용하지 않지만, 후에 "player가 나갔습니다" 를 뿌려줄까봐 유지함
     public void notifyDisconnection(Player player) {
         GameControlMessage message = new GameControlMessage(
                 GameControlType.PLAYER_DISCONNECTED,
