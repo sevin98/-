@@ -29,11 +29,8 @@ public class DisconnectHandler {
         gameService.findGameByPlayerId(playerId).ifPresent(game -> {
             Player player = game.getRoom().getPlayerWith(playerId);
             game.kick(player);
-
-            if (game.getRoom().getPlayers().isEmpty()){
-                gameService.removeGame(game);
-            }
-            else
+            // 게임에 플레이어가 남아있다면 나갔음을 알림
+            if (!game.getRoom().getPlayers().isEmpty())
                 game.notifyDisconnection(player);
         });
     }
