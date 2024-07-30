@@ -104,23 +104,24 @@
 
 ## 07.28 (유안)
   ### 완성된 내용
-  1. router 폴더 생성
-   - router.jsx에 주소명 생성 및 페이지 할당
-  2. components 폴더 생성
-   - 앞으로 자주 쓸 버튼등 컴포넌트에 넣어두기 
-  3. pages 폴더 생성
-   - 페이지 따로 넣어두기 
 
-  4. phaser를 컴포넌트 형태로 화면에서 넘어갈 수 있음
-    1. phaser.jsx 파일에서 div(id-gamecontainter)가 생성됨
-      export 를 통해 외부에서 접근 가능하게 만들어줌
-    2. router에 등록해서 url 생성
-    3. navigate로 해당 url로 이동 가능
-    4. 게스트 로그인, 방생성에 axios요청 추가
+    1. router 폴더 생성
+       - router.jsx에 페이지 할당
+    2. components 폴더 생성
+       - 앞으로 자주 쓸 버튼등 컴포넌트에 넣어두기 
+    3. pages 폴더 생성
+       - 페이지 따로 넣어두기 
+
+    4. phaser를 컴포넌트 형태로 화면에서 넘어갈 수 있음
+      (이하는 참고)
+       1) phaser.jsx 파일에서 div(id-gamecontainter)가 생성됨
+       export 를 통해 외부에서 접근 가능하게 만들어줌
+       2) router에 등록해서 url 생성
+       3) navigate로 해당 url로 이동 가능
+       4) 게스트 로그인, 방생성에 axios요청 추가
   
 
 
   ### 이후 할 것 
-  1. guest 접속시 accessToken과 userProfile은 서버가 주는지?
-  2. 
-  3. **redux 로 로그인, 접속권한, 토큰, 아이디 비번 등 상태관리 하기 **
+    1. guest 접속시 accessToken과 userProfile은 서버에서 받기
+    2. redux 로 로그인, 접속권한, 토큰, 아이디 비번 등 상태관리 하기 

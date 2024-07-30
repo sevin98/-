@@ -26,6 +26,7 @@ export class game extends Phaser.Scene {
     this.scene.run('game-ui')
     //24.07.25 phase check timer
     this.hideTeam = "RACOON";
+    
     this.readyPhaseEvent = "YET";
     this.mainPhaseEvent = "YET";
     this.endPhaseEvent = "YET";
