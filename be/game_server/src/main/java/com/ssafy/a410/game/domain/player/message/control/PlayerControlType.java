@@ -6,4 +6,5 @@ public enum PlayerControlType {
     COVER_SCREEN, // 화면 가리기
     UNCOVER_SCREEN, // 화면 가리기 해제
     INITIALIZE_PLAYER, // 플레이어 초기 정보 설정
+    SHARE_POSITION, // 플레이어 위치 공유
 }

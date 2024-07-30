@@ -1,5 +1,6 @@
 package com.ssafy.a410.game.controller;
 
+import com.ssafy.a410.game.controller.dto.PlayerPositionReq;
 import com.ssafy.a410.game.service.GameService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,5 +20,11 @@ public class GameController {
     @MessageMapping("/rooms/{roomId}/game")
     public void sendGameInfoToPlayer(@DestinationVariable String roomId, Principal principal) {
         gameService.sendGameInfoToPlayer(roomId, principal.getName());
+    }
+
+    // 클라이언트의 위치를 게임에 공유한다.
+    @MessageMapping("/rooms/{roomId}/game/share-position")
+    public void sharePosition(@DestinationVariable String roomId, Principal principal, PlayerPositionReq playerPositionReq) {
+        gameService.sharePosition(roomId, principal.getName(), playerPositionReq);
     }
 }

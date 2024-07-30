@@ -117,9 +117,41 @@ const client = new Client({
       (stompMessage) => {
         const message = JSON.parse(stompMessage.body);
         if (message.type === "INITIALIZE_PLAYER") {
-          const { teamCharacter, playerPositionInfo } = message.data;
+          const { teamCharacter, playerPositionInfo, teamSubscriptionInfo } = message.data;
           console.log("팀:", teamCharacter);
           console.log("플레이어 시작 위치:", playerPositionInfo);
+
+          // // 팀 정보 수신
+          // client.subscribe(
+          //   {
+          //     destination: teamSubscriptionInfo.topic,
+          //   },
+          //   (stompMessage) => {
+          //     const message = JSON.parse(stompMessage.body);
+          //     console.log(message);
+          //     if (message.type === "SHARE_POSITION") {
+          //       console.log(`[${message.data.playerNickname}]의 위치: ${message.data.x}, ${message.data.y}`);
+          //     }
+          //   },
+          //   {
+          //     headers: {
+          //       Authorization: `Bearer ${accessToken}`,
+          //     },
+          //   }
+          // );
+
+          setTimeout(() => {
+            setInterval(() => {
+              client.publish({
+                destination: `/ws/rooms/${fixedRoomNumber || createdRoom.roomNumber}/game/share-position`,
+                body: JSON.stringify({
+                  x: Math.random() * 100,
+                  y: Math.random() * 100,
+                  direction: "LEFT",
+                }),
+              });
+            }, 60);
+          }, 100);
         }
       },
       {
