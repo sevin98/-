@@ -33,6 +33,9 @@ const LobbyCreate = () => {
                             return new WebSocket(`wss://i11a410.p.ssafy.io/staging/ws?token=${webSocketConnectionToken}`, undefined, {
                             });
                           },
+                          debug: (str) => {
+                            console.log(`debug: ${str}`);
+                          },
 
                         onConnect: async() => {
                             console.log("connect");
