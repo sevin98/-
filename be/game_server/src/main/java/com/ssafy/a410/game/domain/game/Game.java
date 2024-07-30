@@ -1,7 +1,9 @@
 package com.ssafy.a410.game.domain.game;
 
+import com.ssafy.a410.game.domain.Pos;
 import com.ssafy.a410.game.domain.game.message.control.*;
 import com.ssafy.a410.game.domain.player.Player;
+import com.ssafy.a410.game.domain.player.PlayerDirection;
 import com.ssafy.a410.game.domain.player.message.control.PlayerCoverScreenMessage;
 import com.ssafy.a410.game.domain.player.message.control.PlayerFreezeMessage;
 import com.ssafy.a410.game.domain.player.message.control.PlayerUncoverScreenMessage;
@@ -15,6 +17,7 @@ import com.ssafy.a410.socket.domain.Subscribable;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -26,6 +29,8 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 public class Game extends Subscribable implements Runnable {
     private static final int TOTAL_ROUND = 3;
 
+    // 게임 맵
+    private final GameMap gameMap;
     // 플레이어들이 속해 있는 방
     private final Room room;
     // 숨는 팀
@@ -40,6 +45,11 @@ public class Game extends Subscribable implements Runnable {
 
     public Game(Room room, MessageBroadcastService broadcastService) {
         this.room = room;
+        try {
+            this.gameMap = new GameMap("map-2024-07-29");
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load game map");
+        }
         this.hidingTeam = new Team(Team.Character.RACOON, this);
         this.hidingTeamRequests = new ConcurrentLinkedDeque<>();
         this.seekingTeam = new Team(Team.Character.FOX, this);
@@ -54,6 +64,9 @@ public class Game extends Subscribable implements Runnable {
 
         // 랜덤으로 플레이어 편 나누기
         randomAssignPlayersToTeam();
+        // 나눠진 각 팀 플레이어들의 초기 위치 지정
+        setInitialPlayerPositions(hidingTeam);
+        setInitialPlayerPositions(seekingTeam);
         // 방에 실행 중인 게임으로 연결
         room.setPlayingGame(this);
 
@@ -77,6 +90,21 @@ public class Game extends Subscribable implements Runnable {
         }
     }
 
+    // 해당 팀에 속해 있는 플레이어들의 초기 위치를 겹치지 않게 지정
+    private void setInitialPlayerPositions(Team team) {
+        // 팀의 시작 위치 리스트를 섞고
+        List<Pos> startPosList = gameMap.getStartPosBy(team);
+        Collections.shuffle(startPosList);
+
+        // 랜덤 지정
+        int posIdx = 0;
+        for (Player player : team.getPlayers().values()) {
+            Pos startPos = startPosList.get(posIdx);
+            player.setInitialPosition(startPos.getX(), startPos.getY(), PlayerDirection.DOWN);
+            posIdx++;
+        }
+    }
+
     public boolean canJoin() {
         return this.currentPhase == null;
     }
@@ -85,11 +113,21 @@ public class Game extends Subscribable implements Runnable {
         return this.currentPhase.isNowOrAfter(Phase.INITIALIZED);
     }
 
+    public Team getRacoonTeam() {
+        return this.hidingTeam.getCharacter() == Team.Character.RACOON ? this.hidingTeam : this.seekingTeam;
+    }
+
+    public Team getFoxTeam() {
+        return this.hidingTeam.getCharacter() == Team.Character.FOX ? this.hidingTeam : this.seekingTeam;
+    }
+
     @Override
     public void run() {
         // 게임 시작 알림
         log.debug("방 번호 {}의 게임이 시작되었습니다.", this.room.getRoomNumber());
         broadcastService.broadcastTo(this, new GameStartMessage());
+        // 게임 정보 알림
+        broadcastService.broadcastTo(this, new GameInfoMessage(new GameInfo(this)));
         for (int round = 1; round <= TOTAL_ROUND && !isGameFinished(); round++) {
             // 라운드 변경 알림
             log.debug("Room {} round {} start =======================================", room.getRoomNumber(), round);
@@ -198,5 +236,13 @@ public class Game extends Subscribable implements Runnable {
                 RoomMemberInfo.getAllInfoListFrom(this.getRoom())
         );
         broadcastService.broadcastTo(this, message);
+    }
+
+    public Team getTeamOf(Team.Character character) {
+        return hidingTeam.getCharacter() == character ? hidingTeam : seekingTeam;
+    }
+
+    public Team getTeamOf(Player player) {
+        return hidingTeam.has(player) ? hidingTeam : seekingTeam;
     }
 }
