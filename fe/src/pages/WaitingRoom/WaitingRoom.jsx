@@ -122,7 +122,7 @@ const WaitingRoom = () => {
         });
 
         // 준비 상태 변경 메시지 토스트로 표시
-        toast.success('준비 상태로 변경되었습니다.');
+        toast.success('준비 상태로 변경되었습니다.')
     };
 
     const handleBackToLobbyClick = () => {
