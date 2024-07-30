@@ -2,8 +2,8 @@ import { createBrowserRouter } from 'react-router-dom';
 
 import LoginForm from "../pages/LoginForm/LoginForm";
 import Lobby from "../pages/Lobby/Lobby";
-import LobbyCreate from "../pages/Lobby/LobbyCreate";
-import LobbyJoin from "../pages/Lobby/LobbyJoin";
+import RoomCreate from "../pages/Lobby/RoomCreate";
+import RoomJoin from "../pages/Lobby/RoomJoin";
 import WaitingRoom from "../pages/WaitingRoom/WaitingRoom";
 import PhaserGame from '../game/PhaserGame';
 
@@ -19,13 +19,13 @@ const Router = createBrowserRouter ([
         // errorElement:<NotFound />
     },
     {
-        path:'/LobbyCreate',
-        element:<LobbyCreate/>,
+        path:'/RoomCreate',
+        element:<RoomCreate/>,
         // errorElement:<NotFound />
     },
     {
-        path:'/LobbyJoin',
-        element:<LobbyJoin/>,
+        path:'/RoomJoin',
+        element:<RoomJoin/>,
         // errorElement:<NotFound />
     },
     {

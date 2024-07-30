@@ -1,12 +1,26 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
-function ChatBox({ gameStatusMessage, copiedMessage }) {
-  return (
-    <div className="chat-box">
-      <div className="game-status">{gameStatusMessage}</div>
-      {copiedMessage && <div className="copied-message">{copiedMessage}</div>}
-    </div>
-  );
-}
+const ChatBox = ({ countdown, countdownMessage }) => {
+    return (
+        <div className="chat-box">
+            {/* 카운트다운 표시 */}
+            <div className="countdown-display">
+                {countdown !== null ? countdown : ''}
+            </div>
+            {/* 카운트다운 종료 메시지 표시 */}
+            {countdownMessage && (
+                <div className="countdown-message">
+                    {countdownMessage}
+                </div>
+            )}
+        </div>
+    );
+};
+
+ChatBox.propTypes = {
+    countdown: PropTypes.number,
+    countdownMessage: PropTypes.string,
+};
 
 export default ChatBox;

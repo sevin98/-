@@ -1,160 +1,161 @@
-import { Client } from "@stomp/stompjs";
-import { WebSocket } from "ws";
-import axios from "axios";
+import React, { useState, useEffect, useCallback } from 'react';
+import { useStompClient } from '../../network/StompContext'; // STOMP 클라이언트 사용
+import { useNavigate, useLocation } from 'react-router-dom';
+import { toast } from 'react-toastify'; // react-toastify 추가
+import PlayerGrid from './PlayerGrid'; // 플레이어 슬롯 컴포넌트
+import ReadyButton from './ReadyButton'; // 레디 버튼 컴포넌트
+import BackToLobbyButton from './BackToLobbyButton'; // 뒤로가기 버튼 컴포넌트
+import ShareRoomCodeButton from './ShareRoomCodeButton'; // 방 코드 공유 버튼 컴포넌트
+import ChatBox from './ChatBox'; // 채팅창 컴포넌트
+import "./WaitingRoom.css"; // CSS 파일
 
-// 이 값이 falsy하면 응답 받은 방 번호를 사용
-const fixedRoomNumber = 1000;
-const roomPassword = null;
+const WaitingRoom = () => {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const { roomSubscriptionInfo, playerSubscriptionInfo } = location.state || {};
 
-const HTTP_API_URL_PREFIX = "http://localhost:8080/api";
-const { accessToken, userProfile } = (
-  await axios.post(`${HTTP_API_URL_PREFIX}/auth/guest/sign-up`)
-).data;
-console.log("로그인한 게스트의 닉네임: ", userProfile.nickname);
+    const [joinedPlayers, setJoinedPlayers] = useState([]);
+    const [readyPlayers, setReadyPlayers] = useState([]);
+    const [gameTopic, setGameTopic] = useState(null);
+    const [countdown, setCountdown] = useState(null); // 카운트다운 상태 추가
+    const [countdownMessage, setCountdownMessage] = useState(''); // 카운트다운 완료 메시지 상태
 
-// Web Socket Client
-const client = new Client({
-  webSocketFactory: () => {
-    return new WebSocket("ws://localhost:8080/ws", undefined, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-  },
-  onConnect: async () => {
-    // 방 만들기
-    const createdRoom = (
-      await axios.post(
-        `${HTTP_API_URL_PREFIX}/rooms`,
-        {
-          password: roomPassword,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      )
-    ).data;
+    const client = useStompClient();
 
-    // 방 입장 및 Room/Player 구독 정보 받기
-    const { roomSubscriptionInfo, playerSubscriptionInfo } = (
-      await axios.post(
-        `${HTTP_API_URL_PREFIX}/rooms/${
-          fixedRoomNumber || createdRoom.roomNumber
-        }/join`,
-        {
-          password: roomPassword,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      )
-    ).data;
+    const handleSubscribe = useCallback(() => {
+        if (!client || !roomSubscriptionInfo || !playerSubscriptionInfo) return;
 
-    // 방에 입장해 있는 플레이어들 목록 (참가할 때마다 갱신됨)
-    const joinedPlayers = [];
-    // 방에 참가해 있으며, 레디 상태인 플레이어들 목록
-    const readyPlayers = [];
+        // 방 채널 구독
+        client.subscribe(roomSubscriptionInfo.topic, (stompMessage) => {
+            const message = JSON.parse(stompMessage.body);
 
-    // 방 입장 토큰을 사용하여 방 채널 구독
-    client.subscribe(
-      roomSubscriptionInfo.topic,
-      async (stompMessage) => {
-        // 방으로부터 수신되는 메시지 처리
-        const message = JSON.parse(stompMessage.body);
-        // 방 입장
-        if (message.type === "PLAYER_JOIN") {
-          // (본인은 제외)
-          const updatedJoinedPlayers = message.data;
-          updatedJoinedPlayers.forEach((player) => {
-            if (!joinedPlayers.find((p) => p.playerId === player.playerId)) {
-              joinedPlayers.push(player);
-              console.log(
-                `[${player.playerNickname}]님이 입장했습니다.`,
-                player
-              );
+            switch (message.type) {
+                case 'PLAYER_JOIN':
+                    setJoinedPlayers((prev) => {
+                        const updatedPlayers = message.data;
+                        return [...prev, ...updatedPlayers];
+                    });
+                    break;
+                case 'PLAYER_READY':
+                    setReadyPlayers((prev) => {
+                        const updatedReadyPlayers = message.data;
+                        return [...prev, ...updatedReadyPlayers];
+                    });
+                    break;
+                case 'SUBSCRIBE_GAME':
+                    const { subscriptionInfo, startsAfterMilliSec } = message.data;
+                    setGameTopic(subscriptionInfo.topic);
+
+                    // 게임 채널 구독
+                    client.subscribe(subscriptionInfo.topic, (gameMessage) => {
+                        const gameData = JSON.parse(gameMessage.body);
+                        if (gameData.type === 'ROUND_CHANGE') {
+                            console.log(`라운드 변경: ${gameData.data.nextRound}/${gameData.data.totalRound}`);
+                        } else if (gameData.type === 'PHASE_CHANGE') {
+                            console.log(`페이즈 변경: ${gameData.data.phase}, ${gameData.data.finishAfterMilliSec}ms 후 종료`);
+                        }
+                    }, {
+                        subscriptionToken: subscriptionInfo.token,
+                    });
+
+                    // 게임 시작 지연 시간 처리
+                    if (startsAfterMilliSec > 0) {
+                        let countdownValue = Math.floor(startsAfterMilliSec / 1000); // 초 단위로 변환
+                        setCountdown(countdownValue);
+                        const countdownTimer = setInterval(() => {
+                            setCountdown((prev) => {
+                                const newCountdown = prev - 1;
+                                if (newCountdown <= 0) {
+                                    clearInterval(countdownTimer);
+                                    setCountdownMessage('게임을 시작합니다!'); // 카운트다운 종료 후 메시지 설정
+                                    setTimeout(() => {
+                                        setCountdownMessage('');
+                                        navigate('/GameStart');
+                                    }, 0); // 메시지 표시 후 즉시 이동
+                                }
+                                return newCountdown;
+                            });
+                        }, 1000);
+
+                    } else {
+                        navigate('/GameStart');
+                    }
+                    break;
+                default:
+                    break;
             }
-          });
-        }
-        // 레디
-        else if (message.type === "PLAYER_READY") {
-          // (본인은 제외)
-          const updatedReadyPlayers = message.data;
-          updatedReadyPlayers.forEach((player) => {
-            if (!readyPlayers.find((p) => p.playerId === player.playerId)) {
-              readyPlayers.push(player);
-              console.log(`[${player.playerNickname}]님이 레디했습니다.`);
-            }
-          });
-        }
-        // 게임 시작 알림
-        else if (message.type === "SUBSCRIBE_GAME") {
-          const { subscriptionInfo, startsAfterMilliSec } = message.data;
-          console.log(
-            `게임이 ${startsAfterMilliSec}ms 후 시작됩니다. 게임 토픽: ${subscriptionInfo.topic}`
-          );
-          // 게임 토픽 구독
-          client.subscribe(
-            subscriptionInfo.topic,
-            (stompMessage) => {
-              const message = JSON.parse(stompMessage.body);
-              if (message.type === "ROUND_CHANGE") {
-                console.log(
-                  `라운드 변경: ${message.data.nextRound}/${message.data.totalRound}`
-                );
-              } else if (message.type === "PHASE_CHANGE") {
-                console.log(
-                  `페이즈 변경: ${message.data.phase}, ${message.data.finishAfterMilliSec}ms 후 종료`
-                );
-              }
-            },
-            {
-              subscriptionToken: subscriptionInfo.token,
-            }
-          );
-        }
-      },
-      {
-        subscriptionToken: roomSubscriptionInfo.token,
-      }
+        }, {
+            subscriptionToken: roomSubscriptionInfo.token,
+        });
+
+        // 플레이어 채널 구독
+        client.subscribe(playerSubscriptionInfo.topic, (stompMessage) => {
+            // 플레이어 채널 메시지 처리
+        }, {
+            subscriptionToken: playerSubscriptionInfo.token,
+        });
+
+    }, [client, roomSubscriptionInfo, playerSubscriptionInfo, navigate]);
+
+    useEffect(() => {
+        handleSubscribe();
+
+        // 컴포넌트 언마운트 시 구독 해제
+        return () => {
+            client.deactivate();
+        };
+    }, [handleSubscribe, client]);
+
+    const handleShareRoomCode = () => {
+        const roomCode = sessionStorage.getItem('roomNumber');
+        navigator.clipboard.writeText(roomCode).then(() => {
+            toast.success('방 코드가 클립보드에 복사되었습니다.'); // 토스트 알림
+        }).catch((err) => {
+            toast.error('방 코드 복사 중 오류가 발생했습니다.'); // 오류 알림
+        });
+    };
+
+    const handleReadyButtonClick = () => {
+        client.publish({
+            destination: `/ws/rooms/${sessionStorage.getItem('roomId')}/ready`, // 서버에서 사용할 목적지 경로
+            body: JSON.stringify({}),
+        });
+
+        // 준비 상태 변경 메시지 토스트로 표시
+        toast.success('준비 상태로 변경되었습니다.');
+    };
+
+    const handleBackToLobbyClick = () => {
+        fetch(`/api/rooms/${sessionStorage.getItem('roomId')}/leave`, {
+            method: 'POST',
+        })
+        .then(response => response.json())
+        .then(() => {
+            navigate('/lobby');
+        })
+        .catch(error => {
+            toast.error('뒤로가기 처리 중 오류가 발생했습니다.');
+        });
+    };
+
+    return (
+        <div className="waiting-room">
+            {/* 왼쪽 위: 뒤로가기 버튼 */}
+            <BackToLobbyButton onClick={handleBackToLobbyClick} />
+            
+            {/* 플레이어 슬롯 (가운데) */}
+            <PlayerGrid players={joinedPlayers} readyPlayers={readyPlayers} />
+
+            {/* 왼쪽 아래: 레디 버튼 */}
+            <ReadyButton onClick={handleReadyButtonClick} isReady={readyPlayers.some(player => player.id === sessionStorage.getItem('userId'))} />
+
+            {/* 오른쪽 위: 방 코드 공유 버튼 */}
+            <ShareRoomCodeButton roomCode={sessionStorage.getItem('roomNumber')} onCopySuccess={() => toast.success('방 코드가 클립보드에 복사되었습니다.')} />
+
+            {/* 오른쪽 아래: 채팅창 */}
+            <ChatBox countdown={countdown} countdownMessage={countdownMessage} />
+        </div>
     );
+};
 
-    // 플레이어 채널 구독
-    client.subscribe(playerSubscriptionInfo.topic, (stompMessage) => {}, {
-      subscriptionToken: playerSubscriptionInfo.token,
-    });
-
-    // 레디
-    console.log("3초 후 레디...");
-    setTimeout(() => {
-      axios.post(
-        `${HTTP_API_URL_PREFIX}/rooms/${
-          fixedRoomNumber || createdRoom.roomNumber
-        }/ready`,
-        null,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
-    }, 3000);
-  },
-  // 연결이 끊겼을 때 처리
-  onDisconnect: () => {
-    console.log("disconnected");
-  },
-  // 토큰 만료, 누락 등의 이유로 연결이 실패했을 때 처리
-  onWebSocketError: (event) => {
-    // 비활성화 하지 않으면 계속 요청하므로 deactivate() 호출
-    client.deactivate();
-  },
-});
-
-// 클라이언트 활성화 없이 구독만 설정하고 관리
-// client.activate(); // 이 부분을 제거하거나 주석 처리합니다.
-
-// 클라이언트 활성화 후 다른 로직을 통해 WebSocket 연결을 계속 유지하는 방법을 사용하세요.
+export default WaitingRoom;

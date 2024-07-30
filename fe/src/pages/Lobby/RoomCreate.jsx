@@ -6,7 +6,7 @@ import { Client } from "@stomp/stompjs";
 
 import "./Loby.css";
 
-const LobbyCreate = () => {
+const RoomCreate = () => {
     const navigate = useNavigate();
     
     const [roomPassword, setRoomPassword] = useState("");
@@ -19,7 +19,7 @@ const LobbyCreate = () => {
         {password: roomPassword});
     sessionStorage.setItem('roomPassword',roomPassword)
     navigate("/WaitingRoom", {
-        state: { roomNumber: res.data.roomNumber, topic:res.data.topic},
+        state: { roomNumber: res.data.roomNumber},
     });
     }
 
@@ -46,4 +46,4 @@ const LobbyCreate = () => {
     );
 };
 
-export default LobbyCreate;
+export default RoomCreate;

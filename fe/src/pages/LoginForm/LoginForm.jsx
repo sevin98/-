@@ -62,6 +62,7 @@ const LoginForm = () => {
                         webSocketConnectionToken,
                     } = res.data;
                     setAccessToken(accessToken);
+                    console.log(accessToken)
                     // userProfile만 스토리지 저장
                     sessionStorage.setItem("userProfile", userProfile);
 

@@ -3,7 +3,7 @@ import React from 'react';
 function ReadyButton({ isReady, onReady }) {
   return (
     <button 
-      className={`ready-button ${isReady ? 'ready' : ''}`} 
+      className={`ready-button ${isReady ? 'ready' : 'not-ready'}`} 
       onClick={onReady}
       disabled={isReady}
     >
