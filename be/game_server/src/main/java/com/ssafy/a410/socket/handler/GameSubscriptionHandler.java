@@ -1,9 +1,9 @@
 package com.ssafy.a410.socket.handler;
 
 import com.ssafy.a410.common.exception.handler.GameException;
-import com.ssafy.a410.game.domain.Game;
-import com.ssafy.a410.game.domain.Room;
-import com.ssafy.a410.game.service.RoomService;
+import com.ssafy.a410.game.domain.game.Game;
+import com.ssafy.a410.room.domain.Room;
+import com.ssafy.a410.room.service.RoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

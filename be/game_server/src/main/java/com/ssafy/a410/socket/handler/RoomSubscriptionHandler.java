@@ -1,7 +1,7 @@
 package com.ssafy.a410.socket.handler;
 
 import com.ssafy.a410.auth.service.UserService;
-import com.ssafy.a410.game.service.RoomService;
+import com.ssafy.a410.room.service.RoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;

@@ -1,8 +1,8 @@
 package com.ssafy.a410.socket.interceptor;
 
+import com.ssafy.a410.auth.service.JWTService;
+import com.ssafy.a410.auth.service.JWTType;
 import com.ssafy.a410.auth.service.UserService;
-import com.ssafy.a410.common.service.JWTService;
-import com.ssafy.a410.common.service.JWTType;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

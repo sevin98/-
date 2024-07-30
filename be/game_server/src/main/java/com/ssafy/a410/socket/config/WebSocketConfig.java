@@ -1,7 +1,7 @@
 package com.ssafy.a410.socket.config;
 
+import com.ssafy.a410.auth.service.JWTService;
 import com.ssafy.a410.auth.service.UserService;
-import com.ssafy.a410.common.service.JWTService;
 import com.ssafy.a410.socket.interceptor.ConnectionAuthHandshakingInterceptor;
 import com.ssafy.a410.socket.interceptor.DispatchingInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
