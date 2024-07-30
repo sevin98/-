@@ -17,9 +17,9 @@ public class Player extends Subscribable {
     private final Room room;
     // 게임 시작 준비 여부
     private boolean readyToStart;
-    // 위치 및 방향
-    private int x;
-    private int y;
+    // 위치
+    private Pos pos;
+    // 방향
     private PlayerDirection direction;
     // 움직일 수 없음을 표시
     private boolean isFreeze;
@@ -33,11 +33,12 @@ public class Player extends Subscribable {
         this.nickname = nickname;
         this.room = room;
         this.readyToStart = false;
+        this.pos = new Pos(0, 0);
     }
 
-    public void setInitialPosition(int x, int y, PlayerDirection direction) {
-        this.x = x;
-        this.y = y;
+    public void setInitialPosition(double x, double y, PlayerDirection direction) {
+        this.pos.setX(x);
+        this.pos.setY(y);
         this.direction = direction;
         this.isFreeze = false;
     }

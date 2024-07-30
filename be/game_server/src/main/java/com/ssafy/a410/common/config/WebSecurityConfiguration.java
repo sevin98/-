@@ -12,6 +12,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 @Slf4j
@@ -19,11 +21,15 @@ import java.util.List;
 @Configuration
 public class WebSecurityConfiguration {
     // 로그인 하지 않아도 접근 가능한 경로
-    private final String[] anonymousAllowedPaths = {
+    private final Pattern[] anonymousAllowedPatterns = {
             // CommonController
-            "/",
+            // Only to match '/'
+            Pattern.compile("^/$"),
             // AuthController
-            "/api/auth/guest/sign-up",
+            // Only to match '/api/auth/guest/sign-up'
+            Pattern.compile("^/api/auth/guest/sign-up$"),
+            // Match '/ws' and '/ws' with query parameters
+            Pattern.compile("^/ws(\\?.*)?$"),
     };
 
     private final String allowedOrigin;
@@ -39,7 +45,10 @@ public class WebSecurityConfiguration {
                 .addFilterBefore(httpJWTAuthFilter(), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(registry -> registry
                         .requestMatchers("/error").permitAll()
-                        .requestMatchers(anonymousAllowedPaths).permitAll()
+                        .requestMatchers(request -> {
+                            String path = request.getServletPath();
+                            return isAnonymousAllowedPath(path);
+                        }).permitAll()
                         .anyRequest().authenticated()
                 ).csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(request -> {
@@ -53,8 +62,9 @@ public class WebSecurityConfiguration {
     }
 
     public boolean isAnonymousAllowedPath(String path) {
-        for (String allowedPath : anonymousAllowedPaths) {
-            if (path.equals(allowedPath)) {
+        for (Pattern pattern : anonymousAllowedPatterns) {
+            Matcher matcher = pattern.matcher(path);
+            if (matcher.matches()) {
                 return true;
             }
         }
