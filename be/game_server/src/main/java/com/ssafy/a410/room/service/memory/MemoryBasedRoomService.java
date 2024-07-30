@@ -5,13 +5,13 @@ import com.ssafy.a410.auth.service.UserService;
 import com.ssafy.a410.common.exception.handler.GameException;
 import com.ssafy.a410.game.domain.player.Player;
 import com.ssafy.a410.game.service.socket.WebSocketMessageBroadcastService;
-import com.ssafy.a410.room.controller.dto.JoinRoomRespDTO;
+import com.ssafy.a410.room.controller.dto.JoinRoomResp;
 import com.ssafy.a410.room.domain.Room;
 import com.ssafy.a410.room.domain.message.control.RoomControlMessage;
 import com.ssafy.a410.room.domain.message.control.RoomControlType;
 import com.ssafy.a410.room.domain.message.control.RoomMemberInfo;
 import com.ssafy.a410.room.service.RoomService;
-import com.ssafy.a410.socket.controller.dto.SubscriptionInfoDTO;
+import com.ssafy.a410.socket.controller.dto.SubscriptionInfoResp;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -151,13 +151,13 @@ public class MemoryBasedRoomService implements RoomService {
     }
 
     @Override
-    public JoinRoomRespDTO getJoinRoomSubscriptionTokens(String roomId, String playerId) {
+    public JoinRoomResp getJoinRoomSubscriptionTokens(String roomId, String playerId) {
         // 방과 플레이어의 실재 여부 확인
         Room room = getRoomById(roomId);
         Player player = room.getPlayerWith(playerId);
-        return new JoinRoomRespDTO(
-                new SubscriptionInfoDTO(room),
-                new SubscriptionInfoDTO(player)
+        return new JoinRoomResp(
+                new SubscriptionInfoResp(room),
+                new SubscriptionInfoResp(player)
         );
     }
 }

@@ -5,10 +5,10 @@ import com.ssafy.a410.socket.domain.Subscribable;
 import lombok.Getter;
 
 @Getter
-public class RoomRespDTO extends Subscribable {
+public class RoomResp extends Subscribable {
     private final String roomNumber;
 
-    public RoomRespDTO(Room room) {
+    public RoomResp(Room room) {
         this.roomNumber = room.getRoomNumber();
     }
 

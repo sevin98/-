@@ -8,11 +8,11 @@ import com.ssafy.a410.socket.domain.Subscribable;
  * @param topic 구독을 요청할 destination
  * @param token Authorization에 필요한 문자열 값
  */
-public record SubscriptionInfoDTO(
+public record SubscriptionInfoResp(
         String topic,
         String token
 ) {
-    public SubscriptionInfoDTO(Subscribable subscribable) {
+    public SubscriptionInfoResp(Subscribable subscribable) {
         this(subscribable.getTopic(), subscribable.getSubscriptionToken());
     }
 }

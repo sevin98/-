@@ -10,7 +10,7 @@ import com.ssafy.a410.room.domain.message.control.GameStartInfo;
 import com.ssafy.a410.room.domain.message.control.RoomControlMessage;
 import com.ssafy.a410.room.domain.message.control.RoomControlType;
 import com.ssafy.a410.room.domain.message.control.RoomMemberInfo;
-import com.ssafy.a410.socket.controller.dto.SubscriptionInfoDTO;
+import com.ssafy.a410.socket.controller.dto.SubscriptionInfoResp;
 import com.ssafy.a410.socket.domain.Subscribable;
 import lombok.Getter;
 import lombok.Setter;
@@ -138,7 +138,7 @@ public class Room extends Subscribable {
             final long STARTS_AFTER = 5L * MilliSecOf.SECONDS;
             RoomControlMessage message = new RoomControlMessage(
                     RoomControlType.SUBSCRIBE_GAME,
-                    new GameStartInfo(new SubscriptionInfoDTO(playingGame), STARTS_AFTER)
+                    new GameStartInfo(new SubscriptionInfoResp(playingGame), STARTS_AFTER)
             );
             broadcastService.broadcastTo(this, message);
 

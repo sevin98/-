@@ -1,7 +1,7 @@
 package com.ssafy.a410.auth.controller;
 
-import com.ssafy.a410.auth.controller.dto.GuestSignUpResponse;
-import com.ssafy.a410.auth.controller.dto.UserProfileVO;
+import com.ssafy.a410.auth.controller.dto.GuestSignUpResp;
+import com.ssafy.a410.auth.controller.dto.UserProfileResp;
 import com.ssafy.a410.auth.domain.UserProfile;
 import com.ssafy.a410.auth.filter.HTTPJWTAuthFilter;
 import com.ssafy.a410.auth.service.AuthService;
@@ -31,10 +31,10 @@ public class AuthController {
      * @see HTTPJWTAuthFilter
      */
     @PostMapping("/guest/sign-up")
-    public GuestSignUpResponse guestSignUp() {
+    public GuestSignUpResp guestSignUp() {
         UserProfile guestUserProfile = userService.createGuestUserProfile();
         String accessToken = authService.getAccessTokenOf(guestUserProfile);
         String webSocketConnectionToken = jwtService.generateToken(JWTType.WEBSOCKET_CONNECTION, Map.of("userProfileUuid", guestUserProfile.getUuid()), 10L * MilliSecOf.SECONDS);
-        return new GuestSignUpResponse(accessToken, new UserProfileVO(guestUserProfile), webSocketConnectionToken);
+        return new GuestSignUpResp(accessToken, new UserProfileResp(guestUserProfile), webSocketConnectionToken);
     }
 }

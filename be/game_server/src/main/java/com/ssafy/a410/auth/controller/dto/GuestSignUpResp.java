@@ -1,8 +1,8 @@
 package com.ssafy.a410.auth.controller.dto;
 
-public record GuestSignUpResponse(
+public record GuestSignUpResp(
         String accessToken,
-        UserProfileVO userProfile,
+        UserProfileResp userProfile,
         String webSocketConnectionToken
 ) {
 }

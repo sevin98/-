@@ -2,10 +2,10 @@ package com.ssafy.a410.room.controller;
 
 import com.ssafy.a410.game.domain.Message;
 import com.ssafy.a410.game.domain.player.Player;
-import com.ssafy.a410.room.controller.dto.CreateRoomReqDTO;
-import com.ssafy.a410.room.controller.dto.JoinRoomReqDTO;
-import com.ssafy.a410.room.controller.dto.JoinRoomRespDTO;
-import com.ssafy.a410.room.controller.dto.RoomRespDTO;
+import com.ssafy.a410.room.controller.dto.CreateRoomReq;
+import com.ssafy.a410.room.controller.dto.JoinRoomReq;
+import com.ssafy.a410.room.controller.dto.JoinRoomResp;
+import com.ssafy.a410.room.controller.dto.RoomResp;
 import com.ssafy.a410.room.domain.Room;
 import com.ssafy.a410.room.service.RoomService;
 import lombok.RequiredArgsConstructor;
@@ -28,19 +28,19 @@ public class RoomController {
 
     // 새 방을 생성한다.
     @PostMapping("/api/rooms")
-    public ResponseEntity<RoomRespDTO> createRoom(CreateRoomReqDTO reqDTO, Principal principal) {
-        Room newRoom = roomService.createRoom(principal.getName(), reqDTO.password());
-        RoomRespDTO roomRespDTO = new RoomRespDTO(newRoom);
-        return ResponseEntity.status(HttpStatus.CREATED).body(roomRespDTO);
+    public ResponseEntity<RoomResp> createRoom(@RequestBody CreateRoomReq req, Principal principal) {
+        Room newRoom = roomService.createRoom(principal.getName(), req.password());
+        RoomResp roomResp = new RoomResp(newRoom);
+        return ResponseEntity.status(HttpStatus.CREATED).body(roomResp);
     }
 
     // 해당 방에 입장하기 위한 토큰들을 반환한다.
     @PostMapping("/api/rooms/{roomId}/join")
-    public ResponseEntity<JoinRoomRespDTO> joinRoom(@PathVariable String roomId, Principal principal, @RequestBody JoinRoomReqDTO req) {
+    public ResponseEntity<JoinRoomResp> joinRoom(@PathVariable String roomId, Principal principal, @RequestBody JoinRoomReq req) {
         // 방에 입장시켜 플레이어를 만들고,
         Player player = roomService.joinRoomWithPassword(roomId, principal.getName(), req.password());
         // 방에 입장함과 동시에 구독할 수 있는 token들에 대한 정보를 반환한다.
-        JoinRoomRespDTO tokens = roomService.getJoinRoomSubscriptionTokens(roomId, player.getId());
+        JoinRoomResp tokens = roomService.getJoinRoomSubscriptionTokens(roomId, player.getId());
         return ResponseEntity.ok(tokens);
     }
 
