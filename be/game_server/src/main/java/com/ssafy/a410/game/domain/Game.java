@@ -1,13 +1,12 @@
 package com.ssafy.a410.game.domain;
 
-import com.ssafy.a410.game.domain.message.game.control.GameStartMessage;
-import com.ssafy.a410.game.domain.message.game.control.PhaseChangeControlMessage;
-import com.ssafy.a410.game.domain.message.game.control.RoundChangeControlMessage;
+import com.ssafy.a410.game.domain.message.game.control.*;
 import com.ssafy.a410.game.domain.message.player.control.PlayerCoverScreenMessage;
 import com.ssafy.a410.game.domain.message.player.control.PlayerFreezeMessage;
 import com.ssafy.a410.game.domain.message.player.control.PlayerUncoverScreenMessage;
 import com.ssafy.a410.game.domain.message.player.control.PlayerUnfreezeMessage;
 import com.ssafy.a410.game.domain.message.player.request.GamePlayerRequest;
+import com.ssafy.a410.game.domain.message.room.control.PlayerInfo;
 import com.ssafy.a410.game.service.GameBroadcastService;
 import com.ssafy.a410.socket.domain.Subscribable;
 import lombok.Getter;
@@ -102,6 +101,7 @@ public class Game extends Subscribable implements Runnable {
             log.debug("Room {} END Phase start --------------------------------------", room.getRoomNumber());
             runEndPhase();
         }
+        room.endGame();
     }
 
     private boolean isTimeToSwitch(long timeToSwitchPhase) {
@@ -111,6 +111,9 @@ public class Game extends Subscribable implements Runnable {
     // 게임의 승패가 결정되었는지 확인
     private boolean isGameFinished() {
         // TODO : Implement game finish logic
+        if(hidingTeam.isEmpty() && seekingTeam.isEmpty()) {
+            return true;
+        }
         return false;
     }
 
@@ -176,8 +179,24 @@ public class Game extends Subscribable implements Runnable {
         broadcastService.broadcastTo(this, new PhaseChangeControlMessage(Phase.END));
     }
 
+    public void kick(Player player) {
+        if(hidingTeam.has(player))
+            hidingTeam.removePlayer(player);
+        else if(seekingTeam.has(player))
+            seekingTeam.removePlayer(player);
+    }
+
     @Override
     public String getTopic() {
         return "/topic/rooms/" + room.getRoomNumber() + "/game";
+    }
+
+    // player는 현재 사용하지 않지만, 후에 "player가 나갔습니다" 를 뿌려줄까봐 유지함
+    public void notifyDisconnection(Player player) {
+        GameControlMessage message = new GameControlMessage(
+                GameControlType.PLAYER_DISCONNECTED,
+                PlayerInfo.getAllInfoListFrom(this.getRoom())
+        );
+        broadcastService.broadcastTo(this, message);
     }
 }

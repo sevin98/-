@@ -16,12 +16,12 @@ import java.util.List;
 @Component
 public class DispatchingInterceptor implements ChannelInterceptor {
     private final List<SocketSubscriptionHandler> socketSubscriptionHandlers;
-    private final RoomDisconnectHandler roomDisconnectHandler;
+    private final DisconnectHandler disconnectHandler;
 
     // 사용자의 구독 요청을 가로채오 적절한 핸들러로 전달하기 위한 Interceptor
-    public DispatchingInterceptor(RoomSubscriptionHandler roomSubscriptionHandler, PlayerSubscriptionHandler playerSubscriptionHandler, GameSubscriptionHandler gameSubscriptionHandler, RoomDisconnectHandler roomDisconnectHandler) {
+    public DispatchingInterceptor(RoomSubscriptionHandler roomSubscriptionHandler, PlayerSubscriptionHandler playerSubscriptionHandler, GameSubscriptionHandler gameSubscriptionHandler, DisconnectHandler disconnectHandler) {
         socketSubscriptionHandlers = List.of(roomSubscriptionHandler, playerSubscriptionHandler, gameSubscriptionHandler);
-        this.roomDisconnectHandler = roomDisconnectHandler;
+        this.disconnectHandler = disconnectHandler;
     }
 
     @Override
@@ -48,7 +48,8 @@ public class DispatchingInterceptor implements ChannelInterceptor {
         } else if(command.equals(StompCommand.DISCONNECT)){
             String clientId = accessor.getUser().getName();
             log.debug("클라이언트 {}가 연결 해제되었습니다.", clientId);
-            roomDisconnectHandler.handleDisconnect(clientId);
+            disconnectHandler.handleDisconnect(clientId);
+            disconnectHandler.gameHandleDisconnect(clientId);
         }
 
         return ChannelInterceptor.super.preSend(message, channel);

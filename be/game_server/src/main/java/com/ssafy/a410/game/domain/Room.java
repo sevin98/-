@@ -30,6 +30,7 @@ public class Room extends Subscribable {
     private final String password;
     private final GameBroadcastService broadcastService;
     private final Map<String, Player> players;
+    private Thread gameThread = null;
     @Setter
     public Game playingGame;
 
@@ -147,7 +148,7 @@ public class Room extends Subscribable {
             }
 
             log.info("방 {}의 게임이 시작되었습니다.", roomNumber);
-            Thread gameThread = new Thread(playingGame);
+            gameThread = new Thread(playingGame);
             gameThread.start();
         }
     }
@@ -169,5 +170,9 @@ public class Room extends Subscribable {
                 PlayerInfo.getAllInfoListFrom(this)
         );
         broadcastService.broadcastTo(this, message);
+    }
+
+    public void endGame() {
+        gameThread.interrupt();
     }
 }
