@@ -101,6 +101,7 @@ public class Game extends Subscribable implements Runnable {
             log.debug("Room {} END Phase start --------------------------------------", room.getRoomNumber());
             runEndPhase();
         }
+        room.endGame();
     }
 
     private boolean isTimeToSwitch(long timeToSwitchPhase) {
