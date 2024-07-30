@@ -153,8 +153,3 @@ const client = new Client({
     client.deactivate();
   },
 });
-
-// 클라이언트 활성화 없이 구독만 설정하고 관리
-// client.activate(); // 이 부분을 제거하거나 주석 처리합니다.
-
-// 클라이언트 활성화 후 다른 로직을 통해 WebSocket 연결을 계속 유지하는 방법을 사용하세요.
