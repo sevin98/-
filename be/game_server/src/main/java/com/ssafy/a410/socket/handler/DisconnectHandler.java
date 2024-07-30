@@ -1,15 +1,17 @@
 package com.ssafy.a410.socket.handler;
 
 import com.ssafy.a410.game.domain.Player;
+import com.ssafy.a410.game.service.GameService;
 import com.ssafy.a410.game.service.RoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class RoomDisconnectHandler {
+public class DisconnectHandler {
 
     private final RoomService roomService;
+    private final GameService gameService;
 
     public void handleDisconnect(String playerId) {
         roomService.findRoomByPlayerId(playerId).ifPresent(room -> {
@@ -24,13 +26,13 @@ public class RoomDisconnectHandler {
     }
 
     public void gameHandleDisconnect(String playerId) {
-        roomService.findRoomByPlayerId(playerId).
-        gameService.findGameByPlayerid(playerId).ifPresent(game -> {
-            Player player = game.getPlayerWith(playerId);
+        gameService.findGameByPlayerId(playerId).ifPresent(game -> {
+            Player player = game.getRoom().getPlayerWith(playerId);
             game.kick(player);
 
-            if(game.getPlayers().isEmpty())
-                gameService.removeGame(game.getGameNumber());
+            if (game.getRoom().getPlayers().isEmpty()){
+                gameService.removeGame(game);
+            }
             else
                 game.notifyDisconnection(player);
         });

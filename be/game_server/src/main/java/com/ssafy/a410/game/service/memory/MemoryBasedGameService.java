@@ -19,19 +19,14 @@ public class MemoryBasedGameService implements GameService {
 
     @Override
     public Optional<Game> findGameByPlayerId(String playerId) {
-        Optional<Room> room = roomService.findRoomByPlayerId(playerId);
-        return Optional.ofNullable(room.get().playingGame);
+        // roomService에서 방을 찾아와서 playingGame을 가져온다.
+        Room room = roomService.getRoomById(playerId);
+        return Optional.ofNullable(room.playingGame);
     }
 
     @Override
-    public void removeGame(Room room) {
-        // 게임을 포함하고 있는 방에서, 게임을 제거
-        room.getPlayingGame()
+    public void removeGame(Game game) {
+        // 게임을 포함하고 있는 방에서, 게임을 제거한다.
+        game = null;
     }
-
-    @Override
-    public void notifyDisconnection(Player player) {
-
-    }
-
 }
