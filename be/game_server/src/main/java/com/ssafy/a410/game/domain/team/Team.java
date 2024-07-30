@@ -14,6 +14,7 @@ public class Team extends Subscribable {
     @Getter
     private final Character character;
     private final Game game;
+    @Getter
     private final Map<String, Player> players;
 
     public Team(Character character, Game game) {
@@ -38,6 +39,10 @@ public class Team extends Subscribable {
             throw new GameException("Player is not in team");
         }
         players.remove(player.getId());
+    }
+
+    public void clearPlayers() {
+        players.clear();
     }
 
     public boolean isFull() {
