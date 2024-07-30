@@ -9,6 +9,9 @@ export default class GameUI extends Phaser.Scene{
     preload(){
         this.load.image("racoonhead", "assets/object/racoonhead.png");
         this.load.image("foxhead", "assets/object/foxhead.png");
+        this.load.image("cattemp", "assets/cat.png");
+        this.load.image("uitemp", "assets/ui.png");
+
 
     }
     create(){
