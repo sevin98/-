@@ -8,6 +8,5 @@ import java.util.Optional;
 
 public interface GameService {
     Optional<Game> findGameByPlayerId(String playerId);
-    void removeGame(Room room);
-    void notifyDisconnection(Player player);
+    void removeGame(Game game);
 }
