@@ -34,7 +34,7 @@ public class HTTPJWTAuthFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         // 사용자의 요청이 authentication을 필요로 하지 않는다면 그냥 넘기기
-        if (!isAuthenticationRequired(request)) {
+        if (webSecurityConfiguration.isAnonymousAllowedPath(request.getRequestURI())) {
             filterChain.doFilter(request, response);
             return;
         }
