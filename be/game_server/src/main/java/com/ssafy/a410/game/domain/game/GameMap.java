@@ -5,6 +5,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.ssafy.a410.game.domain.Pos;
+import com.ssafy.a410.game.domain.team.Team;
+import lombok.Getter;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.FileCopyUtils;
 
@@ -16,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Getter
 public class GameMap {
     private static final String TYPE_KEY = "type";
     private static final String NAME_KEY = "name";
@@ -32,7 +35,7 @@ public class GameMap {
     // HP 정보
     private final Map<String, HPObject> hpObjects = new HashMap<>();
     // 너구리 팀이 시작할 수 있는 초기 위치 정보
-    private final List<Pos> raccoonStartPos = new ArrayList<>();
+    private final List<Pos> racoonStartPos = new ArrayList<>();
     // 여우 팀이 시작할 수 있는 초기 위치 정보
     private final List<Pos> foxStartPos = new ArrayList<>();
     // 읽어서 파싱해 놓은 원본 JSON 객체
@@ -106,7 +109,7 @@ public class GameMap {
     // 너구리 팀이 시작할 수 있는 초기 위치 정보를 읽어 저장
     private void setRacoonStartPos(JsonObject layer) {
         for (JsonElement element : layer.getAsJsonArray(OBJECTS_KEY)) {
-            raccoonStartPos.add(new Pos(element.getAsJsonObject()));
+            racoonStartPos.add(new Pos(element.getAsJsonObject()));
         }
     }
 
@@ -120,5 +123,9 @@ public class GameMap {
         for (JsonElement element : layer.getAsJsonArray(OBJECTS_KEY)) {
             foxStartPos.add(new Pos(element.getAsJsonObject()));
         }
+    }
+
+    public List<Pos> getStartPosBy(Team team) {
+        return team.getCharacter() == Team.Character.RACOON ? racoonStartPos : foxStartPos;
     }
 }

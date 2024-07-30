@@ -10,13 +10,12 @@ import lombok.Setter;
 import java.util.HashMap;
 import java.util.Map;
 
+@Getter
 public class Team extends Subscribable {
     private static final int MAX_NUM_OF_PLAYERS = 4;
-    @Getter
     @Setter
     private Character character;
     private final Game game;
-    @Getter
     private final Map<String, Player> players;
 
     public Team(Character character, Game game) {
@@ -49,6 +48,14 @@ public class Team extends Subscribable {
 
     public boolean isFull() {
         return players.size() >= MAX_NUM_OF_PLAYERS;
+    }
+
+    public boolean isHidingTeam() {
+        return this.game.getHidingTeam() == this;
+    }
+
+    public boolean isSeekingTeam() {
+        return this.game.getSeekingTeam() == this;
     }
 
     public boolean has(Player player) {

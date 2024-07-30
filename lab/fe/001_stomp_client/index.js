@@ -6,14 +6,14 @@ import axios from "axios";
 const fixedRoomNumber = null;
 const roomPassword = null;
 
-const HTTP_API_URL_PREFIX = "http://localhost:8080/api";
-const { accessToken, userProfile } = (await axios.post(`${HTTP_API_URL_PREFIX}/auth/guest/sign-up`)).data;
+const HTTP_API_URL_PREFIX = "http://localhost:8081/api";
+const { accessToken, userProfile, webSocketConnectionToken } = (await axios.post(`${HTTP_API_URL_PREFIX}/auth/guest/sign-up`)).data;
 console.log("로그인한 게스트의 닉네임: ", userProfile.nickname);
 
 // Web Socket Client
 const client = new Client({
   webSocketFactory: () => {
-    return new WebSocket("ws://localhost:8080/ws", undefined, {
+    return new WebSocket(`ws://localhost:8081/ws?token=${webSocketConnectionToken}`, undefined, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -92,7 +92,9 @@ const client = new Client({
             subscriptionInfo.topic,
             (stompMessage) => {
               const message = JSON.parse(stompMessage.body);
-              if (message.type === "ROUND_CHANGE") {
+              if (message.type === "GAME_INFO") {
+                console.log(`게임 정보: ${JSON.stringify(message.data)}`);
+              } else if (message.type === "ROUND_CHANGE") {
                 console.log(`라운드 변경: ${message.data.nextRound}/${message.data.totalRound}`);
               } else if (message.type === "PHASE_CHANGE") {
                 console.log(`페이즈 변경: ${message.data.phase}, ${message.data.finishAfterMilliSec}ms 후 종료`);
