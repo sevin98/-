@@ -1,6 +1,6 @@
 import react, { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import axios from "../axiosConfig";
 import { Client } from "@stomp/stompjs";
 // import NodeWebSocket from 'ws';
 
@@ -8,21 +8,20 @@ import "./Loby.css";
 
 const LobbyCreate = () => {
     const navigate = useNavigate();
+    
     const [roomPassword, setRoomPassword] = useState("");
     const HTTP_API_URL_PREFIX = localStorage.getItem("HTTP_API_URL_PREFIX");
-    const accessToken = localStorage.getItem("accessToken");
 
     // 방 만들기
     const createRoom = async(e) => {
     e.preventDefault();
-    await axios.post(`${HTTP_API_URL_PREFIX}/rooms`,
-        {password: roomPassword,},
-        {headers: {Authorization: `Bearer ${accessToken}`,},}
-    ).data;
-    localStorage.setItem('roomPassword',roomPassword)
-    console.log('룸 비밀번호 :',roomPassword)
-    navigate("/WaitingRoom")
-    };
+    const res = await axios.post(`${HTTP_API_URL_PREFIX}/rooms`,
+        {password: roomPassword});
+    sessionStorage.setItem('roomPassword',roomPassword)
+    navigate("/WaitingRoom", {
+        state: { roomNumber: res.data.roomNumber, topic:res.data.topic},
+    });
+    }
 
     return (
         <div className="wrapper">

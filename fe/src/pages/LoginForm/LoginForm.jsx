@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, Component } from "react";
-import axios from "axios";
+import axios, { setAccessToken } from "../axiosConfig";
 import { useNavigate } from "react-router-dom";
 import "./LoginForm.css";
 import { FaUser, FaLock } from "react-icons/fa";
@@ -8,77 +8,90 @@ import { Client } from "@stomp/stompjs";
 
 const LoginForm = () => {
     const [action, setAction] = useState(""); // wrapper class activate
-    
+
     const [username, setUsername] = useState(""); //회원 가입
     const [password, setPassword] = useState("");
     const [registUsername, setregistUsername] = useState(""); // 등록
     const [registPassword, setregistPassword] = useState("");
-    
+
     const [loginCheck, setLoginCheck] = useState(false); // 로그인 상태 체크
-    
-    localStorage.setItem("HTTP_API_URL_PREFIX","https://i11a410.p.ssafy.io/staging/api");
+
+    localStorage.setItem(
+        "HTTP_API_URL_PREFIX",
+        "https://i11a410.p.ssafy.io/staging/api"
+    );
     const navigate = useNavigate();
     const HTTP_API_URL_PREFIX = localStorage.getItem("HTTP_API_URL_PREFIX");
-    const webSocketConnectionToken = window.localStorage.getItem("webSocketConnectionToken");
-    
-    const client = new Client({
-        brokerURL: `wss://i11a410.p.ssafy.io/staging/ws?token=${webSocketConnectionToken}`,
-        debug: (str) => {
-            console.log(`debug: ${str}`);
-        },
-        onConnect: async () => {
-            console.log("서버 연결 완료");
-        },
-    });
-    
+
+    const getStompClientWith = (token) => {
+        return new Client({
+            brokerURL: `wss://i11a410.p.ssafy.io/staging/ws?token=${token}`,
+            debug: (str) => {
+                console.log(`debug: ${str}`);
+            },
+            onConnect: async () => {
+                console.log("서버 연결 완료");
+            },
+        });
+    };
+
     const registerLink = () => {
         setAction("active");
     };
     const loginLink = () => {
         setAction("");
     };
-    
+
     //게임시작 버튼, 이후 지울것
     const startGame = () => {
         navigate("/GameStart");
     };
-    
+
+    let client;
+
     // redux 에 accesTooken, userProfile, webSocketConnectionToken 저장 해두면 좋을 듯
     // 게스트 접속 선택할 경우 로비이동
     const movetoRoom = async () => {
         try {
-            await axios.post(`${HTTP_API_URL_PREFIX}/auth/guest/sign-up`)
-            .then((res) => {
-                const {accesToken, userProfile, webSocketConnectionToken} = res.data;
-                
-                // 로컬 스토리지 저장
-                localStorage.setItem('accesToken',accesToken)
-                localStorage.setItem('userProfile',userProfile)
-                localStorage.setItem('webSocketConnectionToken',webSocketConnectionToken)
-                
-                console.log("로그인한 게스트의 닉네임: ",res.data.userProfile.nickname);
-                client.activate() //서버 연결
-                navigate("/Lobby", {
-                    state: { nickname: res.data.userProfile.nickname},
+            await axios
+                .post(`${HTTP_API_URL_PREFIX}/auth/guest/sign-up`)
+                .then((res) => {
+                    const {
+                        accessToken,
+                        userProfile,
+                        webSocketConnectionToken,
+                    } = res.data;
+                    setAccessToken(accessToken);
+                    // userProfile만 스토리지 저장
+                    sessionStorage.setItem("userProfile", userProfile);
+
+                    console.log(
+                        "로그인한 게스트의 닉네임: ",
+                        res.data.userProfile.nickname
+                    );
+                    client = getStompClientWith(webSocketConnectionToken);
+                    client.activate(); //서버 연결
+                    navigate("/Lobby", {
+                        state: { nickname: res.data.userProfile.nickname},
+                    });
                 });
-                });
-            } catch (err) {
-                console.log(err);
-            }
-        };
-        
-        // 로그인
-        const onClickLogin = (e, username, password) => {
-            e.preventDefault();
-            console.log(`username:${username}`);
-            console.log(`password:${password}`);
-            setLoginCheck(true); // 로그인 상태 true로 변경
-            // 로그인 axios
-            // client.activate();
-        };
-        
-        return (
-            <div className={`wrapper ${action}`}>
+        } catch (err) {
+            console.log(err);
+        }
+    };
+
+    // 로그인
+    const onClickLogin = (e, username, password) => {
+        e.preventDefault();
+        console.log(`username:${username}`);
+        console.log(`password:${password}`);
+        setLoginCheck(true); // 로그인 상태 true로 변경
+        // 로그인 axios
+        // client.activate();
+    };
+
+    return (
+        <div className={`wrapper ${action}`}>
             <div className="form-box login">
                 <form action="">
                     <h1> Login</h1>
