@@ -1,13 +1,15 @@
 import React, { useState } from "react";
 import { ImPencil2 } from "react-icons/im";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from 'react-router-dom';
 import "./Loby.css";
 
 const Lobby = () => {
 
     const navigate = useNavigate();
+    const location = useLocation();
 
-    const [nickname, setNickname] = useState("현재 내 닉네임");
+    //게스트 접속시 자동 닉네임 주어짐, usenavigate로 보내고 location으로 받아옴
+    const [nickname, setNickname] = useState(location.state ? `${location.state.nickname}` : "");
 
     const updateNickname = (e) => {
         e.preventDefault();
@@ -40,9 +42,10 @@ const Lobby = () => {
             </h1>
             <form action="">
                 <div className="input-box">
+                    <h6 style={{color: 'black'}}>이름:</h6>
                     <input
                         type="text"
-                        placeholder={nickname}
+                        value={nickname}
                         id="nickname"
                         onChange={(e) => setNickname(e.target.value)}
                         required
