@@ -213,7 +213,8 @@ public class Game extends Subscribable implements Runnable {
             final int NUM_OF_MESSAGES = hidingTeamRequests.size();
             for (int cnt = 0; cnt < NUM_OF_MESSAGES; cnt++) {
                 GamePlayerRequest request = hidingTeamRequests.poll();
-                broadcastService.broadcastTo(hidingTeam, request);
+                Player player = hidingTeam.getPlayerWithId(request.getPlayerId());
+                request.handle(player, hidingTeam, this, broadcastService);
             }
         }
     }
@@ -242,7 +243,8 @@ public class Game extends Subscribable implements Runnable {
             final int NUM_OF_MESSAGES = seekingTeamRequests.size();
             for (int cnt = 0; cnt < NUM_OF_MESSAGES; cnt++) {
                 GamePlayerRequest request = seekingTeamRequests.poll();
-                broadcastService.broadcastTo(seekingTeam, request);
+                Player player = seekingTeam.getPlayerWithId(request.getPlayerId());
+                request.handle(player, seekingTeam, this, broadcastService);
             }
         }
     }
@@ -281,7 +283,7 @@ public class Game extends Subscribable implements Runnable {
         return hidingTeam.has(player) ? hidingTeam : seekingTeam;
     }
 
-    public void pushMessageToTeam(Player player, GamePlayerRequest request) {
+    public void pushMessage(Player player, GamePlayerRequest request) {
         if (hidingTeam.has(player)) {
             hidingTeamRequests.add(request);
         } else if (seekingTeam.has(player)) {

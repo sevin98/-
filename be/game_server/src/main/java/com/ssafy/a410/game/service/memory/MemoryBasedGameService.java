@@ -51,6 +51,6 @@ public class MemoryBasedGameService implements GameService {
         // 위치 공유 메시지를 생성하여 Enque
         PlayerPosition playerPosition = new PlayerPosition(userProfileUuid, req);
         PlayerPositionShareRequest request = new PlayerPositionShareRequest(userProfileUuid, playerPosition);
-        game.pushMessageToTeam(player, request);
+        game.pushMessage(player, request);
     }
 }
