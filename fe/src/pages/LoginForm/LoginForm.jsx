@@ -65,6 +65,7 @@ const LoginForm = () => {
                     console.log(accessToken)
                     // userProfile만 스토리지 저장
                     sessionStorage.setItem("userProfile", userProfile);
+                    sessionStorage.setItem("uuid", res.data.userProfile.uuid);
 
                     console.log(
                         "로그인한 게스트의 닉네임: ",

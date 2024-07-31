@@ -15,9 +15,10 @@ const config = {
     scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
-        // zoom:2,
+        // zoom:1,
     },
     scene: [Preloader, game, MainMenu, GameUI],
+
     physics: {
         default: "arcade",
         arcade: {
