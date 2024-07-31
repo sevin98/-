@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { Scene } from "phaser";
 import Player, { Direction } from "./Player";
 
 // import webSocketClient from "../network";
@@ -22,12 +23,6 @@ export class game extends Phaser.Scene {
         this.moving = 0;
     }
     create() {
-        // const map = this.make.tilemap({
-        //     key: "map",
-        //     tileWidth: 10,
-        //     tileHeight: 10,
-        // });
-        //던전만 가능???
 
         //preLoader 파일에 넣으면 안됨
         const map = this.make.tilemap({ key: "map-2024-07-29" });
@@ -39,56 +34,45 @@ export class game extends Phaser.Scene {
         const BackGround_Of_Wall = map.createLayer("Background-Of-Wall", tileset, 0, 0);
         const Walls = map.createLayer("Walls", tileset, 0, 0);
         const HP = map.createLayer("HP", tileset, 0, 0);
+        
         BackGround.setCollisionBetween(1, 100, true, false, BackGround);
         BackGround_Of_Wall.setCollisionBetween(1, 100, true, false, BackGround_Of_Wall);
         Walls.setCollisionBetween(1, 100, true, false, Walls);
         HP.setCollisionBetween(1, 100, true, false, HP);
 
-
-        // 모든 레이어에 대해 반복
-        // map.layers.forEach((layerData) => {
-        //     const layer = map.createLayer(layerData.name, tileset, 0, 0);
-        //     // 레이어의 properties.name이 "colide"인 경우
-        //     // console.log(layerData.properties[0].name)
-        //     if (layerData.properties[0].name === "collide") {
-        //         // 해당 레이어의 모든 타일에 충돌 속성 부여/ setpropertise?
-        //         layer.setCollisionBetween(1, 100, true, false, layer);
-        //     }
-        // });
-
         this.scene.run("game-ui");
         //24.07.25 phase check timer
         this.hideTeam = "RACOON";
-
+        
         this.readyPhaseEvent = "YET";
         this.mainPhaseEvent = "YET";
         this.endPhaseEvent = "YET";
         this.resultPhaseEvent = "YET";
-
+        
         this.graphics = this.add.graphics(); //그래픽 객체 생성
         this.graphics.setDepth(1000); // 항상 제일 위에 그리기
-
+        
         this.m_cursorKeys = this.input.keyboard.createCursorKeys();
-
-        this.cameras.main.setBackgroundColor(0xff0000);
-
-        // this.m_player2 = this.physics.add.sprite(450, 250, 'fauna', 'walk-down-3.png');
-        //this.m_player3 = this.physics.add.sprite(400, 260, 'fauna', 'walk-down-3.png');
+        
+        // playercam 정의, 300ms 동안 1.5배 zoom 실행
+        const playercam = this.cameras.main;
+        playercam.zoomTo(1.2,300)
 
         // player1 물리 구현, 카메라 follow
-        this.m_player = new Player(this, 500, 500, "fauna-idle-down", true);
+        this.m_player = new Player(this, 800, 800, "fauna-idle-down", true);
         this.m_player.IsRacoon = true;
-        this.cameras.main.startFollow(this.m_player);
+        playercam.startFollow(this.m_player);
         this.physics.add.collider(this.m_player, BackGround, () => {
             console.log("Background!!");
         });
         this.physics.add.collider(this.m_player, Walls, () => {
-          console.log("WAll!!");});
+            console.log("WAll!!");});
         this.physics.add.collider(this.m_player, BackGround_Of_Wall);
         this.physics.add.collider(this.m_player, HP, () => {
-          console.log("숨을수 있음음")
+            console.log("숨을수 있음")
         });
-
+        
+        console.log(HP)
         // object 오크통, player1과 상호작용 구현
         this.group = this.physics.add.group({
             collideWorldBounds: true,
@@ -102,8 +86,11 @@ export class game extends Phaser.Scene {
         // HP.forEachTile(tile =>{
         //   console.log(tile)
         // })
-    }
 
+        // floatinglayer를 player 보다 나중에 호출해서 z-index 구현 
+        const Floatings = map.createLayer("Floatings", tileset, 0, 0);
+    }
+    
     update() {
         sceneEvents.emit("player-health-changed", this.m_player.mhealth);
 
@@ -134,7 +121,7 @@ export class game extends Phaser.Scene {
 
         this.graphics
             .clear() // 시각적으로 가까운 오브젝트와의 선 표시
-            .lineStyle(2, 0xff3300)
+            .lineStyle(1, 0xff3300)
             .lineBetween(
                 closest.body.center.x,
                 closest.body.center.y,
