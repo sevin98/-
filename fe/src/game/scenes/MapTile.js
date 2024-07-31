@@ -28,11 +28,11 @@ export default class MapTile {
     }
     
     createFloatingMap(){
-        this.FloatingLayer = this.map.createLayer("Floatings", this.tileset, 0, 0)
+        this.map.createLayer("Floatings", this.tileset, 0, 0)
     }
 
-    createObjects(){
-        return this
+    createHP(){
+        return this.map.objects[0].objects
     }
 
     setupCollisions() {
@@ -44,16 +44,16 @@ export default class MapTile {
         return this;
     }
 
+    getObjects() {
+        return this.objectsGroup;
+    }
+
     getMap() {
         return this.map;
     }
 
     getLayers() {
         return this.layers;
-    }
-
-    getFloatingLayer() {
-        return this.FloatingLayer;
     }
 
     getTileset() {

@@ -16,6 +16,7 @@ export class game extends Phaser.Scene {
         this.MapTile = null;
         // Set as current millisecond
         this.lastSentTime = Date.now();
+        this.objects = null;
     }
 
     preload() {
@@ -25,12 +26,13 @@ export class game extends Phaser.Scene {
         this.moving = 0;
     }
     create() {
-        // MapTile.js에서 만들어놓은 함수로 map 호출해주기 
+        this.graphics = this.add.graphics().setDepth(1000);//선만들기 위한 그래픽
+        // MapTile.js에서 만들어놓은 함수로 map 호출해주기
         this.maptile = new MapTile(this);
         this.maptile
             .createMap("map-2024-07-29", "dungeon", "tiles")
             .setupCollisions();
-            
+
         // playercam 정의, zoomTo: 300ms 동안 1.5배 zoom
         const playercam = this.cameras.main;
         // playercam.zoomTo(1.2,300)
@@ -39,69 +41,71 @@ export class game extends Phaser.Scene {
         this.localPlayer = new Player(this, 800, 800, "fauna-idle-down", true);
         this.localPlayer.IsRacoon = true;
         playercam.startFollow(this.localPlayer);
-        
+
         //로컬플레이어와 layer의 충돌설정
-        this.physics.add.collider(this.localPlayer, this.maptile.getLayers().BackGround, () => {
-            console.log("Background!!");
-        });
-        this.physics.add.collider(this.localPlayer, this.maptile.getLayers().Walls, () => {
-            console.log("WAll!!");});
-        this.physics.add.collider(this.localPlayer, this.maptile.getLayers().BackGround_Of_Wall);
-        this.physics.add.collider(this.localPlayer, this.maptile.getLayers().HP, () => {
-            console.log("숨을수 있음")
-        });
-        // floatinglayer를 player 보다 나중에 호출해서 z-index 구현 
+        this.physics.add.collider(
+            this.localPlayer,
+            this.maptile.getLayers().BackGround,
+            () => {
+                console.log("Background!!");
+            }
+        );
+        this.physics.add.collider(
+            this.localPlayer,
+            this.maptile.getLayers().Walls,
+            () => {
+                console.log("WAll!!");
+            }
+        );
+        this.physics.add.collider(
+            this.localPlayer,
+            this.maptile.getLayers().BackGround_Of_Wall
+        );
+        this.physics.add.collider(
+            this.localPlayer,
+            this.maptile.getLayers().HP,
+            () => {
+                console.log("숨을수 있음");
+            }
+        );
+        // floatinglayer를 player 보다 나중에 호출해서 z-index 구현
         this.maptile.createFloatingMap();
-        
+
+        // group생성, 플레이어와의 충돌속성부여
+        this.group = this.physics.add.staticGroup(); // 그룹 초기화
+
+        // maptile에서 오브젝트 어레이 가져옴
+        const HPs = this.maptile.createHP();
+        HPs.forEach((HP) => {
+            // console.log(`HP ID: ${HP.id}, X: ${HP.x}, Y: ${HP.y}`); // HP 객체의 id와 좌표를 출력
+            const X = this.tileToPixel(HP.x);
+            const Y = this.tileToPixel(HP.y);
+            let hpObject = this.group.create(X, Y, "oak");
+            hpObject.setSize(16, 16);
+            hpObject.setData("id", HP.id);
+            hpObject.setAlpha(0); //투명하게
+        });
+        this.physics.add.collider(this.localPlayer, this.group);
+        console.log(this.group.getChildren())
 
 
         //game-ui 씬
         this.scene.run("game-ui");
-        console.log("game")
+        console.log("game");
         //24.07.25 phase check timer
         this.hideTeam = "RACOON";
-        
+
         this.readyPhaseEvent = "YET";
         this.mainPhaseEvent = "YET";
         this.endPhaseEvent = "YET";
         this.resultPhaseEvent = "YET";
-        
-        this.graphics = this.add.graphics(); //그래픽 객체 생성
-        this.graphics.setDepth(1000); // 항상 제일 위에 그리기
-        
+
         this.m_cursorKeys = this.input.keyboard.createCursorKeys();
-        
-
-        // console.log(this.maptile.getMap().objects[0].objects)
-        // // object 오크통, player1과 상호작용 구현
-        this.group = this.physics.add.group({
-            collideWorldBounds: true,
-            immovable: true,
-        });
-        this.group.create(170, 100);
-        this.group.create(170, 200);
-        this.group.create(100, 200);
-        this.group.create(100, 100);
-
 
 
     }
-    
+
     update() {
-        sceneEvents.emit("player-health-changed", this.localPlayer.mhealth);
-
-        this.handlePlayerMove();
-
-        // if current time - last sent time is greater than 100ms
-        if (Date.now() - this.lastSentTime > 100) {
-            this.lastSentTime = Date.now();
-            // this.sharePlayerPosition();
-        }
-
-        if (this.m_cursorKeys.space.isDown) {
-            this.localPlayer.IsRacoon = !this.localPlayer.IsRacoon;
-        }
-
         // 플레이어에서 물리적으로 가장 가까운 거리 찾는 객체
         const closest = this.physics.closest(
             this.localPlayer,
@@ -148,6 +152,23 @@ export class game extends Phaser.Scene {
                 this.interactionEffect = null;
             }
         }
+        sceneEvents.emit("player-health-changed", this.localPlayer.mhealth);
+
+        this.handlePlayerMove();
+
+        // if current time - last sent time is greater than 100ms
+        if (Date.now() - this.lastSentTime > 100) {
+            this.lastSentTime = Date.now();
+            // this.sharePlayerPosition();
+        }
+
+        if (this.m_cursorKeys.space.isDown) {
+            this.localPlayer.IsRacoon = !this.localPlayer.IsRacoon;
+        }
+    }
+
+    tileToPixel(tileCoord) {
+        return tileCoord;
     }
 
     handlePlayerMove() {
