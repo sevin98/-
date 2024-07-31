@@ -1,6 +1,7 @@
 package com.ssafy.a410.game.domain.game;
 
 import com.google.gson.JsonObject;
+import com.ssafy.a410.common.exception.handler.GameException;
 import com.ssafy.a410.game.domain.player.Player;
 import lombok.Getter;
 
@@ -30,5 +31,16 @@ public class HPObject extends GameObject {
     // 아이템을 해제하는 함수
     public void removeItem() {
         this.appliedItem = null;
+    }
+
+    // 플레이어 숨는 함수
+    public void hidePlayer(Player player){
+        if(!isEmpty()){
+            throw new GameException("The object already contains another player or item.");
+        }
+        if (this.getId() == null) {
+            throw new GameException("Invalid object ID");
+        }
+        this.player = player;
     }
 }
