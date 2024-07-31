@@ -16,10 +16,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 @Getter
@@ -146,7 +143,7 @@ public class Game extends Subscribable implements Runnable {
     private void resetHPObjects() {
         // Map 형식으로 hpObjects를 가져와서 반복하며 null값으로 초기화
         Map<String, HPObject> hpObjects = gameMap.getHpObjects();
-        for(HPObject hpObject : hpObjects.values()) {
+        for (HPObject hpObject : hpObjects.values()) {
             hpObject.unhidePlayer();
             hpObject.removeItem();
         }
