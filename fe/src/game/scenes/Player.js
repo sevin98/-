@@ -22,131 +22,215 @@ export default class Player extends Phaser.Physics.Arcade.Sprite
     }
     //static IsRacoon = true;
     constructor(scene, x, y, texture){
-
         super(scene, x, y, texture);
-        
+
         this.scale = 1;
         this.alpha = 1;
         //if(!racoon) this.IsRacoon = false;
 
         scene.add.existing(this);
         scene.physics.add.existing(this);
+      //   this.body.setSize(this.width * 0.1, this.height * 0.1);
+        // 스프라이트의 표시 크기를 1px * 1px로 설정
+        this.setDisplaySize(16, 16);
 
-        this.body.setSize(this.width*0.5, this.height*0.5);
+        // 물리 바디의 크기를 1px * 1px로 설정
+        this.body.setSize(28, 28);
+
         //racoon animation
-        if(true/*this.IsRacoon*/ ){
-         this.anims.create({
-            key: 'racoon-idle-down',
-            frames: this.anims.generateFrameNames('racoon', {start : 1, end : 2, prefix: 'idle-down-', suffix:'.png'}),
-            repeat : -1,
-            frameRate : 5
-         })
-
-         this.anims.create({
-            key: 'racoon-idle-right',
-            frames: this.anims.generateFrameNames('racoon', {start : 1, end : 2, prefix: 'idle-right-', suffix:'.png'}),
-            repeat : -1,
-            frameRate : 5
-         })
-         this.anims.create({
-            key: 'racoon-idle-left',
-            frames: this.anims.generateFrameNames('racoon', {start : 1, end : 2, prefix: 'idle-left-', suffix:'.png'}),
-            repeat : -1,
-            frameRate : 5
-         })
-
-         this.anims.create({
-            key: 'racoon-idle-up',
-            frames: this.anims.generateFrameNames('racoon', {start : 1, end : 2, prefix: 'idle-up-', suffix:'.png'}),
-            repeat : -1,
-            frameRate : 5
-         })
-         
-         this.anims.create({
-            key : 'racoon-run-down',
-            frames: this.anims.generateFrameNames('racoon', {start : 1, end : 4, prefix: 'run-down-', suffix:'.png'}),
-            repeat: -1,
-            frameRate : 10
-         })
-
-         this.anims.create({
-            key : 'racoon-run-up',
-            frames: this.anims.generateFrameNames('racoon', {start : 1, end : 4, prefix: 'run-up-', suffix:'.png'}),
-            repeat: -1,
-            frameRate : 10
-         })
-
-         this.anims.create({
-            key : 'racoon-run-right',
-            frames: this.anims.generateFrameNames('racoon', {start : 1, end : 4, prefix: 'run-right-', suffix:'.png'}),
-            repeat: -1,
-            frameRate : 10
-         })
-         this.anims.create({
-            key : 'racoon-run-left',
-            frames: this.anims.generateFrameNames('racoon', {start : 1, end : 4, prefix: 'run-left-', suffix:'.png'}),
-            repeat: -1,
-            frameRate : 10
-         })
-
-         this.anims.play('racoon-idle-down')
-        }
-        if(true/*!this.IsRacoon*/ ){
+        if (true /*this.IsRacoon*/) {
             this.anims.create({
-                key: 'fox-idle-down',
-                frames: this.anims.generateFrameNames('fox', {start : 1, end : 2, prefix: 'idle-down-', suffix:'.png'}),
-                repeat : -1,
-                frameRate : 5
-             })
-    
-             this.anims.create({
-                key: 'fox-idle-right',
-                frames: this.anims.generateFrameNames('fox', {start : 1, end : 2, prefix: 'idle-right-', suffix:'.png'}),
-                repeat : -1,
-                frameRate : 5
-             })
-             this.anims.create({
-                key: 'fox-idle-left',
-                frames: this.anims.generateFrameNames('fox', {start : 1, end : 2, prefix: 'idle-left-', suffix:'.png'}),
-                repeat : -1,
-                frameRate : 5
-             })
-    
-             this.anims.create({
-                key: 'fox-idle-up',
-                frames: this.anims.generateFrameNames('fox', {start : 1, end : 2, prefix: 'idle-up-', suffix:'.png'}),
-                repeat : -1,
-                frameRate : 5
-             })
-             
-             this.anims.create({
-                key : 'fox-run-down',
-                frames: this.anims.generateFrameNames('fox', {start : 1, end : 4, prefix: 'run-down-', suffix:'.png'}),
+                key: "racoon-idle-down",
+                frames: this.anims.generateFrameNames("racoon", {
+                    start: 1,
+                    end: 2,
+                    prefix: "idle-down-",
+                    suffix: ".png",
+                }),
                 repeat: -1,
-                frameRate : 10
-             })
-    
-             this.anims.create({
-                key : 'fox-run-up',
-                frames: this.anims.generateFrameNames('fox', {start : 1, end : 4, prefix: 'run-up-', suffix:'.png'}),
+                frameRate: 5,
+            });
+
+            this.anims.create({
+                key: "racoon-idle-right",
+                frames: this.anims.generateFrameNames("racoon", {
+                    start: 1,
+                    end: 2,
+                    prefix: "idle-right-",
+                    suffix: ".png",
+                }),
                 repeat: -1,
-                frameRate : 10
-             })
-    
-             this.anims.create({
-                key : 'fox-run-right',
-                frames: this.anims.generateFrameNames('fox', {start : 1, end : 4, prefix: 'run-right-', suffix:'.png'}),
+                frameRate: 5,
+            });
+            this.anims.create({
+                key: "racoon-idle-left",
+                frames: this.anims.generateFrameNames("racoon", {
+                    start: 1,
+                    end: 2,
+                    prefix: "idle-left-",
+                    suffix: ".png",
+                }),
                 repeat: -1,
-                frameRate : 10
-             })
-             this.anims.create({
-                key : 'fox-run-left',
-                frames: this.anims.generateFrameNames('fox', {start : 1, end : 4, prefix: 'run-left-', suffix:'.png'}),
+                frameRate: 5,
+            });
+
+            this.anims.create({
+                key: "racoon-idle-up",
+                frames: this.anims.generateFrameNames("racoon", {
+                    start: 1,
+                    end: 2,
+                    prefix: "idle-up-",
+                    suffix: ".png",
+                }),
                 repeat: -1,
-                frameRate : 10
-             })
-    
-             this.anims.play('fox-idle-down')
+                frameRate: 5,
+            });
+
+            this.anims.create({
+                key: "racoon-run-down",
+                frames: this.anims.generateFrameNames("racoon", {
+                    start: 1,
+                    end: 4,
+                    prefix: "run-down-",
+                    suffix: ".png",
+                }),
+                repeat: -1,
+                frameRate: 10,
+            });
+
+            this.anims.create({
+                key: "racoon-run-up",
+                frames: this.anims.generateFrameNames("racoon", {
+                    start: 1,
+                    end: 4,
+                    prefix: "run-up-",
+                    suffix: ".png",
+                }),
+                repeat: -1,
+                frameRate: 10,
+            });
+
+            this.anims.create({
+                key: "racoon-run-right",
+                frames: this.anims.generateFrameNames("racoon", {
+                    start: 1,
+                    end: 4,
+                    prefix: "run-right-",
+                    suffix: ".png",
+                }),
+                repeat: -1,
+                frameRate: 10,
+            });
+            this.anims.create({
+                key: "racoon-run-left",
+                frames: this.anims.generateFrameNames("racoon", {
+                    start: 1,
+                    end: 4,
+                    prefix: "run-left-",
+                    suffix: ".png",
+                }),
+                repeat: -1,
+                frameRate: 10,
+            });
+
+            this.anims.play("racoon-idle-down");
+        }
+        if (true /*!this.IsRacoon*/) {
+            this.anims.create({
+                key: "fox-idle-down",
+                frames: this.anims.generateFrameNames("fox", {
+                    start: 1,
+                    end: 2,
+                    prefix: "idle-down-",
+                    suffix: ".png",
+                }),
+                repeat: -1,
+                frameRate: 5,
+            });
+
+            this.anims.create({
+                key: "fox-idle-right",
+                frames: this.anims.generateFrameNames("fox", {
+                    start: 1,
+                    end: 2,
+                    prefix: "idle-right-",
+                    suffix: ".png",
+                }),
+                repeat: -1,
+                frameRate: 5,
+            });
+            this.anims.create({
+                key: "fox-idle-left",
+                frames: this.anims.generateFrameNames("fox", {
+                    start: 1,
+                    end: 2,
+                    prefix: "idle-left-",
+                    suffix: ".png",
+                }),
+                repeat: -1,
+                frameRate: 5,
+            });
+
+            this.anims.create({
+                key: "fox-idle-up",
+                frames: this.anims.generateFrameNames("fox", {
+                    start: 1,
+                    end: 2,
+                    prefix: "idle-up-",
+                    suffix: ".png",
+                }),
+                repeat: -1,
+                frameRate: 5,
+            });
+
+            this.anims.create({
+                key: "fox-run-down",
+                frames: this.anims.generateFrameNames("fox", {
+                    start: 1,
+                    end: 4,
+                    prefix: "run-down-",
+                    suffix: ".png",
+                }),
+                repeat: -1,
+                frameRate: 10,
+            });
+
+            this.anims.create({
+                key: "fox-run-up",
+                frames: this.anims.generateFrameNames("fox", {
+                    start: 1,
+                    end: 4,
+                    prefix: "run-up-",
+                    suffix: ".png",
+                }),
+                repeat: -1,
+                frameRate: 10,
+            });
+
+            this.anims.create({
+                key: "fox-run-right",
+                frames: this.anims.generateFrameNames("fox", {
+                    start: 1,
+                    end: 4,
+                    prefix: "run-right-",
+                    suffix: ".png",
+                }),
+                repeat: -1,
+                frameRate: 10,
+            });
+            this.anims.create({
+                key: "fox-run-left",
+                frames: this.anims.generateFrameNames("fox", {
+                    start: 1,
+                    end: 4,
+                    prefix: "run-left-",
+                    suffix: ".png",
+                }),
+                repeat: -1,
+                frameRate: 10,
+            });
+
+            this.anims.play("fox-idle-down");
         }
     }
     reflectFromWall(direction){
