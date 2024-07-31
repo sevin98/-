@@ -28,8 +28,10 @@ export class game extends Phaser.Scene {
         //     tileHeight: 10,
         // });
         //던전만 가능???
+
         //preLoader 파일에 넣으면 안됨
-        const map = this.make.tilemap({ key: "dungeon" });
+        const map = this.make.tilemap({ key: "map-2024-07-29" });
+        // 타일셋이름은 json에있는 걸로 해야함 
         const tileset = map.addTilesetImage("dungeon", "tiles");
 
         const BackGround = map.createLayer("BackGround", tileset, 0, 0);
@@ -37,6 +39,7 @@ export class game extends Phaser.Scene {
         const BackGround_Of_Wall = map.createLayer("Background-Of-Wall", tileset, 0, 0);
         const Walls = map.createLayer("Walls", tileset, 0, 0);
         const HP = map.createLayer("HP", tileset, 0, 0);
+        BackGround.setCollisionBetween(1, 100, true, false, BackGround);
         BackGround_Of_Wall.setCollisionBetween(1, 100, true, false, BackGround_Of_Wall);
         Walls.setCollisionBetween(1, 100, true, false, Walls);
         HP.setCollisionBetween(1, 100, true, false, HP);
@@ -76,13 +79,15 @@ export class game extends Phaser.Scene {
         this.m_player = new Player(this, 500, 500, "fauna-idle-down", true);
         this.m_player.IsRacoon = true;
         this.cameras.main.startFollow(this.m_player);
-        this.physics.add.collider(this.m_player, Walls, () => {
-          console.log("WAll!!");
+        this.physics.add.collider(this.m_player, BackGround, () => {
+            console.log("Background!!");
         });
+        this.physics.add.collider(this.m_player, Walls, () => {
+          console.log("WAll!!");});
         this.physics.add.collider(this.m_player, BackGround_Of_Wall);
-        // this.physics.add.collider(this.m_player, HP, () => {
-        //   console.log("숨을수 있음음")
-        // });
+        this.physics.add.collider(this.m_player, HP, () => {
+          console.log("숨을수 있음음")
+        });
 
         // object 오크통, player1과 상호작용 구현
         this.group = this.physics.add.group({

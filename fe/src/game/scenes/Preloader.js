@@ -20,7 +20,7 @@ export class Preloader extends Scene {
         //여기서부터 시작
 
         this.load.tilemapTiledJSON(
-            "dungeon",
+            "map-2024-07-29",
             "/assets/map/map-2024-07-29.json"
         );
         this.load.image("tiles", "/assets/map/map-2024-07-29_tiles.png");
