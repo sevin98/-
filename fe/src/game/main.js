@@ -17,7 +17,7 @@ const config = {
         autoCenter: Phaser.Scale.CENTER_BOTH,
         // zoom:1,
     },
-    scene: [Preloader, game, MainMenu, GameUI],
+    scene: [Preloader, MainMenu, game, GameUI],
 
     physics: {
         default: "arcade",
