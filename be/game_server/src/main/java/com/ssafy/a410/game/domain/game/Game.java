@@ -143,8 +143,9 @@ public class Game extends Subscribable implements Runnable {
             log.debug("Room {} END Phase start --------------------------------------", room.getRoomNumber());
             runEndPhase();
 
-            swapTeam();
+            // TODO : HPObjects 초기화 전에 HP 빠져나오기(명세)를 진행해야 한다.
             resetHPObjects();
+            swapTeam();
         }
         room.endGame();
     }
@@ -153,8 +154,8 @@ public class Game extends Subscribable implements Runnable {
         // Map 형식으로 hpObjects를 가져와서 반복하며 null값으로 초기화
         Map<String, HPObject> hpObjects = gameMap.getHpObjects();
         for(HPObject hpObject : hpObjects.values()) {
-            hpObject.setHidingPlayerId(null);
-            hpObject.setAppliedItemName(null);
+            hpObject.unhidePlayer();
+            hpObject.removeItem();
         }
     }
 
