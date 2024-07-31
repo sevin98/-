@@ -19,6 +19,8 @@ export class Preloader extends Scene {
         // this.load.image("blackSide", "assets/blacksideTemp.png");
         //여기서부터 시작
 
+
+        // map 이미지 로드 
         this.load.tilemapTiledJSON(
             "map-2024-07-29",
             "/assets/map/map-2024-07-29.json"
@@ -35,31 +37,10 @@ export class Preloader extends Scene {
         );
         this.graphics = this.add.graphics(); //그래픽 객체 생성
         // this.graphics.setDepth(10); // 항상 제일 위에 그리기
+
     }
     create() {
-        this.cameras.main.setBackgroundColor(0xff0000);
-
-
-       // 첫 번째 타일셋 가져오기
-        // 타일셋 추가
-          
-
-        // const map0 = this.make.tilemap({ key: "map" });
-        // const tileset = map.addTilesetImage("base", "tiles");
-
-        // map.createLayer("Ground", tileset);
-        // const wallsLayer = map.createLayer("Walls", tileset);
-
-        // wallsLayer.setCollisionByProperty({ collides: true });
-
-        // const debugGraphics = this.add.graphics.setAlpha(0.7);
-        // this.physics.add.existing(debugGraphics);
-        // wallsLayer.renderDebug(debugGraphics, {
-        //     tileColor: null,
-        //     collidingTileColor: new Phaser.Display.Color(243, 243, 48, 255),
-        //     faceColor: new Phaser.Display.Color(40, 39, 37, 255),
-        // });
-
-        this.scene.start("game");
+        this.scene.start("game");     
+        // this.scene.start("MainMenu");
     }
 }

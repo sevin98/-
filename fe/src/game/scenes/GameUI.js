@@ -15,6 +15,7 @@ export default class GameUI extends Phaser.Scene{
 
     }
     create(){
+        console.log("gameui")
         //묶음으로 UI 만드는 법.
         this.hearts = this.add.group({
             classType : Phaser.GameObjects.Image
