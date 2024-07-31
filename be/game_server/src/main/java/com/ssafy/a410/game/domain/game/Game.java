@@ -1,5 +1,6 @@
 package com.ssafy.a410.game.domain.game;
 
+import com.ssafy.a410.common.exception.UnhandledException;
 import com.ssafy.a410.game.domain.Pos;
 import com.ssafy.a410.game.domain.game.message.control.*;
 import com.ssafy.a410.game.domain.player.Player;
@@ -43,7 +44,7 @@ public class Game extends Subscribable implements Runnable {
         try {
             this.gameMap = new GameMap("map-2024-07-29");
         } catch (IOException e) {
-            throw new RuntimeException("Failed to load game map");
+            throw new UnhandledException("Failed to load game map");
         }
         this.hidingTeam = new Team(Team.Character.RACOON, this);
         this.hidingTeamRequests = new ConcurrentLinkedDeque<>();

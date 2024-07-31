@@ -1,12 +1,14 @@
 package com.ssafy.a410.game.domain.player;
 
 import com.ssafy.a410.auth.domain.UserProfile;
-import com.ssafy.a410.common.exception.handler.GameException;
+import com.ssafy.a410.common.exception.ResponseException;
 import com.ssafy.a410.game.domain.Pos;
 import com.ssafy.a410.room.domain.Room;
 import com.ssafy.a410.socket.domain.Subscribable;
 import lombok.Getter;
 import lombok.Setter;
+
+import static com.ssafy.a410.common.exception.ErrorDetail.PLAYER_ALREADY_READY;
 
 @Getter
 @Setter
@@ -53,7 +55,7 @@ public class Player extends Subscribable {
     // 게임 시작 준비 상태로 변경
     public void setReady() {
         if (this.readyToStart) {
-            throw new GameException("Player is already ready to start");
+            throw new ResponseException(PLAYER_ALREADY_READY);
         }
         this.readyToStart = true;
     }

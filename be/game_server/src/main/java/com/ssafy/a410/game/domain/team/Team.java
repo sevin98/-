@@ -1,6 +1,6 @@
 package com.ssafy.a410.game.domain.team;
 
-import com.ssafy.a410.common.exception.handler.GameException;
+import com.ssafy.a410.common.exception.ResponseException;
 import com.ssafy.a410.game.domain.game.Game;
 import com.ssafy.a410.game.domain.player.Player;
 import com.ssafy.a410.socket.domain.Subscribable;
@@ -9,6 +9,9 @@ import lombok.Setter;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static com.ssafy.a410.common.exception.ErrorDetail.PLAYER_NOT_IN_TEAM;
+import static com.ssafy.a410.common.exception.ErrorDetail.TEAM_IS_FULL;
 
 @Getter
 public class Team extends Subscribable {
@@ -30,14 +33,14 @@ public class Team extends Subscribable {
 
     public void addPlayer(Player player) {
         if (this.isFull()) {
-            throw new GameException("Team is full");
+            throw new ResponseException(TEAM_IS_FULL);
         }
         players.put(player.getId(), player);
     }
 
     public void removePlayer(Player player) {
         if (!this.has(player)) {
-            throw new GameException("Player is not in team");
+            throw new ResponseException(PLAYER_NOT_IN_TEAM);
         }
         players.remove(player.getId());
     }

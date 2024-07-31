@@ -8,12 +8,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 
 @Slf4j
 @RequiredArgsConstructor
-@Controller
+@RestController
 public class GameController {
     private final GameService gameService;
     private final InteractService interactService;
