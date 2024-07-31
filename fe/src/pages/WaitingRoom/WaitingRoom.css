@@ -1,193 +1,212 @@
-/* waitingRoom.css */
-
 /* 전체 대기실 스타일 */
 .waiting-room {
   display: flex;
+  position: relative;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
-  background-color: #f5f5f5;
+  background-color: #fff8f8;
+  justify-content: space-between;
+  padding: 20px 0;
+  width: 80vmin;
   height: 100vh;
+  font-family: 'Press Start 2P', cursive;
+  color: #ecf0f1;
+  image-rendering: pixelated;
 }
 
 /* 플레이어 그리드 스타일 */
 .player-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* 4열 그리드 */
-  gap: 10px; /* 슬롯 사이 간격 */
-  max-width: 600px; /* 최대 너비 설정 */
-  margin: 0 auto; /* 중앙 정렬 */
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  width: 90%;
+  max-width: 800px;
+  margin: 80px auto;
+  height: 50vh;
 }
 
 /* 플레이어 슬롯 스타일 */
 .player-slot {
-  background-color: #444;
-  color: #fff;
-  padding: 10px;
-  border-radius: 5px;
+  background-color: #ffffff;
+  color: #ecf0f1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  aspect-ratio: 1 / 1;
+  border: 4px solid #ecf0f1;
   text-align: center;
+  font-size: 14px;
   position: relative;
+  transition: all 0.3s steps(5);
+  box-shadow: 5px 5px 0px #1abc9c;
 }
 
 .player-slot.empty {
-  background-color: #222;
-  color: #888;
+  background-color: #ffffff;
+  color: #95a5a6;
 }
 
 .player-slot.ready {
-  border: 2px solid #4caf50; /* 준비 완료 상태에 녹색 테두리 */
+  border-color: #2ecc71;
+  box-shadow: 5px 5px 0px #27ae60;
 }
 
 .player-slot.me {
-  border: 2px solid #2196f3; /* 자신을 나타내는 파란색 테두리 */
+  border-color: #3498db;
+  box-shadow: 5px 5px 0px #2980b9;
 }
 
 .player-icon {
-  font-size: 24px;
+  font-size: 28px;
+  margin-bottom: 12px;
 }
 
 .player-nickname {
   font-size: 16px;
-  margin-top: 5px;
+  margin-top: 8px;
 }
 
 .player-ready-status {
-  font-size: 14px;
-  margin-top: 5px;
+  font-size: 12px;
+  margin-top: 8px;
+  color: #2ecc71;
 }
 
 /* 채팅창 스타일 */
 .chat-box {
-  background-color: #333;
-  color: #fff;
-  padding: 15px;
-  border-radius: 8px;
+  background-color: #fffdf6;
+  color: #ecf0f1;
+  padding: 20px;
+  border: 4px solid #ecf0f1;
+  height: 180px;
   margin-top: 20px;
-  height: 150px; /* 높이 조정 */
-  width: 100%; /* 너비를 부모에 맞게 확장 */
-  max-width: 600px; /* 최대 너비 설정 */
+  margin-bottom: 20px;
+  width: 90%;
+  max-width: 800px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  overflow-y: auto; /* 내용이 넘칠 때 스크롤 가능 */
+  overflow-y: auto;
+  font-size: 14px;
+  box-shadow: 5px 5px 0px #1abc9c;
+}
+
+/* 카운트다운과 메시지 스타일 */
+.chat-box .countdown-display,
+.chat-box .countdown-message {
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 12px;
 }
 
 .chat-box .countdown-display {
-  font-size: 32px; /* 카운트다운 크기 */
-  font-weight: bold;
-  color: #ffeb3b; /* 카운트다운 색상 */
-  text-align: center;
-  margin-bottom: 10px;
+  color: #f1c40f;
 }
 
 .chat-box .countdown-message {
-  font-size: 20px; /* 메시지 크기 */
-  font-weight: bold;
-  color: #f44336; /* 메시지 색상 */
-  text-align: center;
-  margin-bottom: 10px;
+  color: #e74c3c;
 }
 
 .chat-box .chat-messages {
   display: flex;
   flex-direction: column;
-  gap: 5px; /* 메시지 간격 */
-  overflow-y: auto; /* 메시지 컨테이너 내 스크롤 가능 */
+  gap: 10px;
+  overflow-y: auto;
 }
 
 .chat-box .chat-message {
   font-size: 14px;
-  color: #e0e0e0;
-  padding: 5px;
-  border-radius: 4px;
-  background-color: #444; /* 채팅 메시지 배경 */
-}
-
-.chat-box .chat-message:first-child {
-  margin-top: 10px; /* 첫 메시지와 위쪽 간격 */
-}
-
-.chat-box .chat-message:last-child {
-  margin-bottom: 0; /* 마지막 메시지와 아래쪽 간격 */
+  color: #ecf0f1;
+  padding: 10px;
+  background-color: #2c3e50;
+  border: 2px solid #95a5a6;
 }
 
 /* 스크롤바 스타일 */
 .chat-box::-webkit-scrollbar {
   width: 8px;
+  background-color: #2c3e50;
 }
 
 .chat-box::-webkit-scrollbar-thumb {
-  background-color: #555;
-  border-radius: 4px;
-}
-
-.chat-box::-webkit-scrollbar-track {
-  background-color: #333;
+  background-color: #95a5a6;
 }
 
 /* 레디 버튼 스타일 */
 .ready-button {
-  padding: 10px 20px;
-  font-size: 16px;
+  padding: 16px 32px;
+  font-size: 18px;
   border: none;
-  border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s steps(5);
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-top: 20px;
 }
 
 .ready-button.not-ready {
-  background-color: #4caf50; /* 녹색 */
-  color: #fff;
+  background-color: #2ecc71;
+  color: #ecf0f1;
+  box-shadow: 5px 5px 0px #27ae60;
 }
 
 .ready-button.ready {
-  background-color: #9e9e9e; /* 회색 */
-  color: #fff;
-  cursor: not-allowed; /* 비활성화 상태 커서 */
+  background-color: #e74c3c;
+  color: #ecf0f1;
+  box-shadow: 5px 5px 0px #c0392b;
+}
+
+.ready-button:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 7px 7px 0px currentColor;
 }
 
 /* 방 코드 공유 버튼 스타일 */
 .share-room-code-button {
-  padding: 10px 20px;
+  padding: 14px 28px;
   font-size: 16px;
   border: none;
-  border-radius: 5px;
-  background-color: #2196f3; /* 파란색 */
-  color: #fff;
+  background-color: #3498db;
+  color: #ecf0f1;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s steps(5);
+  font-weight: bold;
+  text-transform: uppercase;
+  box-shadow: 5px 5px 0px #2980b9;
 }
 
 .share-room-code-button:hover {
-  background-color: #1976d2; /* 다크 블루 */
-}
-
-.share-room-code-button:active {
-  background-color: #1565c0; /* 더 진한 블루 */
+  background-color: #2980b9;
+  transform: translate(-2px, -2px);
+  box-shadow: 7px 7px 0px #1c638e;
 }
 
 /* 뒤로가기 버튼 스타일 */
 .back-to-lobby-button {
-  padding: 10px 20px;
+  padding: 14px 28px;
   font-size: 16px;
   border: none;
-  border-radius: 5px;
-  background-color: #f44336; /* 빨간색 */
-  color: #fff;
+  background-color: #e67e22;
+  color: #ecf0f1;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s steps(5);
+  font-weight: bold;
+  text-transform: uppercase;
+  box-shadow: 5px 5px 0px #d35400;
 }
 
 .back-to-lobby-button:hover {
-  background-color: #d32f2f; /* 다크 레드 */
-}
-
-.back-to-lobby-button:active {
-  background-color: #b71c1c; /* 더 진한 레드 */
+  background-color: #d35400;
+  transform: translate(-2px, -2px);
+  box-shadow: 7px 7px 0px #a04000;
 }
 
 .back-to-lobby-button.disabled {
-  background-color: #9e9e9e; /* 회색 */
-  cursor: not-allowed; /* 비활성화 상태 커서 */
-  opacity: 0.6; /* 비활성화 상태 투명도 */
+  background-color: #95a5a6;
+  cursor: not-allowed;
+  opacity: 0.7;
+  box-shadow: none;
 }

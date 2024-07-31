@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useStompClient } from '../../network/StompContext'; // STOMP 클라이언트 사용
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify'; // react-toastify 추가
+import axios from '../axiosConfig'; // 기본 설정된 axios 가져오기
 import PlayerGrid from './PlayerGrid'; // 플레이어 슬롯 컴포넌트
 import ReadyButton from './ReadyButton'; // 레디 버튼 컴포넌트
 import BackToLobbyButton from './BackToLobbyButton'; // 뒤로가기 버튼 컴포넌트
@@ -19,6 +20,7 @@ const WaitingRoom = () => {
     const [gameTopic, setGameTopic] = useState(null);
     const [countdown, setCountdown] = useState(null); // 카운트다운 상태 추가
     const [countdownMessage, setCountdownMessage] = useState(''); // 카운트다운 완료 메시지 상태
+    const [isReady, setIsReady] = useState(false); // 레디 상태 추가
 
     const client = useStompClient();
 
@@ -98,12 +100,24 @@ const WaitingRoom = () => {
     }, [client, roomSubscriptionInfo, playerSubscriptionInfo, navigate]);
 
     useEffect(() => {
-        handleSubscribe();
-
-        // 컴포넌트 언마운트 시 구독 해제
-        return () => {
-            client.deactivate();
+        // 현재 사용자 정보 추가
+        const currentUser = {
+            uuid: sessionStorage.getItem("uuid"),
+            nickname: sessionStorage.getItem("nickname")
         };
+        setJoinedPlayers(prevPlayers => {
+            const existingUser = prevPlayers.find(player => player.uuid === currentUser.uuid);
+            if (!existingUser) {
+                return [...prevPlayers, currentUser];
+            }
+            return prevPlayers;
+        });
+    
+        if (client) {
+            handleSubscribe();
+        }
+    
+        // 컴포넌트 언마운트 시 정리 작업은 제거
     }, [handleSubscribe, client]);
 
     const handleShareRoomCode = () => {
@@ -116,41 +130,65 @@ const WaitingRoom = () => {
     };
 
     const handleReadyButtonClick = () => {
-        client.publish({
-            destination: `/ws/rooms/${sessionStorage.getItem('roomId')}/ready`, // 서버에서 사용할 목적지 경로
-            body: JSON.stringify({}),
-        });
+        console.log(isReady);
+        if (isReady) return; // 이미 준비 상태면 아무 작업도 하지 않음
+        
+        const roomId = sessionStorage.getItem('roomNumber');
 
-        // 준비 상태 변경 메시지 토스트로 표시
-        toast.success('준비 상태로 변경되었습니다.')
+        if (client && client.connected) { // 클라이언트 연결 상태 확인
+            client.publish({
+                destination: `/ws/rooms/${roomId}/ready`,
+                body: JSON.stringify({}),
+                headers: { 'content-type': 'application/json' }
+            });
+
+            setIsReady(true);
+            toast.success('준비 상태로 변경되었습니다.');
+        } else {
+            console.error('STOMP 클라이언트가 연결되지 않았습니다.'); // 디버깅 로그
+            toast.error('서버와의 연결에 문제가 있습니다. 페이지를 새로고침하거나 다시 접속해주세요.');
+        }
     };
 
+    
+
     const handleBackToLobbyClick = () => {
-        fetch(`/api/rooms/${sessionStorage.getItem('roomId')}/leave`, {
-            method: 'POST',
-        })
-        .then(response => response.json())
-        .then(() => {
-            navigate('/lobby');
-        })
-        .catch(error => {
-            toast.error('뒤로가기 처리 중 오류가 발생했습니다.');
-        });
+        const roomId = sessionStorage.getItem('roomNumber');
+    
+        console.log(roomId)
+
+        // 방 나가기 요청 (요청 성공 여부와 관계없이 상태 초기화 및 로비로 이동)
+        axios.post(`/api/rooms/${roomId}/leave`)
+            .catch(e => {
+                console.log(e);
+            })
+            .finally(() => {
+                setJoinedPlayers([]);
+                setReadyPlayers([]);
+                setGameTopic(null);
+                setCountdown(null);
+                setCountdownMessage('');
+                setIsReady(false);
+                sessionStorage.removeItem('roomNumber');
+
+                // 웹소켓 연결 유지
+                navigate('/lobby');
+            });
     };
 
     return (
         <div className="waiting-room">
             {/* 왼쪽 위: 뒤로가기 버튼 */}
-            <BackToLobbyButton onClick={handleBackToLobbyClick} />
+            <BackToLobbyButton onClick={handleBackToLobbyClick} isDisabled={isReady || countdown > 0} />
+
+            {/* 오른쪽 위: 방 코드 공유 버튼 */}
+            <ShareRoomCodeButton roomCode={sessionStorage.getItem('roomNumber')} onCopySuccess={() => toast.success('방 코드가 클립보드에 복사되었습니다.')} />
             
             {/* 플레이어 슬롯 (가운데) */}
             <PlayerGrid players={joinedPlayers} readyPlayers={readyPlayers} />
 
             {/* 왼쪽 아래: 레디 버튼 */}
-            <ReadyButton onClick={handleReadyButtonClick} isReady={readyPlayers.some(player => player.id === sessionStorage.getItem('userId'))} />
-
-            {/* 오른쪽 위: 방 코드 공유 버튼 */}
-            <ShareRoomCodeButton roomCode={sessionStorage.getItem('roomNumber')} onCopySuccess={() => toast.success('방 코드가 클립보드에 복사되었습니다.')} />
+            <ReadyButton onClick={handleReadyButtonClick} isReady={isReady} />
 
             {/* 오른쪽 아래: 채팅창 */}
             <ChatBox countdown={countdown} countdownMessage={countdownMessage} />

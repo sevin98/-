@@ -3,6 +3,7 @@ import axios from '../axiosConfig';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
+
 import './Loby.css';
 
 const RoomJoin    = () => {
@@ -19,9 +20,8 @@ const RoomJoin    = () => {
             });
 
             if (response.status === 200) {
-                // sessionStorage에 데이터 저장
+                // sessionStorage에 roomNumber 데이터 저장
                 sessionStorage.setItem('roomNumber', roomNumber);
-                sessionStorage.setItem('roomPassword', roomPassword);
 
                 // 응답에서 구독 정보 추출 (가정)
                 const { roomSubscriptionInfo, playerSubscriptionInfo } = response.data;
@@ -31,7 +31,7 @@ const RoomJoin    = () => {
                     state: {
                         roomSubscriptionInfo,
                         playerSubscriptionInfo
-                    }
+                    },
                 });
             }
         } catch (error) {
@@ -39,6 +39,8 @@ const RoomJoin    = () => {
                 toast.error('해당하는 방이 없습니다.');
             } else if (error.response && error.response.status === 401) {
                 toast.error('비밀번호가 틀립니다.');
+            } else if (error.response && error.response.status === 403) {
+                toast.error('방에 자리가 없습니다.');
             } else {
                 toast.error('방 참가 중 오류가 발생했습니다.');
             }

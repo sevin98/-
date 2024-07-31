@@ -1,16 +1,40 @@
 import axios from "axios";
 
-// accessToken을 설정하는 함수
-export const setAccessToken = (accessToken) => {
-    if (accessToken) {
-        axios.defaults.headers.common[
-            "Authorization"
-        ] = `Bearer ${accessToken}`;
-        sessionStorage.setItem("accessToken", accessToken); // 토큰을 세션 스토리지에 저장
-    } else {
-        delete axios.defaults.headers.common["Authorization"];
-        sessionStorage.removeItem("accessToken"); // 토큰을 세션 스토리지에서 제거
-    }
-};
+const instance = axios.create({
+    // baseURL: "https://i11a410.p.ssafy.io/staging",
+    baseURL: "https://ba7e-211-192-210-213.ngrok-free.app",
+});
 
-export default axios;
+// 요청 인터셉터
+instance.interceptors.request.use(
+    (config) => {
+        const token = sessionStorage.getItem("accessToken");
+        if (token) {
+            config.headers["Authorization"] = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
+
+// 응답 인터셉터 (선택적)
+instance.interceptors.response.use(
+    (response) => {
+        return response;
+    },
+    (error) => {
+        if (error.response && error.response.status === 401) {
+            // 토큰이 만료되었거나 유효하지 않은 경우 처리
+            // 예: 로그아웃 처리 또는 토큰 갱신 로직
+        }
+        return Promise.reject(error);
+    }
+);
+
+export function setAccessToken(token) {
+    sessionStorage.setItem("accessToken", token);
+}
+
+export default instance;

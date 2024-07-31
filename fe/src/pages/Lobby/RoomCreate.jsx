@@ -2,7 +2,6 @@ import react, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "../axiosConfig";
 import { Client } from "@stomp/stompjs";
-// import NodeWebSocket from 'ws';
 
 import "./Loby.css";
 
@@ -13,14 +12,17 @@ const RoomCreate = () => {
     const HTTP_API_URL_PREFIX = localStorage.getItem("HTTP_API_URL_PREFIX");
 
     // 방 만들기
-    const createRoom = async(e) => {
-    e.preventDefault();
-    const res = await axios.post(`${HTTP_API_URL_PREFIX}/rooms`,
-        {password: roomPassword});
-    sessionStorage.setItem('roomPassword',roomPassword)
-    navigate("/WaitingRoom", {
-        state: { roomNumber: res.data.roomNumber},
-    });
+    const createRoom = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await axios.post(`/api/rooms`, { password: roomPassword });
+            sessionStorage.setItem('roomNumber', res.data.roomNumber);
+            navigate("/WaitingRoom", {
+                state: { roomNumber: res.data.roomNumber, topic: res.data.topic },
+            });
+        } catch (error) {
+            console.error("방 생성 중 오류가 발생했습니다:", error);
+        }
     }
 
     return (
