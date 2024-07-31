@@ -1,5 +1,9 @@
 package com.ssafy.a410.game.domain.player.message.request;
 
+import com.ssafy.a410.game.domain.game.Game;
+import com.ssafy.a410.game.domain.player.Player;
+import com.ssafy.a410.game.domain.team.Team;
+import com.ssafy.a410.game.service.MessageBroadcastService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -8,8 +12,10 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-public class GamePlayerRequest {
+public abstract class GamePlayerRequest {
     private final String playerId;
     private final GamePlayerRequestType type;
     private final Object data;
+
+    public abstract void handle(Player requestedPlayer, Team senderTeam, Game game, MessageBroadcastService broadcastService);
 }

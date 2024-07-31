@@ -3,7 +3,7 @@ import { WebSocket } from "ws";
 import axios from "axios";
 
 // 이 값이 falsy하면 응답 받은 방 번호를 사용
-const fixedRoomNumber = null;
+const fixedRoomNumber = 1000;
 const roomPassword = null;
 
 const HTTP_API_URL_PREFIX = "http://localhost:8081/api";
@@ -121,6 +121,18 @@ const client = new Client({
           console.log("팀:", teamCharacter);
           console.log("플레이어 시작 위치:", playerPositionInfo);
 
+          client.subscribe(
+            teamSubscriptionInfo.topic,
+            (stompMessage) => {
+              const message = JSON.parse(stompMessage.body);
+              console.log(message);
+              if (message.type === "SHARE_POSITION") {
+                console.log(`[${message.data.playerId}]의 위치: ${message.data.x}, ${message.data.y}`);
+              }
+            },
+            { subscriptionToken: teamSubscriptionInfo.token }
+          );
+
           // // 팀 정보 수신
           // client.subscribe(
           //   {
@@ -150,7 +162,7 @@ const client = new Client({
                   direction: "LEFT",
                 }),
               });
-            }, 60);
+            }, 800);
           }, 100);
         }
       },

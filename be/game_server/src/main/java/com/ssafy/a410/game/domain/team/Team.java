@@ -13,10 +13,10 @@ import java.util.Map;
 @Getter
 public class Team extends Subscribable {
     private static final int MAX_NUM_OF_PLAYERS = 4;
-    @Setter
-    private Character character;
     private final Game game;
     private final Map<String, Player> players;
+    @Setter
+    private Character character;
 
     public Team(Character character, Game game) {
         this.character = character;
@@ -75,6 +75,10 @@ public class Team extends Subscribable {
         String roomNumber = game.getRoom().getRoomNumber();
         String teamCode = this.character.name().toLowerCase();
         return String.format("/topic/rooms/%s/game/teams/%s", roomNumber, teamCode);
+    }
+
+    public Player getPlayerWithId(String playerId) {
+        return players.get(playerId);
     }
 
     public enum Character {
