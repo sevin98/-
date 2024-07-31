@@ -4,34 +4,34 @@ import com.ssafy.a410.common.exception.handler.GameException;
 import com.ssafy.a410.game.domain.game.Game;
 import com.ssafy.a410.room.domain.Room;
 import com.ssafy.a410.room.service.RoomService;
+import com.ssafy.a410.socket.domain.Subscribable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
 @Component
 public class GameSubscriptionHandler extends SocketSubscriptionHandler {
-    private static final String DESTINATION_PATTERN = "/topic/rooms/[a-zA-Z0-9]+/game";
-
     private final RoomService roomService;
 
     @Override
-    public boolean isTarget(String destination) {
-        return destination.matches(DESTINATION_PATTERN);
+    protected String getDestinationPattern() {
+        return "/topic/rooms/[a-zA-Z0-9]+/game";
+    }
+
+    @Override
+    protected Subscribable getSubscribableFrom(String destination) {
+        String roomId = destination.split("/")[3];
+        Room room = roomService.findRoomById(roomId).orElseThrow(() -> new GameException("Room not found"));
+        return room.getPlayingGame();
+    }
+
+    @Override
+    protected boolean isClientHasPermission(Subscribable subscribable, String clientId) {
+        Game game = (Game) subscribable;
+        return game.getRoom().has(player -> player.getId().equals(clientId));
     }
 
     @Override
     public void handle(String destination, String clientId) {
-    }
-
-    @Override
-    public boolean hasPermission(String destination, String token) {
-        String roomId = getRoomIdFrom(destination);
-        Room room = roomService.findRoomById(roomId).orElseThrow(() -> new GameException("Room not found"));
-        Game game = room.getPlayingGame();
-        return game != null && game.isCorrectSubscriptionToken(token);
-    }
-
-    private String getRoomIdFrom(String destination) {
-        return destination.split("/")[3];
     }
 }

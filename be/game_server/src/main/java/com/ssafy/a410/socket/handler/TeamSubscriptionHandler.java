@@ -1,37 +1,40 @@
 package com.ssafy.a410.socket.handler;
 
-import com.ssafy.a410.game.domain.player.Player;
+import com.ssafy.a410.game.domain.team.Team;
 import com.ssafy.a410.room.domain.Room;
 import com.ssafy.a410.room.service.RoomService;
 import com.ssafy.a410.socket.domain.Subscribable;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-@Slf4j
 @RequiredArgsConstructor
 @Component
-public class PlayerSubscriptionHandler extends SocketSubscriptionHandler {
+public class TeamSubscriptionHandler extends SocketSubscriptionHandler {
     private final RoomService roomService;
 
     @Override
     protected String getDestinationPattern() {
-        return "/topic/rooms/.+/players/.+";
+        return "/topic/rooms/[a-zA-Z0-9]+/game/teams/[a-zA-Z0-9]+";
     }
 
     @Override
     protected Subscribable getSubscribableFrom(String destination) {
-        String roomId = destination.split("/")[3];
-        Room room = roomService.getRoomById(roomId);
+        String[] split = destination.split("/");
 
-        String playerId = destination.split("/")[5];
-        return room.getPlayerWith(playerId);
+        String roomNumber = split[3];
+        Room room = roomService.findRoomById(roomNumber).orElse(null);
+        if (room == null) {
+            return null;
+        }
+
+        Team.Character teamCharacter = Team.Character.valueOf(split[6].toUpperCase());
+        return room.getPlayingGame().getTeamOf(teamCharacter);
     }
 
     @Override
     protected boolean isClientHasPermission(Subscribable subscribable, String clientId) {
-        Player player = (Player) subscribable;
-        return player.getId().equals(clientId);
+        Team team = (Team) subscribable;
+        return team.getPlayerWithId(clientId) != null;
     }
 
     @Override

@@ -1,8 +1,11 @@
 package com.ssafy.a410.game.service.memory;
 
+import com.ssafy.a410.game.controller.dto.PlayerPositionReq;
 import com.ssafy.a410.game.domain.game.Game;
 import com.ssafy.a410.game.domain.game.message.control.GameInfo;
 import com.ssafy.a410.game.domain.player.Player;
+import com.ssafy.a410.game.domain.player.PlayerPosition;
+import com.ssafy.a410.game.domain.player.message.request.PlayerPositionShareRequest;
 import com.ssafy.a410.game.service.GameService;
 import com.ssafy.a410.game.service.MessageBroadcastService;
 import com.ssafy.a410.room.domain.Room;
@@ -36,5 +39,18 @@ public class MemoryBasedGameService implements GameService {
         // 게임의 정보를 해당 플레이어의 채널로 전송
         GameInfo gameInfo = new GameInfo(targetRoom.playingGame);
         messageBroadcastService.unicastTo(player, gameInfo);
+    }
+
+    @Override
+    public void sharePosition(String roomId, String userProfileUuid, PlayerPositionReq req) {
+        // 해당 방에 플레이어가 있는지 먼저 확인하고
+        Room targetRoom = roomService.getRoomById(roomId);
+        Player player = targetRoom.getPlayerWith(userProfileUuid);
+        Game game = targetRoom.playingGame;
+
+        // 위치 공유 메시지를 생성하여 Enque
+        PlayerPosition playerPosition = new PlayerPosition(userProfileUuid, req);
+        PlayerPositionShareRequest request = new PlayerPositionShareRequest(userProfileUuid, playerPosition);
+        game.pushMessage(player, request);
     }
 }

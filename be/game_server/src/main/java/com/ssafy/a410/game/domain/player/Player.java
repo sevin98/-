@@ -70,4 +70,12 @@ public class Player extends Subscribable {
     public void unfreeze() {
         this.isFreeze = false;
     }
+
+    public void setX(double x) {
+        this.pos.setX(x);
+    }
+
+    public void setY(double y) {
+        this.pos.setY(y);
+    }
 }

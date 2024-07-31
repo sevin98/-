@@ -4,10 +4,8 @@ import com.ssafy.a410.game.domain.Pos;
 import com.ssafy.a410.game.domain.game.message.control.*;
 import com.ssafy.a410.game.domain.player.Player;
 import com.ssafy.a410.game.domain.player.PlayerDirection;
-import com.ssafy.a410.game.domain.player.message.control.PlayerCoverScreenMessage;
-import com.ssafy.a410.game.domain.player.message.control.PlayerFreezeMessage;
-import com.ssafy.a410.game.domain.player.message.control.PlayerUncoverScreenMessage;
-import com.ssafy.a410.game.domain.player.message.control.PlayerUnfreezeMessage;
+import com.ssafy.a410.game.domain.player.PlayerPosition;
+import com.ssafy.a410.game.domain.player.message.control.*;
 import com.ssafy.a410.game.domain.player.message.request.GamePlayerRequest;
 import com.ssafy.a410.game.domain.team.Team;
 import com.ssafy.a410.game.service.MessageBroadcastService;
@@ -22,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
-import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 @Getter
@@ -124,11 +121,7 @@ public class Game extends Subscribable implements Runnable {
 
     @Override
     public void run() {
-        // 게임 시작 알림
-        log.debug("방 번호 {}의 게임이 시작되었습니다.", this.room.getRoomNumber());
-        broadcastService.broadcastTo(this, new GameStartMessage());
-        // 게임 정보 알림
-        broadcastService.broadcastTo(this, new GameInfoMessage(new GameInfo(this)));
+        initializeGame();
         for (int round = 1; round <= TOTAL_ROUND && !isGameFinished(); round++) {
             // 라운드 변경 알림
             log.debug("Room {} round {} start =======================================", room.getRoomNumber(), round);
@@ -190,6 +183,22 @@ public class Game extends Subscribable implements Runnable {
         return hidingTeam.isEmpty() && seekingTeam.isEmpty();
     }
 
+    private void initializeGame() {
+        // 게임 시작 알림
+        log.debug("방 번호 {}의 게임이 시작되었습니다.", this.room.getRoomNumber());
+        broadcastService.broadcastTo(this, new GameStartMessage());
+        // 게임 정보 전체 알림
+        broadcastService.broadcastTo(this, new GameInfoMessage(new GameInfo(this)));
+
+        // 각 팀의 플레이어들에게 각자의 초기화 정보 전송
+        for (Player player : this.room.getPlayers().values()) {
+            PlayerPosition info = new PlayerPosition(player);
+            Team playerTeam = hidingTeam.has(player) ? hidingTeam : seekingTeam;
+            PlayerInitializeMessage message = new PlayerInitializeMessage(info, playerTeam);
+            broadcastService.unicastTo(player, message);
+        }
+    }
+
     private void runReadyPhase() {
         // 상태 전환
         this.currentPhase = Phase.READY;
@@ -215,6 +224,8 @@ public class Game extends Subscribable implements Runnable {
             final int NUM_OF_MESSAGES = hidingTeamRequests.size();
             for (int cnt = 0; cnt < NUM_OF_MESSAGES; cnt++) {
                 GamePlayerRequest request = hidingTeamRequests.poll();
+                Player player = hidingTeam.getPlayerWithId(request.getPlayerId());
+                request.handle(player, hidingTeam, this, broadcastService);
             }
         }
     }
@@ -243,6 +254,8 @@ public class Game extends Subscribable implements Runnable {
             final int NUM_OF_MESSAGES = seekingTeamRequests.size();
             for (int cnt = 0; cnt < NUM_OF_MESSAGES; cnt++) {
                 GamePlayerRequest request = seekingTeamRequests.poll();
+                Player player = seekingTeam.getPlayerWithId(request.getPlayerId());
+                request.handle(player, seekingTeam, this, broadcastService);
             }
         }
     }
@@ -279,5 +292,13 @@ public class Game extends Subscribable implements Runnable {
 
     public Team getTeamOf(Player player) {
         return hidingTeam.has(player) ? hidingTeam : seekingTeam;
+    }
+
+    public void pushMessage(Player player, GamePlayerRequest request) {
+        if (hidingTeam.has(player)) {
+            hidingTeamRequests.add(request);
+        } else if (seekingTeam.has(player)) {
+            seekingTeamRequests.add(request);
+        }
     }
 }

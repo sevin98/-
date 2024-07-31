@@ -19,6 +19,7 @@ import org.springframework.scheduling.annotation.Async;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 
 @Slf4j
 @Getter
@@ -107,6 +108,10 @@ public class Room extends Subscribable {
         return players.containsKey(player.getId());
     }
 
+    public boolean has(Predicate<Player> predicate) {
+        return players.values().stream().anyMatch(predicate);
+    }
+
     // 해당 방에 참가하고 있는, 주어진 id를 가지는 플레이어를 반환
     public Player getPlayerWith(String playerId) {
         Player found = players.get(playerId);
@@ -130,30 +135,33 @@ public class Room extends Subscribable {
 
     // 게임 시작
     @Async
-    public void startGame(MessageBroadcastService broadcastService) {
-        synchronized (this) {
-            playingGame = new Game(this, broadcastService);
-
-            // 게임 메시지 구독 명령
-            final long STARTS_AFTER = 5L * MilliSecOf.SECONDS;
-            RoomControlMessage message = new RoomControlMessage(
-                    RoomControlType.SUBSCRIBE_GAME,
-                    new GameStartInfo(new SubscriptionInfoResp(playingGame), STARTS_AFTER)
-            );
-            broadcastService.broadcastTo(this, message);
-
-            // STARTS_IN만큼 지난 후 게임 시작
-            try {
-                log.debug("방 {}의 게임이 {}ms 뒤에 시작됩니다.", roomNumber, STARTS_AFTER);
-                wait(STARTS_AFTER);
-            } catch (InterruptedException e) {
-                throw new GameException("Game start interrupted");
-            }
-
-            log.info("방 {}의 게임이 시작되었습니다.", roomNumber);
-            gameThread = new Thread(playingGame);
-            gameThread.start();
+    public synchronized void startGame(MessageBroadcastService broadcastService) {
+        // 게임이 할당되지 않았을 때만 아래 코드 블록이 실행되도록 구현
+        if (playingGame != null) {
+            return;
         }
+
+        playingGame = new Game(this, broadcastService);
+
+        // 게임 메시지 구독 명령
+        final long STARTS_AFTER = 2L * MilliSecOf.SECONDS;
+        RoomControlMessage message = new RoomControlMessage(
+                RoomControlType.SUBSCRIBE_GAME,
+                new GameStartInfo(new SubscriptionInfoResp(playingGame), STARTS_AFTER)
+        );
+        broadcastService.broadcastTo(this, message);
+
+        // STARTS_IN만큼 지난 후 게임 시작
+        try {
+            log.debug("방 {}의 게임이 {}ms 뒤에 시작됩니다.", roomNumber, STARTS_AFTER);
+            wait(STARTS_AFTER);
+        } catch (InterruptedException e) {
+            throw new GameException("Game start interrupted");
+        }
+
+        log.info("방 {}의 게임이 시작되었습니다.", roomNumber);
+        gameThread = new Thread(playingGame);
+        gameThread.start();
     }
 
     // 주어진 비밀번호로 인증할 수 있는지 확인

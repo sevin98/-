@@ -19,8 +19,8 @@ public class DispatchingInterceptor implements ChannelInterceptor {
     private final DisconnectHandler disconnectHandler;
 
     // 사용자의 구독 요청을 가로채오 적절한 핸들러로 전달하기 위한 Interceptor
-    public DispatchingInterceptor(RoomSubscriptionHandler roomSubscriptionHandler, PlayerSubscriptionHandler playerSubscriptionHandler, GameSubscriptionHandler gameSubscriptionHandler, DisconnectHandler disconnectHandler) {
-        socketSubscriptionHandlers = List.of(roomSubscriptionHandler, playerSubscriptionHandler, gameSubscriptionHandler);
+    public DispatchingInterceptor(RoomSubscriptionHandler roomSubscriptionHandler, PlayerSubscriptionHandler playerSubscriptionHandler, GameSubscriptionHandler gameSubscriptionHandler, TeamSubscriptionHandler teamSubscriptionHandler, DisconnectHandler disconnectHandler) {
+        socketSubscriptionHandlers = List.of(roomSubscriptionHandler, playerSubscriptionHandler, gameSubscriptionHandler, teamSubscriptionHandler);
         this.disconnectHandler = disconnectHandler;
     }
 
@@ -45,7 +45,7 @@ public class DispatchingInterceptor implements ChannelInterceptor {
             if (!isHandled) {
                 return null;
             }
-        } else if(command.equals(StompCommand.DISCONNECT)){
+        } else if (command.equals(StompCommand.DISCONNECT)) {
             String clientId = accessor.getUser().getName();
             log.debug("클라이언트 {}가 연결 해제되었습니다.", clientId);
             disconnectHandler.gameHandleDisconnect(clientId);
@@ -68,7 +68,7 @@ public class DispatchingInterceptor implements ChannelInterceptor {
         if (handler == null) {
             log.debug("Destination {}를 처리하기 위한 대한 핸들러가 없습니다.", destination);
             return false;
-        } else if (!handler.hasPermission(destination, token)) {
+        } else if (!handler.hasPermission(destination, clientId, token)) {
             log.debug("Destination {}에 대한 구독 요청 권한 인증에 실패했습니다(handler: {}).", destination, handler.getClass().getName());
             return false;
         } else {
