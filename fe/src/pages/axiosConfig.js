@@ -1,8 +1,7 @@
 import axios from "axios";
 
 const instance = axios.create({
-    // baseURL: "https://i11a410.p.ssafy.io/staging",
-    baseURL: "https://ba7e-211-192-210-213.ngrok-free.app",
+    baseURL: "https://i11a410.p.ssafy.io/staging",
 });
 
 // 요청 인터셉터
