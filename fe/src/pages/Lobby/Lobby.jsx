@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { ImPencil2 } from "react-icons/im";
 import { useLocation, useNavigate } from "react-router-dom";
-import "./Loby.css";
+import "./Lobby.css";
 
 const Lobby = () => {
     const navigate = useNavigate();
@@ -63,5 +63,7 @@ const Lobby = () => {
         </div>
     );
 };
+
+export const ROUTE_PATH = "/Lobby";
 
 export default Lobby;

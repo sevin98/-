@@ -1,9 +1,8 @@
-import react, { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import axios from "../axiosConfig";
+import axios from "../../network/AxiosClient";
 
-
-import "./Loby.css";
+import "./Lobby.css";
 
 const RoomCreate = () => {
     const navigate = useNavigate();
@@ -63,4 +62,5 @@ const RoomCreate = () => {
     );
 };
 
+export const ROUTE_PATH = "/RoomCreate";
 export default RoomCreate;
