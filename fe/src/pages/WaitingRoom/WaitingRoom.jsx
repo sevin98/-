@@ -56,7 +56,7 @@ const WaitingRoom = () => {
 
                         // 게임 채널 구독
                         (await getStompClient()).subscribe(
-                            subscriptionInfo.topic,
+                            subscriptionInfo,
                             (gameMessage) => {
                                 const gameData = JSON.parse(gameMessage.body);
                                 if (gameData.type === "ROUND_CHANGE") {
@@ -68,9 +68,6 @@ const WaitingRoom = () => {
                                         `페이즈 변경: ${gameData.data.phase}, ${gameData.data.finishAfterMilliSec}ms 후 종료`
                                     );
                                 }
-                            },
-                            {
-                                subscriptionToken: subscriptionInfo.token,
                             }
                         );
 
@@ -108,12 +105,9 @@ const WaitingRoom = () => {
 
         // 플레이어 채널 구독
         (await getStompClient()).subscribe(
-            playerSubscriptionInfo.topic,
+            playerSubscriptionInfo,
             (stompMessage) => {
                 // 플레이어 채널 메시지 처리
-            },
-            {
-                subscriptionToken: playerSubscriptionInfo.token,
             }
         );
     }, [roomSubscriptionInfo, playerSubscriptionInfo, navigate]);
@@ -148,14 +142,12 @@ const WaitingRoom = () => {
             body: JSON.stringify({}),
             headers: { "content-type": "application/json" },
         });
-
         setIsReady(true);
         toast.success("준비 상태로 변경되었습니다.");
     };
 
     const handleBackToLobbyClick = () => {
         const roomId = roomNumber;
-        console.log(roomId);
         // 방 나가기 요청 (요청 성공 여부와 관계없이 상태 초기화 및 로비로 이동)
         axios
             .post(`/api/rooms/${roomId}/leave`)
