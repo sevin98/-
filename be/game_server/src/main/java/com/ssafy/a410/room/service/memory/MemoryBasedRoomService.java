@@ -2,6 +2,8 @@ package com.ssafy.a410.room.service.memory;
 
 import com.ssafy.a410.auth.domain.UserProfile;
 import com.ssafy.a410.auth.service.UserService;
+import com.ssafy.a410.common.exception.ResponseException;
+import com.ssafy.a410.common.exception.UnhandledException;
 import com.ssafy.a410.common.exception.handler.GameException;
 import com.ssafy.a410.game.domain.player.Player;
 import com.ssafy.a410.game.service.socket.WebSocketMessageBroadcastService;
@@ -18,6 +20,8 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static com.ssafy.a410.common.exception.ErrorDetail.*;
 
 @Slf4j
 @Service
@@ -51,7 +55,7 @@ public class MemoryBasedRoomService implements RoomService {
     // 주어진 userProfileUuid를 가진 사용자가 존재하는지 확인
     private void assertUserProfileExists(String userProfileUuid) {
         if (!userService.isExistUserProfile(userProfileUuid)) {
-            throw new GameException("User profile not found");
+            throw new UnhandledException("User profile not found assertion failed");
         }
     }
 
@@ -71,7 +75,7 @@ public class MemoryBasedRoomService implements RoomService {
     @Override
     public Player joinRoom(Room room, UserProfile userProfile) {
         if (!room.canJoin(userProfile)) {
-            throw new GameException("Room is full or game has started");
+            throw new ResponseException(CANNOT_JOIN_ROOM);
         }
         return room.join(userProfile);
     }
@@ -81,7 +85,7 @@ public class MemoryBasedRoomService implements RoomService {
         Room room = getRoomById(roomId);
         UserProfile userProfile = userService.getUserProfileByUuid(userProfileUuid);
         if (!room.isAuthenticatedWith(password)) {
-            throw new GameException("Password is incorrect");
+            throw new ResponseException(INVALID_ROOM_PASSWORD);
         }
         return joinRoom(room, userProfile);
     }
@@ -89,7 +93,7 @@ public class MemoryBasedRoomService implements RoomService {
     @Override
     public void leaveRoom(Room room, Player player) {
         if (!room.has(player)) {
-            throw new GameException("Player is not in room");
+            throw new ResponseException(PLAYER_NOT_IN_ROOM);
         }
         room.kick(player);
         room.notifyDisconnection(player);
@@ -101,7 +105,7 @@ public class MemoryBasedRoomService implements RoomService {
     @Override
     public void setPlayerReady(Room room, Player player) {
         if (!room.has(player)) {
-            throw new GameException("Player is not in room");
+            throw new ResponseException(PLAYER_NOT_IN_ROOM);
         }
         // 플레이어를 준비 시켜 놓고
         log.debug("플레이어 [{}]가 준비 되었습니다.", player.getNickname());

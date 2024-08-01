@@ -2,7 +2,8 @@ package com.ssafy.a410.room.domain;
 
 import com.ssafy.a410.auth.domain.UserProfile;
 import com.ssafy.a410.common.constant.MilliSecOf;
-import com.ssafy.a410.common.exception.handler.GameException;
+import com.ssafy.a410.common.exception.ResponseException;
+import com.ssafy.a410.common.exception.UnhandledException;
 import com.ssafy.a410.game.domain.game.Game;
 import com.ssafy.a410.game.domain.player.Player;
 import com.ssafy.a410.game.service.MessageBroadcastService;
@@ -20,6 +21,9 @@ import org.springframework.scheduling.annotation.Async;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
+
+import static com.ssafy.a410.common.exception.ErrorDetail.CANNOT_JOIN_ROOM;
+import static com.ssafy.a410.common.exception.ErrorDetail.PLAYER_NOT_IN_ROOM;
 
 @Slf4j
 @Getter
@@ -52,7 +56,7 @@ public class Room extends Subscribable {
      */
     public synchronized Player join(UserProfile userProfile) {
         if (!canJoin(userProfile)) {
-            throw new GameException("Player cannot join to room");
+            throw new ResponseException(CANNOT_JOIN_ROOM);
         } else {
             // 방에 새 플레이어를 추가하고
             Player player = new Player(userProfile, this);
@@ -73,7 +77,7 @@ public class Room extends Subscribable {
     // 방에서 사용자를 제거한다.
     public synchronized void kick(Player player) {
         if (!has(player)) {
-            throw new GameException("Player is not in room");
+            throw new ResponseException(PLAYER_NOT_IN_ROOM);
         } else {
             players.remove(player.getId());
         }
@@ -116,7 +120,7 @@ public class Room extends Subscribable {
     public Player getPlayerWith(String playerId) {
         Player found = players.get(playerId);
         if (found == null) {
-            throw new GameException("Player not found in room");
+            throw new ResponseException(PLAYER_NOT_IN_ROOM);
         }
         return found;
     }
@@ -156,7 +160,7 @@ public class Room extends Subscribable {
             log.debug("방 {}의 게임이 {}ms 뒤에 시작됩니다.", roomNumber, STARTS_AFTER);
             wait(STARTS_AFTER);
         } catch (InterruptedException e) {
-            throw new GameException("Game start interrupted");
+            throw new UnhandledException("Game start interrupted");
         }
 
         log.info("방 {}의 게임이 시작되었습니다.", roomNumber);
