@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify"; // react-toastify 추가
 import axios from "../../network/AxiosClient"; // 기본 설정된 axios 가져오기
