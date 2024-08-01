@@ -27,7 +27,7 @@ public class Player extends Subscribable {
     private PlayerDirection direction;
     // 움직일 수 없음을 표시
     private boolean isFreeze;
-    // 탈락처리 되었는지 표시
+    // 플레이어가 살아있는 지 여부
     private boolean isEliminated;
 
     public Player(UserProfile userProfile, Room room) {
