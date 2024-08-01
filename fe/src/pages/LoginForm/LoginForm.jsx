@@ -3,8 +3,7 @@ import axios, { setAccessToken } from "../axiosConfig"; // 수정된 import
 import { useNavigate } from "react-router-dom";
 import "./LoginForm.css";
 import { FaUser, FaLock } from "react-icons/fa";
-import { Client } from "@stomp/stompjs";
-import StompClient from "../../network/StompClient";
+import { getStompClient } from "../../network/StompClient";
 
 const LoginForm = () => {
     const [action, setAction] = useState(""); // wrapper class activate
@@ -21,18 +20,6 @@ const LoginForm = () => {
     const navigate = useNavigate();
     const HTTP_API_URL_PREFIX = localStorage.getItem("HTTP_API_URL_PREFIX");
 
-    const getStompClientWith = (token) => {
-        return new Client({
-            brokerURL: `wss://i11a410.p.ssafy.io/staging/ws?token=${token}`,
-            debug: (str) => {
-                console.log(`debug: ${str}`);
-            },
-            onConnect: async () => {
-                console.log("서버 연결 완료");
-            },
-        });
-    };
-
     const registerLink = () => {
         setAction("active");
     };
@@ -45,35 +32,25 @@ const LoginForm = () => {
         navigate("/GameStart");
     };
 
-    let client;
-
     const movetoRoom = async () => {
         try {
             const response = await axios.post(`/api/auth/guest/sign-up`);
-            const {
-                accessToken,
-                userProfile,
-                webSocketConnectionToken,
-            } = response.data;
+            const { accessToken, userProfile, webSocketConnectionToken } =
+                response.data;
             setAccessToken(accessToken);
-            const stompClient = StompClient(webSocketConnectionToken);
-            console.log(stompClient);
-            console.log(accessToken);
+            const stompClient = getStompClient(webSocketConnectionToken);
             sessionStorage.setItem("userProfile", JSON.stringify(userProfile));
             sessionStorage.setItem("uuid", userProfile.uuid);
             sessionStorage.setItem("nickname", userProfile.nickname);
-
             console.log("로그인한 게스트의 닉네임: ", userProfile.nickname);
-            // yubin
-            client = getStompClientWith(webSocketConnectionToken);
-            client.activate(); // 서버 연결
-            navigate("/Lobby", { 
-                state: { 
-                  nickname: userProfile.nickname,
-                  uuid: userProfile.uuid,
-                  accessToken: accessToken
-                } 
-              });
+
+            navigate("/Lobby", {
+                state: {
+                    nickname: userProfile.nickname,
+                    uuid: userProfile.uuid,
+                    accessToken: accessToken,
+                },
+            });
         } catch (err) {
             console.log(err);
         }
@@ -90,14 +67,13 @@ const LoginForm = () => {
                 username,
                 password,
             });
-            const { accessToken, userProfile, webSocketConnectionToken } = response.data;
+            const { accessToken, userProfile, webSocketConnectionToken } =
+                response.data;
             setAccessToken(accessToken);
             sessionStorage.setItem("userProfile", JSON.stringify(userProfile));
             sessionStorage.setItem("uuid", userProfile.uuid);
             sessionStorage.setItem("nickname", userProfile.nickname);
 
-            client = getStompClientWith(webSocketConnectionToken);
-            client.activate(); // 서버 연결
             navigate("/Lobby", {
                 state: { nickname: userProfile.nickname },
             });
@@ -182,7 +158,9 @@ const LoginForm = () => {
 
                     <button
                         type="submit"
-                        onClick={(e) => onClickLogin(e, registUsername, registPassword)}
+                        onClick={(e) =>
+                            onClickLogin(e, registUsername, registPassword)
+                        }
                     >
                         REGISTER
                     </button>

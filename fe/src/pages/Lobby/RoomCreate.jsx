@@ -7,7 +7,7 @@ import "./Loby.css";
 
 const RoomCreate = () => {
     const navigate = useNavigate();
-    
+
     const [roomPassword, setRoomPassword] = useState("");
     const HTTP_API_URL_PREFIX = localStorage.getItem("HTTP_API_URL_PREFIX");
 
@@ -15,15 +15,30 @@ const RoomCreate = () => {
     const createRoom = async (e) => {
         e.preventDefault();
         try {
-            const res = await axios.post(`/api/rooms`, { password: roomPassword });
-            sessionStorage.setItem('roomNumber', res.data.roomNumber);
+            const res = await axios.post(`/api/rooms`, {
+                password: roomPassword,
+            });
+            const roomNumber = res.data.roomNumber;
+            sessionStorage.setItem("roomNumber", roomNumber);
+
+            const { roomSubscriptionInfo, playerSubscriptionInfo } = (
+                await axios.post(`/api/rooms/${roomNumber}/join`, {
+                    password: roomPassword,
+                })
+            ).data;
+
             navigate("/WaitingRoom", {
-                state: { roomNumber: res.data.roomNumber, topic: res.data.topic },
+                state: {
+                    roomNumber: res.data.roomNumber,
+                    topic: res.data.topic,
+                    roomSubscriptionInfo,
+                    playerSubscriptionInfo,
+                },
             });
         } catch (error) {
             console.error("방 생성 중 오류가 발생했습니다:", error);
         }
-    }
+    };
 
     return (
         <div className="wrapper">
