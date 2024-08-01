@@ -15,6 +15,8 @@ const WaitingRoom = () => {
     const location = useLocation();
     const { roomSubscriptionInfo, playerSubscriptionInfo } =
         location.state || {};
+    const userProfile = location.state?.userProfile || {};
+    const roomNumber = location.state?.roomNumber || {};
 
     const [joinedPlayers, setJoinedPlayers] = useState([]);
     const [readyPlayers, setReadyPlayers] = useState([]);
@@ -22,8 +24,6 @@ const WaitingRoom = () => {
     const [countdown, setCountdown] = useState(null); // 카운트다운 상태 추가
     const [countdownMessage, setCountdownMessage] = useState(""); // 카운트다운 완료 메시지 상태
     const [isReady, setIsReady] = useState(false); // 레디 상태 추가
-
-    const roomNumber = sessionStorage.getItem("roomNumber");
 
     const handleSubscribe = useCallback(async () => {
         if (!roomSubscriptionInfo || !playerSubscriptionInfo) {
@@ -121,8 +121,8 @@ const WaitingRoom = () => {
     useEffect(() => {
         // 현재 사용자 정보 추가
         const currentUser = {
-            uuid: sessionStorage.getItem("uuid"),
-            nickname: sessionStorage.getItem("nickname"),
+            uuid: userProfile.uuid,
+            nickname: userProfile.nickname,
         };
         setJoinedPlayers((prevPlayers) => {
             const existingUser = prevPlayers.find(
@@ -139,26 +139,13 @@ const WaitingRoom = () => {
         // 컴포넌트 언마운트 시 정리 작업은 제거
     }, [handleSubscribe]);
 
-    const handleShareRoomCode = () => {
-        const roomCode = sessionStorage.getItem("roomNumber");
-        navigator.clipboard
-            .writeText(roomCode)
-            .then(() => {
-                toast.success("방 코드가 클립보드에 복사되었습니다."); // 토스트 알림
-            })
-            .catch((err) => {
-                toast.error("방 코드 복사 중 오류가 발생했습니다."); // 오류 알림
-            });
-    };
-
     const handleReadyButtonClick = async () => {
         console.log(isReady);
         if (isReady) return; // 이미 준비 상태면 아무 작업도 하지 않음
-
-        const roomId = sessionStorage.getItem("roomNumber");
-
-        // 클라이언트 연결 상태 확인
-        (await getStompClient()).publish({
+        const roomId = roomNumber(
+            // 클라이언트 연결 상태 확인
+            await getStompClient()
+        ).publish({
             destination: `/ws/rooms/${roomId}/ready`,
             body: JSON.stringify({}),
             headers: { "content-type": "application/json" },
@@ -169,7 +156,7 @@ const WaitingRoom = () => {
     };
 
     const handleBackToLobbyClick = () => {
-        const roomId = sessionStorage.getItem("roomNumber");
+        const roomId = roomNumber;
         // 방 나가기 요청 (요청 성공 여부와 관계없이 상태 초기화 및 로비로 이동)
         axios
             .post(`/api/rooms/${roomId}/leave`)
@@ -183,7 +170,6 @@ const WaitingRoom = () => {
                 setCountdown(null);
                 setCountdownMessage("");
                 setIsReady(false);
-                sessionStorage.removeItem("roomNumber");
 
                 // 웹소켓 연결 유지
                 navigate("/lobby");
@@ -200,12 +186,11 @@ const WaitingRoom = () => {
 
             {/* 오른쪽 위: 방 코드 공유 버튼 */}
             <ShareRoomCodeButton
-                roomCode={sessionStorage.getItem("roomNumber")}
+                roomCode={roomNumber}
                 onCopySuccess={() =>
                     toast.success("방 코드가 클립보드에 복사되었습니다.")
                 }
             />
-
             {/* 플레이어 슬롯 (가운데) */}
             <PlayerGrid players={joinedPlayers} readyPlayers={readyPlayers} />
 

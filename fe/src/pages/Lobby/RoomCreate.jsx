@@ -1,5 +1,5 @@
 import react, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "../axiosConfig";
 import { Client } from "@stomp/stompjs";
 
@@ -7,7 +7,8 @@ import "./Loby.css";
 
 const RoomCreate = () => {
     const navigate = useNavigate();
-
+    const location = useLocation();
+    const userProfile = location.state?.userProfile || {};
     const [roomPassword, setRoomPassword] = useState("");
     const HTTP_API_URL_PREFIX = localStorage.getItem("HTTP_API_URL_PREFIX");
 

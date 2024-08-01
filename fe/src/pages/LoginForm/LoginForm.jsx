@@ -49,6 +49,7 @@ const LoginForm = () => {
                     nickname: userProfile.nickname,
                     uuid: userProfile.uuid,
                     accessToken: accessToken,
+                    userProfile,
                 },
             });
         } catch (err) {
@@ -70,12 +71,9 @@ const LoginForm = () => {
             const { accessToken, userProfile, webSocketConnectionToken } =
                 response.data;
             setAccessToken(accessToken);
-            sessionStorage.setItem("userProfile", JSON.stringify(userProfile));
-            sessionStorage.setItem("uuid", userProfile.uuid);
-            sessionStorage.setItem("nickname", userProfile.nickname);
 
             navigate("/Lobby", {
-                state: { nickname: userProfile.nickname },
+                state: { userProfile, accessToken },
             });
         } catch (err) {
             console.log(err);
