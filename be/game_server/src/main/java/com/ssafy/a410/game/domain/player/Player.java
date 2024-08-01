@@ -82,4 +82,8 @@ public class Player extends Subscribable {
     public void setY(double y) {
         this.pos.setY(y);
     }
+
+    public void eliminate() {
+        this.isEliminated = true;
+    }
 }

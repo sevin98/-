@@ -7,4 +7,5 @@ public abstract class InteractReq extends GamePlayerRequest {
     public InteractReq(String playerId, GamePlayerRequestType type, Object data) {
         super(playerId, type, data);
     }
+
 }

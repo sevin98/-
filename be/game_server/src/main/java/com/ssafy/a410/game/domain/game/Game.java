@@ -1,5 +1,6 @@
 package com.ssafy.a410.game.domain.game;
 
+import com.ssafy.a410.common.exception.ResponseException;
 import com.ssafy.a410.common.exception.UnhandledException;
 import com.ssafy.a410.game.domain.Pos;
 import com.ssafy.a410.game.domain.game.message.control.*;
@@ -19,6 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
+
+import static com.ssafy.a410.common.exception.ErrorDetail.PLAYER_NOT_IN_ROOM;
 
 @Getter
 @Slf4j
@@ -330,5 +333,13 @@ public class Game extends Subscribable implements Runnable {
         } else if (seekingTeam.has(player)) {
             seekingTeamRequests.add(request);
         }
+    }
+
+    public void eliminate(Player player) {
+        List<Player> allPlayers = new ArrayList<>(room.getPlayers().values());
+        if (allPlayers.contains(player))
+            player.eliminate();
+        else
+            throw new ResponseException(PLAYER_NOT_IN_ROOM);
     }
 }
