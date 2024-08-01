@@ -40,12 +40,14 @@
   font-size: 14px;
   position: relative;
   transition: all 0.3s steps(5);
-  box-shadow: 5px 5px 0px #1abc9c;
+  box-shadow: 0 0 0 4px #ffffff, 5px 5px 0 4px #3498db;
+  border-radius: 12px;
 }
 
 .player-slot.empty {
   background-color: #ffffff;
   color: #95a5a6;
+  border-color: #bdc3c7;
 }
 
 .player-slot.ready {
@@ -148,20 +150,33 @@
 }
 
 .ready-button.not-ready {
+  font-size: 16px;
+  border: none;
   background-color: #2ecc71;
   color: #ecf0f1;
+  cursor: pointer;
+  transition: all 0.3s steps(5);
+  font-weight: bold;
+  text-transform: uppercase;
   box-shadow: 5px 5px 0px #27ae60;
 }
 
 .ready-button.ready {
+  font-size: 16px;
+  border: none;
   background-color: #e74c3c;
   color: #ecf0f1;
+  cursor: pointer;
+  transition: all 0.3s steps(5);
+  font-weight: bold;
+  text-transform: uppercase;
   box-shadow: 5px 5px 0px #c0392b;
 }
 
 .ready-button:hover {
+  background-color: #27ae60;
   transform: translate(-2px, -2px);
-  box-shadow: 7px 7px 0px currentColor;
+  box-shadow: 7px 7px 0px #187d42;
 }
 
 /* 방 코드 공유 버튼 스타일 */
