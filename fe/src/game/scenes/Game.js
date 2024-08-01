@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { Scene } from "phaser";
-import Player, { Direction } from "./Player";
+import Player, { Direction, HandlePlayerMove } from "./Player";
 import MapTile from "./MapTile";
 
 // import webSocketClient from "../network";
@@ -14,19 +14,18 @@ export class game extends Phaser.Scene {
     constructor() {
         super("game");
         this.MapTile = null;
-        // Set as current millisecond
-        this.lastSentTime = Date.now();
         this.objects = null;
+        this.lastSentTime = Date.now();
     }
 
     preload() {
-        //this.cursors =
         this.cursors = this.input.keyboard.createCursorKeys();
         this.headDir = 2; //under direction
         this.moving = 0;
+        const uuid = sessionStorage.getItem("uuid");
     }
     create() {
-        this.graphics = this.add.graphics().setDepth(1000);//선만들기 위한 그래픽
+        this.graphics = this.add.graphics().setDepth(1000); //선만들기 위한 그래픽
         // MapTile.js에서 만들어놓은 함수로 map 호출해주기
         this.maptile = new MapTile(this);
         this.maptile
@@ -63,10 +62,7 @@ export class game extends Phaser.Scene {
         );
         this.physics.add.collider(
             this.localPlayer,
-            this.maptile.getLayers().HP,
-            () => {
-                console.log("숨을수 있음");
-            }
+            this.maptile.getLayers().HP
         );
         // floatinglayer를 player 보다 나중에 호출해서 z-index 구현
         this.maptile.createFloatingMap();
@@ -85,13 +81,12 @@ export class game extends Phaser.Scene {
             hpObject.setData("id", HP.id);
             hpObject.setAlpha(0); //투명하게
         });
-        this.physics.add.collider(this.localPlayer, this.group);
-        console.log(this.group.getChildren())
-
+        this.physics.add.collider(this.localPlayer, this.group, () => {
+            console.log("숨을수있음");
+        });
 
         //game-ui 씬
         this.scene.run("game-ui");
-        console.log("game");
         //24.07.25 phase check timer
         this.hideTeam = "RACOON";
 
@@ -101,11 +96,18 @@ export class game extends Phaser.Scene {
         this.resultPhaseEvent = "YET";
 
         this.m_cursorKeys = this.input.keyboard.createCursorKeys();
-
-
     }
 
     update() {
+        // player.js 에서 player 키조작이벤트 불러옴
+        const playerMoveHandler = new HandlePlayerMove(
+            this.cursors,
+            this.localPlayer,
+            this.headDir,
+            this.moving
+        );
+        playerMoveHandler.update();
+
         // 플레이어에서 물리적으로 가장 가까운 거리 찾는 객체
         const closest = this.physics.closest(
             this.localPlayer,
@@ -119,8 +121,9 @@ export class game extends Phaser.Scene {
             this.localPlayer.y
         );
 
+        // 시각적으로 가까운 오브젝트와의 선 표시, 나중에 지우면되는코드
         this.graphics
-            .clear() // 시각적으로 가까운 오브젝트와의 선 표시
+            .clear()
             .lineStyle(1, 0xff3300)
             .lineBetween(
                 closest.body.center.x,
@@ -152,80 +155,39 @@ export class game extends Phaser.Scene {
                 this.interactionEffect = null;
             }
         }
-        sceneEvents.emit("player-health-changed", this.localPlayer.mhealth);
+        //publish
+        // this.input.keyboard.enabled = false;
+        // 상호작용 표시가 있고, space 키 이벤트 있는 경우
+        if (this.interactionEffect && this.m_cursorKeys.space.isDown) {
+            // console.log(closest.getData("id")); // key:ObjectId
+            // key:playerID value: uuid
+            //subscribe
+            // if res.type === "INTERACT_HIDE": 키다운
+            playerMoveHandler.freezePlayerMovement(); //움직임0으로바꿈
+            console.log("정지");
+        } 
+        if (this.m_cursorKeys.shift.isDown) {
+            console.log("unfreeze");
+            //subscribe받은 재시작 좌표로 이동
+            // this.localPlayer.x = 100;
+            // this.localPlayer.y = 500;
+            playerMoveHandler.enablePlayerMovement();
+        }
 
-        this.handlePlayerMove();
 
         // if current time - last sent time is greater than 100ms
         if (Date.now() - this.lastSentTime > 100) {
             this.lastSentTime = Date.now();
             // this.sharePlayerPosition();
+            this.input.keyboard.enabled = true;
         }
 
-        if (this.m_cursorKeys.space.isDown) {
-            this.localPlayer.IsRacoon = !this.localPlayer.IsRacoon;
-        }
+        sceneEvents.emit("player-health-changed", this.localPlayer.mhealth);
     }
 
+    // 맵타일단위를 pix로 변환
     tileToPixel(tileCoord) {
         return tileCoord;
-    }
-
-    handlePlayerMove() {
-        if (
-            this.m_cursorKeys.left.isUp &&
-            this.m_cursorKeys.right.isUp &&
-            this.m_cursorKeys.down.isUp &&
-            this.m_cursorKeys.up.isUp
-        ) {
-            this.moving = 0;
-        }
-        if (this.m_cursorKeys.left.isDown) {
-            if ((this.moving == 1 && this.headDir == 3) || this.moving == 0) {
-                this.localPlayer.move(Direction.Left);
-                this.headDir = 3;
-                this.moving = 1;
-            }
-        }
-        if (this.m_cursorKeys.right.isDown) {
-            if ((this.moving == 1 && this.headDir == 1) || this.moving == 0) {
-                this.localPlayer.move(Direction.Right);
-                this.headDir = 1;
-                this.moving = 1;
-            }
-        }
-        if (this.m_cursorKeys.up.isDown) {
-            if ((this.moving == 1 && this.headDir == 0) || this.moving == 0) {
-                this.localPlayer.move(Direction.Up);
-                this.headDir = 0;
-                this.moving = 1;
-            }
-        }
-        if (this.m_cursorKeys.down.isDown) {
-            if ((this.moving == 1 && this.headDir == 2) || this.moving == 0) {
-                this.localPlayer.move(Direction.Down);
-                this.headDir = 2;
-                this.moving = 1;
-            }
-        }
-        if (
-            this.moving == 0 ||
-            (this.moving == 1 &&
-                this.headDir == 0 &&
-                !this.m_cursorKeys.up.isDown) ||
-            (this.moving == 1 &&
-                this.headDir == 1 &&
-                !this.m_cursorKeys.right.isDown) ||
-            (this.moving == 1 &&
-                this.headDir == 2 &&
-                !this.m_cursorKeys.down.isDown) ||
-            (this.moving == 1 &&
-                this.headDir == 3 &&
-                !this.m_cursorKeys.left.isDown)
-        ) {
-            this.moving = 0;
-            this.localPlayer.stopMove(this.headDir);
-        }
     }
 
     initPhase() {
@@ -270,17 +232,4 @@ export class game extends Phaser.Scene {
     //     })
     //   }
     // }
-
-    getDirectionOfPlayer() {
-        switch (this.headDir) {
-            case 0:
-                return "UP";
-            case 1:
-                return "RIGHT";
-            case 2:
-                return "DOWN";
-            case 3:
-                return "LEFT";
-        }
-    }
 }
