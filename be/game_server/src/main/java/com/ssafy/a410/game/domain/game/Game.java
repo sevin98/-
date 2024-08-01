@@ -134,41 +134,11 @@ public class Game extends Subscribable implements Runnable {
             log.debug("Room {} END Phase start --------------------------------------", room.getRoomNumber());
             runEndPhase();
 
-            // TODO : HPObjects 초기화 전에 HP 빠져나오기(명세)를 진행해야 한다.
+            exitPlayers();
             resetHPObjects();
             swapTeam();
         }
         room.endGame();
-    }
-
-    private void resetHPObjects() {
-        // Map 형식으로 hpObjects를 가져와서 반복하며 null값으로 초기화
-        Map<String, HPObject> hpObjects = gameMap.getHpObjects();
-        for (HPObject hpObject : hpObjects.values()) {
-            hpObject.unhidePlayer();
-            hpObject.removeItem();
-        }
-    }
-
-    private void swapTeam() {
-        // 숨는 팀과 찾는 팀의 역할을 교환
-        List<Player> hidingTeamPlayers = new ArrayList<>(hidingTeam.getPlayers().values());
-        Team.Character hidingTeamCharacter = hidingTeam.getCharacter();
-        List<Player> seekingTeamPlayers = new ArrayList<>(seekingTeam.getPlayers().values());
-        Team.Character seekingTeamCharacter = seekingTeam.getCharacter();
-
-        hidingTeam.clearPlayers();
-        seekingTeam.clearPlayers();
-
-        for (Player player : hidingTeamPlayers) {
-            seekingTeam.addPlayer(player);
-        }
-        seekingTeam.setCharacter(hidingTeamCharacter);
-
-        for (Player player : seekingTeamPlayers) {
-            hidingTeam.addPlayer(player);
-        }
-        hidingTeam.setCharacter(seekingTeamCharacter);
     }
 
     private boolean isTimeToSwitch(long timeToSwitchPhase) {
@@ -261,6 +231,45 @@ public class Game extends Subscribable implements Runnable {
     private void runEndPhase() {
         this.currentPhase = Phase.END;
         broadcastService.broadcastTo(this, new PhaseChangeControlMessage(Phase.END));
+    }
+
+    // TODO: 후에 맵의 둘레 부분이 줄어들 경우, 위치를 계산하여 숨은 팀 플레이어들에게 송신
+    // 현재는 플레이어가 숨기 전 마지막 위치를 반환한다.
+    private void exitPlayers() {
+        for(Player player : hidingTeam.getPlayers().values()) {
+            broadcastService.unicastTo(player, new PlayerPositionMessage(new PlayerPosition(player)));
+        }
+    }
+
+    // exitPlayers() 이후에 빠져나오기를 마친 후, HPObject들을 초기화
+    private void resetHPObjects() {
+        // Map 형식으로 hpObjects를 가져와서 반복하며 초기화
+        Map<String, HPObject> hpObjects = gameMap.getHpObjects();
+        for (HPObject hpObject : hpObjects.values()) {
+            hpObject.unhidePlayer();
+            hpObject.removeItem();
+        }
+    }
+
+    private void swapTeam() {
+        // 숨는 팀과 찾는 팀의 역할을 교환
+        List<Player> hidingTeamPlayers = new ArrayList<>(hidingTeam.getPlayers().values());
+        Team.Character hidingTeamCharacter = hidingTeam.getCharacter();
+        List<Player> seekingTeamPlayers = new ArrayList<>(seekingTeam.getPlayers().values());
+        Team.Character seekingTeamCharacter = seekingTeam.getCharacter();
+
+        hidingTeam.clearPlayers();
+        seekingTeam.clearPlayers();
+
+        for (Player player : hidingTeamPlayers) {
+            seekingTeam.addPlayer(player);
+        }
+        seekingTeam.setCharacter(hidingTeamCharacter);
+
+        for (Player player : seekingTeamPlayers) {
+            hidingTeam.addPlayer(player);
+        }
+        hidingTeam.setCharacter(seekingTeamCharacter);
     }
 
     public void kick(Player player) {
