@@ -35,8 +35,6 @@ export class Preloader extends Scene {
             "interactionEffect",
             "assets/object/interactionEffect.png"
         );
-        this.graphics = this.add.graphics(); //그래픽 객체 생성
-        // this.graphics.setDepth(10); // 항상 제일 위에 그리기
 
     }
     create() {
