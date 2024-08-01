@@ -1,15 +1,13 @@
-import React, { useState } from "react";
-import axios from "../../network/AxiosClient";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import "./Lobby.css";
 import { WAITING_ROOM_ROUTE_PATH } from "../WaitingRoom/WaitingRoom";
+import { userRepository } from "../../repository";
 
 const RoomJoin = () => {
     const navigate = useNavigate();
-    const location = useLocation();
-    const userProfile = location.state?.userProfile || {};
 
     const [roomNumber, setRoomNumber] = useState("");
     const [roomPassword, setRoomPassword] = useState("");
