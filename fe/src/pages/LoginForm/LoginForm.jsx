@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios, { setAccessToken } from "../axiosConfig"; // 수정된 import
+import axios, { setAccessToken } from "../../network/AxiosClient"; // 수정된 import
 import { useNavigate } from "react-router-dom";
 import "./LoginForm.css";
 import { FaUser, FaLock } from "react-icons/fa";
@@ -13,13 +13,7 @@ const LoginForm = () => {
     const [registPassword, setRegistPassword] = useState(""); // 회원가입 비밀번호
     const [loginCheck, setLoginCheck] = useState(false); // 로그인 상태 체크
 
-    localStorage.setItem(
-        "HTTP_API_URL_PREFIX",
-        "https://i11a410.p.ssafy.io/staging/api"
-    );
     const navigate = useNavigate();
-    const HTTP_API_URL_PREFIX = localStorage.getItem("HTTP_API_URL_PREFIX");
-
     const registerLink = () => {
         setAction("active");
     };

@@ -1,6 +1,6 @@
 import react, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import axios from "../axiosConfig";
+import axios from "../../network/AxiosClient";
 import { Client } from "@stomp/stompjs";
 
 import "./Loby.css";
@@ -10,7 +10,6 @@ const RoomCreate = () => {
     const location = useLocation();
     const userProfile = location.state?.userProfile || {};
     const [roomPassword, setRoomPassword] = useState("");
-    const HTTP_API_URL_PREFIX = localStorage.getItem("HTTP_API_URL_PREFIX");
 
     // 방 만들기
     const createRoom = async (e) => {

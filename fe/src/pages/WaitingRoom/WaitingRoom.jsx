@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify"; // react-toastify 추가
-import axios from "../axiosConfig"; // 기본 설정된 axios 가져오기
+import axios from "../../network/AxiosClient"; // 기본 설정된 axios 가져오기
 import PlayerGrid from "./PlayerGrid"; // 플레이어 슬롯 컴포넌트
 import ReadyButton from "./ReadyButton"; // 레디 버튼 컴포넌트
 import BackToLobbyButton from "./BackToLobbyButton"; // 뒤로가기 버튼 컴포넌트
