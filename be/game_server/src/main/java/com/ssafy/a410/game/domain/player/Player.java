@@ -29,6 +29,8 @@ public class Player extends Subscribable {
     private boolean isFreeze;
     // 플레이어가 살아있는 지 여부
     private boolean isEliminated;
+    // 킬카운트
+    private int catchCount;
 
     public Player(UserProfile userProfile, Room room) {
         this(userProfile.getUuid(), userProfile.getNickname(), room);
@@ -86,4 +88,6 @@ public class Player extends Subscribable {
     public void eliminate() {
         this.isEliminated = true;
     }
+
+    public void increaseCatchCount() { this.catchCount++; }
 }
