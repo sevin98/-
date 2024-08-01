@@ -18,22 +18,20 @@ const Lobby = () => {
 
     const createRoom = (e) => {
         e.preventDefault();
-        navigate("/RoomCreate", {
-            state: { ...location.state, userProfile, nickname },
-        });
+        navigate("/RoomCreate", { state: { userProfile },});
         console.log("새로운 방 생성");
     };
 
     const encounterRoom = (e) => {
         e.preventDefault();
-        navigate("/RoomJoin", { state: { ...location.state, userProfile } });
+        navigate("/RoomJoin", { state: { userProfile } });
         console.log("기존 방에 참여");
     };
 
     // 현재는 대기실로 이동하게 해둠
     const randomRoom = (e) => {
         e.preventDefault();
-        navigate("/WaitingRoom", { state: { ...location.state, userProfile } });
+        navigate("/WaitingRoom", { state: { userProfile } });
         console.log("랜덤 방에 들어가기 ");
     };
 

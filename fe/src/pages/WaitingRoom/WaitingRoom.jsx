@@ -140,11 +140,10 @@ const WaitingRoom = () => {
     }, [handleSubscribe]);
 
     const handleReadyButtonClick = async () => {
-        console.log(isReady);
         if (isReady) return; // 이미 준비 상태면 아무 작업도 하지 않음
 
-        const roomId = roomNumber(await getStompClient()).publish({
-            destination: `/ws/rooms/${roomId}/ready`,
+        (await getStompClient()).publish({
+            destination: `/ws/rooms/${roomNumber}/ready`,
             body: JSON.stringify({}),
             headers: { "content-type": "application/json" },
         });
@@ -154,42 +153,19 @@ const WaitingRoom = () => {
     };
 
     const handleBackToLobbyClick = () => {
-        const roomId = roomNumber;
-        console.log(roomId);
-        // 방 나가기 요청 (요청 성공 여부와 관계없이 상태 초기화 및 로비로 이동)
-        axios
-            .post(`/api/rooms/${roomId}/leave`)
-            .catch((e) => {
-                console.log(e);
-            })
-            .finally(() => {
-                setJoinedPlayers([]);
-                setReadyPlayers([]);
-                setGameTopic(null);
-                setCountdown(null);
-                setCountdownMessage("");
-                setIsReady(false);
-
-                // 웹소켓 연결 유지
-                navigate("/lobby");
-            });
+        axios.post(`/api/rooms/${roomNumber}/leave`)
+        navigate("/lobby", { state: { userProfile } });
     };
 
     return (
         <div className="waiting-room">
             {/* 왼쪽 위: 뒤로가기 버튼 */}
-            <BackToLobbyButton
-                onClick={handleBackToLobbyClick}
-                isDisabled={isReady || countdown > 0}
-            />
+            <BackToLobbyButton onClick={handleBackToLobbyClick} isDisabled={isReady || countdown > 0} />
 
             {/* 오른쪽 위: 방 코드 공유 버튼 */}
-            <ShareRoomCodeButton
-                roomCode={roomNumber}
-                onCopySuccess={() =>
-                    toast.success("방 코드가 클립보드에 복사되었습니다.")
-                }
-            />
+            <ShareRoomCodeButton roomCode={roomNumber}
+                onCopySuccess={() => toast.success("방 코드가 클립보드에 복사되었습니다.")} />
+            
             {/* 플레이어 슬롯 (가운데) */}
             <PlayerGrid players={joinedPlayers} readyPlayers={readyPlayers} />
 
@@ -197,9 +173,7 @@ const WaitingRoom = () => {
             <ReadyButton onClick={handleReadyButtonClick} isReady={isReady} />
 
             {/* 오른쪽 아래: 채팅창 */}
-            <ChatBox
-                countdown={countdown}
-                countdownMessage={countdownMessage}
+            <ChatBox countdown={countdown} countdownMessage={countdownMessage}
             />
         </div>
     );
