@@ -13,16 +13,14 @@ import { getStompClient } from "../../network/StompClient";
 const WaitingRoom = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { roomSubscriptionInfo, playerSubscriptionInfo } =
-        location.state || {};
+    const { roomSubscriptionInfo, playerSubscriptionInfo } = location.state || {};
     const userProfile = location.state?.userProfile || {};
     const roomNumber = location.state?.roomNumber || {};
 
     const [joinedPlayers, setJoinedPlayers] = useState([]);
     const [readyPlayers, setReadyPlayers] = useState([]);
-    const [gameTopic, setGameTopic] = useState(null);
-    const [countdown, setCountdown] = useState(null); // 카운트다운 상태 추가
-    const [countdownMessage, setCountdownMessage] = useState(""); // 카운트다운 완료 메시지 상태
+    const [countdown, setCountdown] = useState(null); // 카운트다운 상태
+    const [countdownMessage, setCountdownMessage] = useState(''); // 카운트다운 메시지 상태
     const [isReady, setIsReady] = useState(false); // 레디 상태 추가
 
     const handleSubscribe = useCallback(async () => {
@@ -50,9 +48,7 @@ const WaitingRoom = () => {
                         });
                         break;
                     case "SUBSCRIBE_GAME":
-                        const { subscriptionInfo, startsAfterMilliSec } =
-                            message.data;
-                        setGameTopic(subscriptionInfo.topic);
+                        const { subscriptionInfo, startsAfterMilliSec } = message.data;
 
                         // 게임 채널 구독
                         (await getStompClient()).subscribe(
@@ -74,30 +70,25 @@ const WaitingRoom = () => {
                             }
                         );
 
-                        // 게임 시작 지연 시간 처리
+                        // 카운트다운 시작
                         if (startsAfterMilliSec > 0) {
-                            let countdownValue = Math.floor(
-                                startsAfterMilliSec / 1000
-                            ); // 초 단위로 변환
+                            let countdownValue = Math.floor(startsAfterMilliSec / 1000); // 초 단위로 변환
                             setCountdown(countdownValue);
+                            setCountdownMessage('곧 게임이 시작됩니다!');
+
                             const countdownTimer = setInterval(() => {
                                 setCountdown((prev) => {
                                     const newCountdown = prev - 1;
                                     if (newCountdown <= 0) {
                                         clearInterval(countdownTimer);
-                                        setCountdownMessage(
-                                            "게임을 시작합니다!"
-                                        ); // 카운트다운 종료 후 메시지 설정
-                                        setTimeout(() => {
-                                            setCountdownMessage("");
-                                            navigate("/GameStart");
-                                        }, 0); // 메시지 표시 후 즉시 이동
+                                        setCountdownMessage('');
+                                        navigate("/GameStart", { state: {roomNumber} });
                                     }
                                     return newCountdown;
                                 });
                             }, 1000);
                         } else {
-                            navigate("/GameStart");
+                            navigate("/GameStart", { state: {roomNumber} });
                         }
                         break;
                     default:
@@ -116,7 +107,7 @@ const WaitingRoom = () => {
                 subscriptionToken: playerSubscriptionInfo.token,
             }
         );
-    }, [roomSubscriptionInfo, playerSubscriptionInfo, navigate]);
+    }, [roomSubscriptionInfo, playerSubscriptionInfo, navigate, roomNumber]);
 
     useEffect(() => {
         // 현재 사용자 정보 추가
@@ -137,7 +128,7 @@ const WaitingRoom = () => {
         handleSubscribe();
 
         // 컴포넌트 언마운트 시 정리 작업은 제거
-    }, [handleSubscribe]);
+    }, [handleSubscribe, userProfile, navigate]);
 
     const handleReadyButtonClick = async () => {
         if (isReady) return; // 이미 준비 상태면 아무 작업도 하지 않음
