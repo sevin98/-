@@ -8,7 +8,7 @@ import { ROOM_JOIN_ROUTE_PATH } from "./RoomJoin";
 import "./Lobby.css";
 import { ImPencil2 } from "react-icons/im";
 
-const Lobby = () => {
+export default function Lobby() {
     const navigate = useNavigate();
 
     const [userProfile, setUserProfile] = useState(
@@ -85,8 +85,6 @@ const Lobby = () => {
             </div>
         </div>
     );
-};
+}
 
 export const LOBBY_ROUTE_PATH = "/Lobby";
-
-export default Lobby;

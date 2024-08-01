@@ -7,7 +7,7 @@ import { WAITING_ROOM_ROUTE_PATH } from "../WaitingRoom/WaitingRoom";
 
 import "./Lobby.css";
 
-const RoomCreate = () => {
+export default function RoomCreate() {
     const navigate = useNavigate();
     const [userProfile, setUserProfile] = useState(
         userRepository.getUserProfile()
@@ -55,7 +55,6 @@ const RoomCreate = () => {
             </form>
         </div>
     );
-};
+}
 
 export const ROOM_CREATE_ROUTE_PATH = "/RoomCreate";
-export default RoomCreate;

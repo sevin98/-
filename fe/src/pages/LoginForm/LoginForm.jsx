@@ -11,7 +11,7 @@ import { LOBBY_ROUTE_PATH } from "../Lobby/Lobby";
 
 import "./LoginForm.css";
 
-const LoginForm = () => {
+export default function LoginForm() {
     const navigate = useNavigate();
 
     const [action, setAction] = useState(""); // wrapper class activate
@@ -172,7 +172,6 @@ const LoginForm = () => {
             </div>
         </div>
     );
-};
+}
 
 export const LOGIN_FORM_ROUTE_PATH = "/";
-export default LoginForm;

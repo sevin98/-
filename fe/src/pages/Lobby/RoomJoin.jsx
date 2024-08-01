@@ -4,9 +4,8 @@ import { toast } from "react-toastify";
 
 import "./Lobby.css";
 import { WAITING_ROOM_ROUTE_PATH } from "../WaitingRoom/WaitingRoom";
-import { userRepository } from "../../repository";
 
-const RoomJoin = () => {
+export default function RoomJoin() {
     const navigate = useNavigate();
 
     const [roomNumber, setRoomNumber] = useState("");
@@ -53,7 +52,6 @@ const RoomJoin = () => {
             </form>
         </div>
     );
-};
+}
 
 export const ROOM_JOIN_ROUTE_PATH = "/RoomJoin";
-export default RoomJoin;
