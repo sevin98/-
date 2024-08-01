@@ -8,6 +8,9 @@ import com.ssafy.a410.socket.domain.Subscribable;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 import static com.ssafy.a410.common.exception.ErrorDetail.PLAYER_ALREADY_READY;
 
 @Getter
@@ -31,6 +34,10 @@ public class Player extends Subscribable {
     private boolean isEliminated;
     // 킬카운트
     private int catchCount;
+    // 생존 시간 시작 시점
+    private LocalDateTime startTime;
+    // 생존 시간 종료 시점
+    private LocalDateTime eliminationTime;
 
     public Player(UserProfile userProfile, Room room) {
         this(userProfile.getUuid(), userProfile.getNickname(), room);
@@ -42,6 +49,7 @@ public class Player extends Subscribable {
         this.room = room;
         this.readyToStart = false;
         this.pos = new Pos(0, 0);
+        this.catchCount = 0;
     }
 
     public void setInitialPosition(double x, double y, PlayerDirection direction) {
@@ -87,7 +95,17 @@ public class Player extends Subscribable {
 
     public void eliminate() {
         this.isEliminated = true;
+        // eliminate 당한시간 기록
+        this.eliminationTime = LocalDateTime.now();
     }
 
     public void increaseCatchCount() { this.catchCount++; }
+
+    // 생존 시간 구하기
+    public long getSurvivalTimeInSeconds(){
+
+        // 탈락되었다면, 탈락된 시간, 게임이 종료될 때 까지 살아남았다면 DateTimeNow 가 endTime
+        LocalDateTime endTime = this.isEliminated ? this.eliminationTime : LocalDateTime.now();
+        return Duration.between(startTime, endTime).getSeconds();
+    }
 }
