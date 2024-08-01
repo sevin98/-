@@ -16,7 +16,7 @@ import static com.ssafy.a410.game.domain.player.message.request.GamePlayerReques
 
 public class InteractExploreReq extends InteractReq {
 
-
+    private static final int MAX_EXPLORE_COUNT = 5; //TODO: 임시로 5로 설정
     private final String objectId;
 
     @Getter
@@ -33,14 +33,29 @@ public class InteractExploreReq extends InteractReq {
 
     @Override
     public void handle(Player requestedPlayer, Team senderTeam, Game game, MessageBroadcastService broadcastService) {
+
+        // requestedPlayer 의 탐색카운트가 허용범위 초과 일 때
+        if(requestedPlayer.getExploreCount() >= MAX_EXPLORE_COUNT) {
+            InteractExploreMessage message = InteractExploreMessage.failureMessage(
+                    roomId,
+                    requestedPlayer.getId(),
+                    objectId
+            );
+            broadcastService.unicastTo(requestedPlayer, message);
+            return;
+        }
         GameMap gameMap = game.getGameMap();
         Map<String, HPObject> hpObjects = gameMap.getHpObjects();
         HPObject hpObject = hpObjects.get(objectId);
 
-        if (hpObject.explore(requestedPlayer))
+        if (hpObject.explore(requestedPlayer)){
+            requestedPlayer.incrementExploreCount();
             handleSuccess(hpObject, requestedPlayer, game, broadcastService);
-        else
+        }
+        else{
+            requestedPlayer.incrementExploreCount();
             handleFailure(hpObject, requestedPlayer, game, broadcastService);
+        }
     }
 
     private void handleSuccess(HPObject hpObject, Player requestedPlayer, Game game, MessageBroadcastService broadcastService) {
