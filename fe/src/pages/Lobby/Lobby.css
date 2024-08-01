@@ -65,3 +65,7 @@ button {
 #player-nickname-label {
     color: black;
 }
+
+#password-info-message {
+    color: red;
+}

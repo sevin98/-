@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { userRepository } from "../../repository";
 import { ROOM_CREATE_ROUTE_PATH } from "./RoomCreate";
 import { ROOM_JOIN_ROUTE_PATH } from "./RoomJoin";
-import { WAITING_ROOM_ROUTE_PATH } from "../WaitingRoom/WaitingRoom";
 
 import "./Lobby.css";
 import { ImPencil2 } from "react-icons/im";
@@ -53,8 +52,9 @@ const Lobby = () => {
     // 현재는 대기실로 이동하게 해둠
     const onRandomRoomJoinBtnClicked = (e) => {
         e.preventDefault();
-        navigate(WAITING_ROOM_ROUTE_PATH);
-        console.log("랜덤 방에 들어가기 ");
+        // TODO : 랜덤하게 들어갈 수 있는 방의 구독 정보를 받아와서 WAITING_ROOM_ROUTE_PATH에 state로 넘겨주어야 함
+        // navigate(WAITING_ROOM_ROUTE_PATH);
+        console.error("랜덤 방에 들어가기 : 미구현");
     };
 
     return (

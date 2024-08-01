@@ -18,25 +18,10 @@ const RoomJoin = () => {
         e.preventDefault();
 
         try {
-            const response = await axios.post(`/api/rooms/${roomNumber}/join`, {
-                password: roomPassword,
-            });
-
-            if (response.status === 200) {
-                // 응답에서 구독 정보 추출 (가정)
-                const { roomSubscriptionInfo, playerSubscriptionInfo } =
-                    response.data;
-
-                // 상태를 navigate 호출 시 전달
-                navigate(WAITING_ROOM_ROUTE_PATH, {
-                    state: {
-                        userProfile,
-                        roomNumber,
-                        roomSubscriptionInfo,
-                        playerSubscriptionInfo,
-                    },
-                });
-            }
+            // 상태를 navigate 호출 시 전달
+            navigate(
+                `${WAITING_ROOM_ROUTE_PATH}?room-number=${roomNumber}&room-password=${roomPassword}`
+            );
         } catch (error) {
             if (error.response && error.response.status === 404) {
                 toast.error("해당하는 방이 없습니다.");
@@ -65,7 +50,6 @@ const RoomJoin = () => {
                     value={roomPassword}
                     onChange={(e) => setRoomPassword(e.target.value)}
                     placeholder="비밀번호"
-                    required
                 />
                 <button type="submit">방 참가</button>
             </form>

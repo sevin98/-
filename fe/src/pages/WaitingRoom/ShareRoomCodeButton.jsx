@@ -1,21 +1,23 @@
-import React from 'react';
+import { toast } from "react-toastify";
 
-function ShareRoomCodeButton({ roomCode, onCopySuccess }) {
-  const handleShareRoomCode = async () => {
-    try {
-      await navigator.clipboard.writeText(roomCode);
-      onCopySuccess();
-    } catch (err) {
-      console.error('클립보드 복사 에러:', err);
-      // 복사 실패 처리 로직 추가
-    }
-  };
+function ShareRoomCodeButton() {
+    const onShareRoomCodeBtnClicked = async () => {
+        try {
+            await navigator.clipboard.writeText(window.location.href);
+            toast.success("게임 참가 링크가 복사되었습니다.");
+        } catch (err) {
+            console.error("클립보드 복사 에러:", err);
+        }
+    };
 
-  return (
-    <button className="share-room-code-button" onClick={handleShareRoomCode}>
-      방 코드 복사
-    </button>
-  );
+    return (
+        <button
+            className="share-room-code-button"
+            onClick={onShareRoomCodeBtnClicked}
+        >
+            참가 링크 복사
+        </button>
+    );
 }
 
 export default ShareRoomCodeButton;

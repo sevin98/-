@@ -1,44 +1,38 @@
-import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import axios from "../../network/AxiosClient";
+import { userRepository } from "../../repository";
 import { WAITING_ROOM_ROUTE_PATH } from "../WaitingRoom/WaitingRoom";
 
 import "./Lobby.css";
 
 const RoomCreate = () => {
     const navigate = useNavigate();
-    const location = useLocation();
-    const userProfile = location.state?.userProfile || {};
+    const [userProfile, setUserProfile] = useState(
+        userRepository.getUserProfile()
+    );
     const [roomPassword, setRoomPassword] = useState("");
 
-    // 방 만들기
-    const createRoom = async (e) => {
-        e.preventDefault();
-        try {
-            const res = await axios.post(`/api/rooms`, {
-                password: roomPassword,
-            });
-            const roomNumber = res.data.roomNumber;
-
-            const { roomSubscriptionInfo, playerSubscriptionInfo } = (
-                await axios.post(`/api/rooms/${roomNumber}/join`, {
-                    password: roomPassword,
-                })
-            ).data;
-
-            navigate(WAITING_ROOM_ROUTE_PATH, {
-                state: {
-                    roomNumber: res.data.roomNumber,
-                    topic: res.data.topic,
-                    roomSubscriptionInfo,
-                    playerSubscriptionInfo,
-                    userProfile,
-                },
-            });
-        } catch (error) {
-            console.error("방 생성 중 오류가 발생했습니다:", error);
+    useEffect(() => {
+        if (userProfile === null) {
+            console.error("유저 정보가 없습니다.");
+            navigate("/");
         }
+    }, []);
+
+    // 방 만들기
+    const onCreateRoomBtnClicked = async (e) => {
+        e.preventDefault();
+        // 방을 생성하여 정보를 받아오고
+        const res = await axios.post(`/api/rooms`, {
+            password: roomPassword,
+        });
+        const { roomNumber } = res.data;
+
+        navigate(
+            `${WAITING_ROOM_ROUTE_PATH}?room-number=${roomNumber}&room-password=${roomPassword}`
+        );
     };
 
     return (
@@ -46,17 +40,16 @@ const RoomCreate = () => {
             <h1>방 생성</h1>
             <form action="">
                 <input
+                    id="room-password"
                     className="input-box"
                     type="password"
-                    placeholder="방 비밀번호 생성"
-                    id="roomPassword"
+                    placeholder="비밀번호를 입력해 주세요."
                     onChange={(e) => setRoomPassword(e.target.value)}
                 ></input>
-                <p style={{ color: "red" }}>
-                    *비밀번호가 없으면 공개 방으로 생성 됩니다
+                <p id="password-info-message">
+                    *비밀번호가 없으면 공개 방으로 생성됩니다
                 </p>
-
-                <button type="submit" onClick={createRoom}>
+                <button type="submit" onClick={onCreateRoomBtnClicked}>
                     <p>방 만들기 </p>
                 </button>
             </form>
