@@ -1,5 +1,5 @@
 import react, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "../axiosConfig";
 import { Client } from "@stomp/stompjs";
 
@@ -7,6 +7,8 @@ import "./Loby.css";
 
 const RoomCreate = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const userProfile = location.state?.userProfile || {};
     
     const [roomPassword, setRoomPassword] = useState("");
     const HTTP_API_URL_PREFIX = localStorage.getItem("HTTP_API_URL_PREFIX");
@@ -16,9 +18,12 @@ const RoomCreate = () => {
         e.preventDefault();
         try {
             const res = await axios.post(`/api/rooms`, { password: roomPassword });
-            sessionStorage.setItem('roomNumber', res.data.roomNumber);
             navigate("/WaitingRoom", {
-                state: { roomNumber: res.data.roomNumber, topic: res.data.topic },
+                state: {
+                    userProfile,
+                    roomNumber: res.data.roomNumber,
+                    topic: res.data.topic
+                }
             });
         } catch (error) {
             console.error("방 생성 중 오류가 발생했습니다:", error);

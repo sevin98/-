@@ -55,23 +55,22 @@ const LoginForm = () => {
                 userProfile,
                 webSocketConnectionToken,
             } = response.data;
+
+            sessionStorage.setItem("uuid", userProfile.uuid);
+
             setAccessToken(accessToken);
             const stompClient = StompClient(webSocketConnectionToken);
             console.log(stompClient);
             console.log(accessToken);
-            sessionStorage.setItem("userProfile", JSON.stringify(userProfile));
-            sessionStorage.setItem("uuid", userProfile.uuid);
-            sessionStorage.setItem("nickname", userProfile.nickname);
 
             console.log("로그인한 게스트의 닉네임: ", userProfile.nickname);
             // yubin
             client = getStompClientWith(webSocketConnectionToken);
             client.activate(); // 서버 연결
+
             navigate("/Lobby", { 
                 state: { 
-                  nickname: userProfile.nickname,
-                  uuid: userProfile.uuid,
-                  accessToken: accessToken
+                  userProfile,accessToken
                 } 
               });
         } catch (err) {
@@ -92,14 +91,11 @@ const LoginForm = () => {
             });
             const { accessToken, userProfile, webSocketConnectionToken } = response.data;
             setAccessToken(accessToken);
-            sessionStorage.setItem("userProfile", JSON.stringify(userProfile));
-            sessionStorage.setItem("uuid", userProfile.uuid);
-            sessionStorage.setItem("nickname", userProfile.nickname);
 
             client = getStompClientWith(webSocketConnectionToken);
             client.activate(); // 서버 연결
             navigate("/Lobby", {
-                state: { nickname: userProfile.nickname },
+                state: { userProfile, accessToken },
             });
         } catch (err) {
             console.log(err);

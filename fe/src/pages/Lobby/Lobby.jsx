@@ -8,8 +8,9 @@ const Lobby = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    //게스트 접속시 자동 닉네임 주어짐, usenavigate로 보내고 location으로 받아옴
-    const [nickname, setNickname] = useState(location.state ? `${location.state.nickname}` : "");
+    //게스트 접속시 자동 닉네임 주어짐,  location으로 받아옴
+    const userProfile = location.state?.userProfile || {};
+    const [nickname, setNickname] = useState(userProfile.nickname || "");
 
     const updateNickname = (e) => {
         e.preventDefault();
@@ -18,7 +19,7 @@ const Lobby = () => {
 
     const createRoom = (e) =>{
         e.preventDefault();
-        navigate('/RoomCreate', { state: { ...location.state, nickname } });
+        navigate('/RoomCreate', { state: { userProfile } });
         console.log("새로운 방 생성");
     }
 

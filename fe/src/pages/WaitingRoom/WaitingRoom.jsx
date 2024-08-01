@@ -14,6 +14,8 @@ const WaitingRoom = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { roomSubscriptionInfo, playerSubscriptionInfo } = location.state || {};
+    const userProfile = location.state?.userProfile || {};
+    const roomNumber = location.state?.roomNumber || {}; 
 
     const [joinedPlayers, setJoinedPlayers] = useState([]);
     const [readyPlayers, setReadyPlayers] = useState([]);
@@ -102,8 +104,8 @@ const WaitingRoom = () => {
     useEffect(() => {
         // 현재 사용자 정보 추가
         const currentUser = {
-            uuid: sessionStorage.getItem("uuid"),
-            nickname: sessionStorage.getItem("nickname")
+            uuid: userProfile.uuid,
+            nickname: userProfile.nickname
         };
         setJoinedPlayers(prevPlayers => {
             const existingUser = prevPlayers.find(player => player.uuid === currentUser.uuid);
@@ -121,7 +123,7 @@ const WaitingRoom = () => {
     }, [handleSubscribe, client]);
 
     const handleShareRoomCode = () => {
-        const roomCode = sessionStorage.getItem('roomNumber');
+        const roomCode = roomNumber
         navigator.clipboard.writeText(roomCode).then(() => {
             toast.success('방 코드가 클립보드에 복사되었습니다.'); // 토스트 알림
         }).catch((err) => {
@@ -133,7 +135,7 @@ const WaitingRoom = () => {
         console.log(isReady);
         if (isReady) return; // 이미 준비 상태면 아무 작업도 하지 않음
         
-        const roomId = sessionStorage.getItem('roomNumber');
+        const roomId = roomNumber
 
         if (client && client.connected) { // 클라이언트 연결 상태 확인
             client.publish({
@@ -153,7 +155,7 @@ const WaitingRoom = () => {
     
 
     const handleBackToLobbyClick = () => {
-        const roomId = sessionStorage.getItem('roomNumber');
+        const roomId = roomNumber
     
         console.log(roomId)
 
@@ -169,7 +171,6 @@ const WaitingRoom = () => {
                 setCountdown(null);
                 setCountdownMessage('');
                 setIsReady(false);
-                sessionStorage.removeItem('roomNumber');
 
                 // 웹소켓 연결 유지
                 navigate('/lobby');
@@ -182,7 +183,7 @@ const WaitingRoom = () => {
             <BackToLobbyButton onClick={handleBackToLobbyClick} isDisabled={isReady || countdown > 0} />
 
             {/* 오른쪽 위: 방 코드 공유 버튼 */}
-            <ShareRoomCodeButton roomCode={sessionStorage.getItem('roomNumber')} onCopySuccess={() => toast.success('방 코드가 클립보드에 복사되었습니다.')} />
+            <ShareRoomCodeButton roomCode={roomNumber} onCopySuccess={() => toast.success('방 코드가 클립보드에 복사되었습니다.')} />
             
             {/* 플레이어 슬롯 (가운데) */}
             <PlayerGrid players={joinedPlayers} readyPlayers={readyPlayers} />

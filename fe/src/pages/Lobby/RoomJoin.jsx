@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from '../axiosConfig';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 
@@ -8,6 +8,9 @@ import './Loby.css';
 
 const RoomJoin    = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const userProfile = location.state?.userProfile || {};
+
     const [roomNumber, setRoomNumber] = useState('');
     const [roomPassword, setRoomPassword] = useState('');
 
@@ -20,8 +23,6 @@ const RoomJoin    = () => {
             });
 
             if (response.status === 200) {
-                // sessionStorage에 roomNumber 데이터 저장
-                sessionStorage.setItem('roomNumber', roomNumber);
 
                 // 응답에서 구독 정보 추출 (가정)
                 const { roomSubscriptionInfo, playerSubscriptionInfo } = response.data;
@@ -29,6 +30,8 @@ const RoomJoin    = () => {
                 // 상태를 navigate 호출 시 전달
                 navigate('/WaitingRoom', {
                     state: {
+                        userProfile,
+                        roomNumber,
                         roomSubscriptionInfo,
                         playerSubscriptionInfo
                     },
