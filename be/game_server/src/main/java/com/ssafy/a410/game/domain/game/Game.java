@@ -127,6 +127,7 @@ public class Game extends Subscribable implements Runnable {
 
             log.debug("Room {} READY Phase start ------------------------------------", room.getRoomNumber());
             runReadyPhase();
+            eliminateUnhidePlayers();
 
             log.debug("Room {} MAIN Phase start -------------------------------------", room.getRoomNumber());
             runMainPhase();
@@ -197,6 +198,28 @@ public class Game extends Subscribable implements Runnable {
             }
         }
     }
+
+    // 준비 페이즈 동안 안 숨은 플레이어들을 찾아서 탈락 처리한다.
+    private void eliminateUnhidePlayers() {
+        Map<String, Player> hidingTeamPlayers = hidingTeam.getPlayers();
+
+        // 현재 게임 맵에서 숨은 상태에 있는 플레이어들을 나타냄
+        Set<String> hpObjectKeys = gameMap.getHpObjects().keySet();
+
+        // 숨는 역할 팀의 모든 플레이어에 대해 반복
+        for (Map.Entry<String, Player> entry : hidingTeamPlayers.entrySet()) {
+            String playerId = entry.getKey();
+            Player player = entry.getValue();
+
+            // 만약 플레이어는 숨지 않았을 경우
+            if (!hpObjectKeys.contains(playerId)) {
+                // 플레이어 탈락 처리
+                player.setEliminated(true);
+            }
+        }
+    }
+
+
 
     private void runMainPhase() {
         this.currentPhase = Phase.MAIN;
