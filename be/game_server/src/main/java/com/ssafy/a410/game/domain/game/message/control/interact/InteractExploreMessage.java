@@ -19,6 +19,6 @@ public class InteractExploreMessage extends InteractControlMessage {
 
     // 찾기 실패 했을떄 등장할 메시지
     public static InteractExploreMessage failureMessage(String roomId, String playerId, String objectId) {
-        return new InteractExploreMessage(InteractType.INTERACT_EXPLORE_FAIL, playerId, roomId, objectId, null);
+        return new InteractExploreMessage(InteractType.INTERACT_EXPLORE_FAIL, playerId, roomId, objectId, "NONE");
     }
 }
