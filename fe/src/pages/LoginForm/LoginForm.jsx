@@ -6,9 +6,10 @@ import axios, { updateAxiosAccessToken } from "../../network/AxiosClient";
 import { getStompClient } from "../../network/StompClient";
 import { userRepository } from "../../repository";
 
-import "./LoginForm.css";
 import { PHASER_GAME_ROUTE_PATH } from "../../game/PhaserGame";
 import { LOBBY_ROUTE_PATH } from "../Lobby/Lobby";
+
+import "./LoginForm.css";
 
 const LoginForm = () => {
     const navigate = useNavigate();
@@ -19,15 +20,15 @@ const LoginForm = () => {
     const [registUsername, setRegistUsername] = useState(""); // 회원가입 사용자명
     const [registPassword, setRegistPassword] = useState(""); // 회원가입 비밀번호
 
-    const registerLink = () => {
+    const changeToRegisterForm = () => {
         setAction("active");
     };
 
-    const loginLink = () => {
+    const changeToLoginForm = () => {
         setAction("");
     };
 
-    const startGame = () => {
+    const onStartGameBtnClicked = () => {
         navigate(PHASER_GAME_ROUTE_PATH);
     };
 
@@ -105,7 +106,7 @@ const LoginForm = () => {
                     <div className="register-link">
                         <p>
                             Don't have an account?
-                            <a href="#" onClick={registerLink}>
+                            <a href="#" onClick={changeToRegisterForm}>
                                 회원가입 하기
                             </a>
                         </p>
@@ -118,7 +119,7 @@ const LoginForm = () => {
                         게스트 접속하기
                     </button>
                 </form>
-                <button onClick={startGame}>게임으로 이동</button>
+                <button onClick={onStartGameBtnClicked}>게임으로 이동</button>
             </div>
 
             <div className="form-box register">
@@ -160,7 +161,7 @@ const LoginForm = () => {
                     <div className="register-link">
                         <p>
                             Already have an account?
-                            <a href="#" onClick={loginLink}>
+                            <a href="#" onClick={changeToLoginForm}>
                                 Login
                             </a>
                         </p>
