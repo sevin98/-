@@ -1,5 +1,4 @@
 import { Client } from "@stomp/stompjs";
-import WebSocket from "ws";
 import { Mutex } from "async-mutex";
 
 const mutex = new Mutex();
@@ -19,7 +18,9 @@ export const getStompClient = async (handshakeToken) => {
             if (!proxy) {
                 // 클라이언트부터 초기화해주고
                 _stompClient = new Client({
-                    brokerURL: `wss:/i11a410.p.ssafy.io/staging/ws?token=${handshakeToken}`,
+                    brokerURL: `${
+                        import.meta.env.VITE_SOCKET_BASE_URL
+                    }/ws?token=${handshakeToken}`,
                     onConnect: async () => {},
                 });
                 _stompClient.activate();
