@@ -46,13 +46,7 @@ const LoginForm = () => {
                 getStompClient(webSocketConnectionToken);
 
                 // 로비로 이동
-                navigate(LOBBY_ROUTE_PATH, {
-                    state: {
-                        uuid: userProfile.uuid,
-                        accessToken,
-                        userProfile,
-                    },
-                });
+                navigate(LOBBY_ROUTE_PATH);
             })
             .catch((error) => {
                 console.error(error);
