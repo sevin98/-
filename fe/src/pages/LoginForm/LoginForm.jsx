@@ -47,7 +47,7 @@ const LoginForm = () => {
             navigate("/Lobby", {
                 state: {
                     uuid: userProfile.uuid,
-                    accessToken: accessToken,
+                    accessToken,
                     userProfile,
                 },
             });

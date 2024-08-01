@@ -18,8 +18,6 @@ const WaitingRoom = () => {
     const userProfile = location.state?.userProfile || {};
     const roomNumber = location.state?.roomNumber || {};
 
-    console.log(userProfile);
-
     const [joinedPlayers, setJoinedPlayers] = useState([]);
     const [readyPlayers, setReadyPlayers] = useState([]);
     const [gameTopic, setGameTopic] = useState(null);
@@ -144,10 +142,8 @@ const WaitingRoom = () => {
     const handleReadyButtonClick = async () => {
         console.log(isReady);
         if (isReady) return; // 이미 준비 상태면 아무 작업도 하지 않음
-        const roomId = roomNumber(
-            // 클라이언트 연결 상태 확인
-            await getStompClient()
-        ).publish({
+
+        const roomId = roomNumber(await getStompClient()).publish({
             destination: `/ws/rooms/${roomId}/ready`,
             body: JSON.stringify({}),
             headers: { "content-type": "application/json" },
@@ -159,6 +155,7 @@ const WaitingRoom = () => {
 
     const handleBackToLobbyClick = () => {
         const roomId = roomNumber;
+        console.log(roomId);
         // 방 나가기 요청 (요청 성공 여부와 관계없이 상태 초기화 및 로비로 이동)
         axios
             .post(`/api/rooms/${roomId}/leave`)
