@@ -35,12 +35,17 @@ public class HPObject extends GameObject {
 
     // 플레이어 숨는 함수
     public void hidePlayer(Player player) {
-        if (!isEmpty()) {
-            throw new UnhandledException("The object already contains another player or item.");
-        }
+        extracted();
         if (this.getId() == null) {
             throw new UnhandledException("Invalid object ID");
         }
         this.player = player;
+    }
+
+    // 해당 HP에 누군가가 있거나 어떤 아이템이 적용되어있다면.
+    private void extracted() {
+        if (!isEmpty()) {
+            throw new UnhandledException("The object already contains another player or item.");
+        }
     }
 }
