@@ -1,9 +1,11 @@
 package com.ssafy.a410.game.service.ingame;
 
 import com.ssafy.a410.game.domain.game.Game;
+import com.ssafy.a410.game.domain.game.message.request.InteractExploreReq;
 import com.ssafy.a410.game.domain.game.message.request.InteractHideReq;
 import com.ssafy.a410.game.domain.player.Player;
 import com.ssafy.a410.game.service.InteractService;
+import com.ssafy.a410.game.service.MessageBroadcastService;
 import com.ssafy.a410.room.domain.Room;
 import com.ssafy.a410.room.service.RoomService;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service;
 public class InteractObjectService implements InteractService {
 
     private final RoomService roomService;
+    private final MessageBroadcastService broadcastService;
 
     @Override
     public void hideOnHPObject(String roomId, String playerId, String objectId) {
@@ -23,5 +26,14 @@ public class InteractObjectService implements InteractService {
 
         InteractHideReq request = new InteractHideReq(playerId, objectId);
         playingGame.pushMessage(player, request);
+    }
+
+    @Override
+    public void exploreObject(InteractExploreReq interactExploreReq){
+        Room room = roomService.getRoomById(interactExploreReq.getRoomId());
+        Game playingGame = room.playingGame;
+        Player requestedPlayer = room.getPlayerWith(interactExploreReq.getPlayerId());
+
+        playingGame.pushMessage(requestedPlayer, interactExploreReq);
     }
 }

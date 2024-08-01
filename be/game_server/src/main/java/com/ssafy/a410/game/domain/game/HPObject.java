@@ -1,6 +1,7 @@
 package com.ssafy.a410.game.domain.game;
 
 import com.google.gson.JsonObject;
+import com.ssafy.a410.common.exception.ResponseException;
 import com.ssafy.a410.common.exception.UnhandledException;
 import com.ssafy.a410.game.domain.player.Player;
 import lombok.Getter;
@@ -48,4 +49,29 @@ public class HPObject extends GameObject {
             throw new UnhandledException("The object already contains another player or item.");
         }
     }
+
+    // 플레이어 추출
+    public Player extractHidingPlayer() {
+        Player foundPlayer = this.player;
+        unhidePlayer();
+        return foundPlayer;
+    }
+
+    // 아이템 추출
+    public Item extractItem() {
+        Item foundItem = this.appliedItem;
+        removeItem();
+        return foundItem;
+    }
+
+    // 해당 오브젝트에 대해 탐색
+    public boolean explore(Player exploringPlayer) {
+        if (this.player != null) {
+            return true; // 플레이어를 찾은 경우
+        } else if (this.appliedItem != null) {
+            return false; // 아이템을 찾은 경우 아이템을 제거
+        }
+        return false; // 빈 오브젝트인 경우
+    }
 }
+

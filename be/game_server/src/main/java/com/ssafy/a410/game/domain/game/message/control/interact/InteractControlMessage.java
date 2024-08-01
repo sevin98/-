@@ -1,4 +1,4 @@
-package com.ssafy.a410.game.domain.game.message.control;
+package com.ssafy.a410.game.domain.game.message.control.interact;
 
 import com.ssafy.a410.common.domain.message.ControlMessage;
 

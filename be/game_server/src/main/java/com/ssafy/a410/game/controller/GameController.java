@@ -1,12 +1,14 @@
 package com.ssafy.a410.game.controller;
 
 import com.ssafy.a410.game.controller.dto.PlayerPositionReq;
+import com.ssafy.a410.game.domain.game.message.request.InteractExploreReq;
 import com.ssafy.a410.game.service.GameService;
 import com.ssafy.a410.game.service.InteractService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -31,8 +33,16 @@ public class GameController {
         gameService.sharePosition(roomId, principal.getName(), playerPositionReq);
     }
 
+    // 오브젝트와 상호작용해서 숨는다.
     @MessageMapping("/rooms/{roomId}/game/hide")
     public void hideOnHPObject(@DestinationVariable String roomId, Principal principal, String ObjectId) {
         interactService.hideOnHPObject(roomId, principal.getName(), ObjectId);
+    }
+
+    // 오브젝트와 상호작용하여 숨은 플레이어 탐색을 시도한다.
+    @MessageMapping("/rooms/{roomId}/game/explore")
+    public void exploreObject(@DestinationVariable String roomId, @Payload InteractExploreReq interactExploreReq) {
+        interactExploreReq.setRoomId(roomId);
+        interactService.exploreObject(interactExploreReq);
     }
 }
