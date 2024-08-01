@@ -78,7 +78,7 @@ const Lobby = () => {
                     />
                 </div>
             </form>
-            <div className="navigateRoom">
+            <div className="navigation-room">
                 <button onClick={onCreateRoomBtnClicked}>방 생성</button>
                 <button onClick={onExistRoomJoinBtnClicked}>방 참여</button>
                 <button onClick={onRandomRoomJoinBtnClicked}>랜덤 매칭</button>

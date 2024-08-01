@@ -123,7 +123,7 @@ const LoginForm = () => {
                         <input
                             type="text"
                             placeholder="Username"
-                            id="registUsername"
+                            id="register-username"
                             onChange={(e) => setRegistUsername(e.target.value)}
                             required
                         />
@@ -133,7 +133,7 @@ const LoginForm = () => {
                         <input
                             type="password"
                             placeholder="Password"
-                            id="registPassword"
+                            id="register-password"
                             onChange={(e) => setRegistPassword(e.target.value)}
                             required
                         />

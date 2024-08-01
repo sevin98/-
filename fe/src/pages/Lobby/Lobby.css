@@ -57,7 +57,7 @@ button {
     border: white;
 }
 
-.wrapper .navigateRoom {
+.wrapper .navigation-room {
     display: flex;
     padding: 10px;
 }
