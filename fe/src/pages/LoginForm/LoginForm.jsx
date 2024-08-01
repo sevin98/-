@@ -46,7 +46,6 @@ const LoginForm = () => {
 
             navigate("/Lobby", {
                 state: {
-                    nickname: userProfile.nickname,
                     uuid: userProfile.uuid,
                     accessToken: accessToken,
                     userProfile,

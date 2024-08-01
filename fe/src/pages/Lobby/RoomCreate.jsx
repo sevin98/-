@@ -34,6 +34,7 @@ const RoomCreate = () => {
                     topic: res.data.topic,
                     roomSubscriptionInfo,
                     playerSubscriptionInfo,
+                    userProfile,
                 },
             });
         } catch (error) {

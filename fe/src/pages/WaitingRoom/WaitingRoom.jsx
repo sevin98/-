@@ -18,6 +18,8 @@ const WaitingRoom = () => {
     const userProfile = location.state?.userProfile || {};
     const roomNumber = location.state?.roomNumber || {};
 
+    console.log(userProfile);
+
     const [joinedPlayers, setJoinedPlayers] = useState([]);
     const [readyPlayers, setReadyPlayers] = useState([]);
     const [gameTopic, setGameTopic] = useState(null);

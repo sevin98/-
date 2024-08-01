@@ -26,14 +26,14 @@ const Lobby = () => {
 
     const encounterRoom = (e) => {
         e.preventDefault();
-        navigate("/RoomJoin", { state: { ...location.state, nickname } });
+        navigate("/RoomJoin", { state: { ...location.state, userProfile } });
         console.log("기존 방에 참여");
     };
 
     // 현재는 대기실로 이동하게 해둠
     const randomRoom = (e) => {
         e.preventDefault();
-        navigate("/waitingRoom", { state: { ...location.state, nickname } });
+        navigate("/WaitingRoom", { state: { ...location.state, userProfile } });
         console.log("랜덤 방에 들어가기 ");
     };
 
