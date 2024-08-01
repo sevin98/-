@@ -22,12 +22,14 @@ public class InteractExploreReq extends InteractReq {
     @Getter
     @Setter
     private String roomId;
+    @Getter
+    @Setter
+    private String playerId;
 
     public InteractExploreReq(String playerId, String objectId) {
         super(playerId, INTERACT_EXPLORE, null);
         this.objectId = objectId;
     }
-
 
     @Override
     public void handle(Player requestedPlayer, Team senderTeam, Game game, MessageBroadcastService broadcastService) {
@@ -39,7 +41,6 @@ public class InteractExploreReq extends InteractReq {
             handleSuccess(hpObject, requestedPlayer, game, broadcastService);
         else
             handleFailure(hpObject, requestedPlayer, game, broadcastService);
-
     }
 
     private void handleSuccess(HPObject hpObject, Player requestedPlayer, Game game, MessageBroadcastService broadcastService) {

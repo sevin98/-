@@ -9,6 +9,8 @@ import com.ssafy.a410.game.domain.game.message.control.interact.InteractType;
 import com.ssafy.a410.game.domain.player.Player;
 import com.ssafy.a410.game.domain.team.Team;
 import com.ssafy.a410.game.service.MessageBroadcastService;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Map;
 
@@ -19,6 +21,14 @@ import static com.ssafy.a410.game.domain.player.message.request.GamePlayerReques
 public class InteractHideReq extends InteractReq {
 
     private final String objectId;
+
+    @Getter
+    @Setter
+    private String roomId;
+
+    @Getter
+    @Setter
+    private String playerId;
 
     public InteractHideReq(String playerId, String objectId) {
         super(playerId, INTERACT_HIDE, null);

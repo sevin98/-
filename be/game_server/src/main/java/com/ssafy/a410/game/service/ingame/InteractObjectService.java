@@ -16,16 +16,14 @@ import org.springframework.stereotype.Service;
 public class InteractObjectService implements InteractService {
 
     private final RoomService roomService;
-    private final MessageBroadcastService broadcastService;
 
     @Override
-    public void hideOnHPObject(String roomId, String playerId, String objectId) {
-        Room room = roomService.getRoomById(roomId);
-        Player player = room.getPlayerWith(playerId);
+    public void hideOnHPObject(InteractHideReq interactHideReq) {
+        Room room = roomService.getRoomById(interactHideReq.getRoomId());
+        Player player = room.getPlayerWith(interactHideReq.getPlayerId());
         Game playingGame = room.playingGame;
 
-        InteractHideReq request = new InteractHideReq(playerId, objectId);
-        playingGame.pushMessage(player, request);
+        playingGame.pushMessage(player, interactHideReq);
     }
 
     @Override

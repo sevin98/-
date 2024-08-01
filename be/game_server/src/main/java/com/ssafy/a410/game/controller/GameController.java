@@ -2,6 +2,7 @@ package com.ssafy.a410.game.controller;
 
 import com.ssafy.a410.game.controller.dto.PlayerPositionReq;
 import com.ssafy.a410.game.domain.game.message.request.InteractExploreReq;
+import com.ssafy.a410.game.domain.game.message.request.InteractHideReq;
 import com.ssafy.a410.game.service.GameService;
 import com.ssafy.a410.game.service.InteractService;
 import lombok.RequiredArgsConstructor;
@@ -35,13 +36,16 @@ public class GameController {
 
     // 오브젝트와 상호작용해서 숨는다.
     @MessageMapping("/rooms/{roomId}/game/hide")
-    public void hideOnHPObject(@DestinationVariable String roomId, Principal principal, String ObjectId) {
-        interactService.hideOnHPObject(roomId, principal.getName(), ObjectId);
+    public void hideOnHPObject(@DestinationVariable String roomId, Principal principal, @Payload InteractHideReq interactHideReq) {
+        interactHideReq.setPlayerId(principal.getName());
+        interactHideReq.setRoomId(roomId);
+        interactService.hideOnHPObject(interactHideReq);
     }
 
     // 오브젝트와 상호작용하여 숨은 플레이어 탐색을 시도한다.
     @MessageMapping("/rooms/{roomId}/game/explore")
-    public void exploreObject(@DestinationVariable String roomId, @Payload InteractExploreReq interactExploreReq) {
+    public void exploreObject(@DestinationVariable String roomId, @Payload InteractExploreReq interactExploreReq, Principal principal) {
+        interactExploreReq.setPlayerId(principal.getName());
         interactExploreReq.setRoomId(roomId);
         interactService.exploreObject(interactExploreReq);
     }
