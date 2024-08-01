@@ -29,6 +29,8 @@ public class Player extends Subscribable {
     private boolean isFreeze;
     // 플레이어가 살아있는 지 여부
     private boolean isEliminated;
+    // 탐색 카운트
+    private int exploreCount;
 
     public Player(UserProfile userProfile, Room room) {
         this(userProfile.getUuid(), userProfile.getNickname(), room);
@@ -40,6 +42,7 @@ public class Player extends Subscribable {
         this.room = room;
         this.readyToStart = false;
         this.pos = new Pos(0, 0);
+        this.exploreCount = 0;
     }
 
     public void setInitialPosition(double x, double y, PlayerDirection direction) {
@@ -85,5 +88,15 @@ public class Player extends Subscribable {
 
     public void eliminate() {
         this.isEliminated = true;
+    }
+
+    // 탐색 카운트 증가
+    public void incrementExploreCount() {
+        this.exploreCount++;
+    }
+
+    // 탐색 카운트 초기화
+    public void initExploreCount() {
+        this.exploreCount = 0;
     }
 }
