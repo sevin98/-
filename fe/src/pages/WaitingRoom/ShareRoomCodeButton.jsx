@@ -1,6 +1,6 @@
 import { toast } from "react-toastify";
 
-function ShareRoomCodeButton() {
+export default function ShareRoomCodeButton() {
     const onShareRoomCodeBtnClicked = async () => {
         try {
             await navigator.clipboard.writeText(window.location.href);
@@ -19,5 +19,3 @@ function ShareRoomCodeButton() {
         </button>
     );
 }
-
-export default ShareRoomCodeButton;

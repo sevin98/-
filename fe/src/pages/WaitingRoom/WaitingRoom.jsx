@@ -19,7 +19,7 @@ import ChatBox from "./ChatBox"; // 채팅창 컴포넌트
 import { toast } from "react-toastify"; // react-toastify 추가
 import "./WaitingRoom.css"; // CSS 파일
 
-const WaitingRoom = () => {
+export default function WaitingRoom() {
     const navigate = useNavigate();
 
     // 방에 참여하기 위한 방 번호와 비밀번호 정보 가져오기
@@ -199,8 +199,6 @@ const WaitingRoom = () => {
             />
         </div>
     );
-};
+}
 
 export const WAITING_ROOM_ROUTE_PATH = "/WaitingRoom";
-
-export default WaitingRoom;

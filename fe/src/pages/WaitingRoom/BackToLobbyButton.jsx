@@ -1,15 +1,18 @@
-import React from 'react';
+import PropTypes from "prop-types";
 
-function BackToLobbyButton({ isDisabled, onClick }) {
-  return (
-    <button 
-      className={`back-to-lobby-button ${isDisabled ? 'disabled' : ''}`} 
-      onClick={onClick}
-      disabled={isDisabled}
-    >
-      돌아가기
-    </button>
-  );
+export default function BackToLobbyButton({ isDisabled, onClick }) {
+    return (
+        <button
+            className={`back-to-lobby-button ${isDisabled ? "disabled" : ""}`}
+            onClick={onClick}
+            disabled={isDisabled}
+        >
+            돌아가기
+        </button>
+    );
 }
 
-export default BackToLobbyButton;
+BackToLobbyButton.propTypes = {
+    isDisabled: PropTypes.bool.isRequired,
+    onClick: PropTypes.func.isRequired,
+};

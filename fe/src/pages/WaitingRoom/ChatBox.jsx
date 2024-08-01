@@ -1,7 +1,6 @@
-import React from "react";
 import PropTypes from "prop-types";
 
-const ChatBox = ({ countdown, countdownMessage }) => {
+export default function ChatBox({ countdown, countdownMessage }) {
     return (
         <div className="chat-box">
             {/* 카운트다운 표시 */}
@@ -14,11 +13,9 @@ const ChatBox = ({ countdown, countdownMessage }) => {
             )}
         </div>
     );
-};
+}
 
 ChatBox.propTypes = {
     countdown: PropTypes.number,
     countdownMessage: PropTypes.string,
 };
-
-export default ChatBox;
