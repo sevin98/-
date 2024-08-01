@@ -3,9 +3,7 @@ import { Client } from "@stomp/stompjs";
 const createStompClient = (url) => {
     return new Client({
         brokerURL: url, //실제 WebSocket 서버 URL로 변경해야 함
-        connectHeaders: {
-            // 필요에 따라 헤더를 추가 가능
-        },
+        connectHeaders: {},
         debug: function (str) {
             console.log(str);
         },

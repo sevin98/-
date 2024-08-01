@@ -67,9 +67,13 @@ const LoginForm = () => {
             // yubin
             client = getStompClientWith(webSocketConnectionToken);
             client.activate(); // 서버 연결
-            navigate("/Lobby", {
-                state: { nickname: userProfile.nickname },
-            });
+            navigate("/Lobby", { 
+                state: { 
+                  nickname: userProfile.nickname,
+                  uuid: userProfile.uuid,
+                  accessToken: accessToken
+                } 
+              });
         } catch (err) {
             console.log(err);
         }
