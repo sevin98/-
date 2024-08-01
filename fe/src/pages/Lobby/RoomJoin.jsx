@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import "./Lobby.css";
+import { WAITING_ROOM_ROUTE_PATH } from "../WaitingRoom/WaitingRoom";
 
 const RoomJoin = () => {
     const navigate = useNavigate();
@@ -27,7 +28,7 @@ const RoomJoin = () => {
                     response.data;
 
                 // 상태를 navigate 호출 시 전달
-                navigate("/WaitingRoom", {
+                navigate(WAITING_ROOM_ROUTE_PATH, {
                     state: {
                         userProfile,
                         roomNumber,
@@ -72,5 +73,5 @@ const RoomJoin = () => {
     );
 };
 
-export const ROUTE_PATH = "/RoomJoin";
+export const ROOM_JOIN_ROUTE_PATH = "/RoomJoin";
 export default RoomJoin;

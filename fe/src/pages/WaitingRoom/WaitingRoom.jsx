@@ -11,6 +11,9 @@ import "./WaitingRoom.css"; // CSS 파일
 import { getStompClient } from "../../network/StompClient";
 import { userRepository } from "../../repository";
 import { hasFalsy } from "../../util/validation";
+import { LOGIN_FORM_ROUTE_PATH } from "../LoginForm/LoginForm";
+import { PHASER_GAME_ROUTE_PATH } from "../../game/PhaserGame";
+import { LOBBY_ROUTE_PATH } from "../Lobby/Lobby";
 
 const WaitingRoom = () => {
     const navigate = useNavigate();
@@ -39,7 +42,7 @@ const WaitingRoom = () => {
             userProfile
         );
         console.error("필수 정보가 없습니다.");
-        navigate("/");
+        navigate(LOGIN_FORM_ROUTE_PATH);
     }
 
     const [joinedPlayers, setJoinedPlayers] = useState([]);
@@ -103,7 +106,7 @@ const WaitingRoom = () => {
                                     if (newCountdown <= 0) {
                                         clearInterval(countdownTimer);
                                         setCountdownMessage("");
-                                        navigate("/GameStart", {
+                                        navigate(PHASER_GAME_ROUTE_PATH, {
                                             state: { roomNumber },
                                         });
                                     }
@@ -111,7 +114,9 @@ const WaitingRoom = () => {
                                 });
                             }, 1000);
                         } else {
-                            navigate("/GameStart", { state: { roomNumber } });
+                            navigate(PHASER_GAME_ROUTE_PATH, {
+                                state: { roomNumber },
+                            });
                         }
                         break;
                     default:
@@ -161,7 +166,7 @@ const WaitingRoom = () => {
         const roomId = roomNumber;
         // 방 나가기 요청 (요청 성공 여부와 관계없이 로비로 이동)
         axios.post(`/api/rooms/${roomId}/leave`).finally(() => {
-            navigate("/Lobby");
+            navigate(LOBBY_ROUTE_PATH);
         });
     };
 
@@ -196,6 +201,6 @@ const WaitingRoom = () => {
     );
 };
 
-export const ROUTE_PATH = "/WaitingRoom";
+export const WAITING_ROOM_ROUTE_PATH = "/WaitingRoom";
 
 export default WaitingRoom;

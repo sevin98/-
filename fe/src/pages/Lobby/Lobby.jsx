@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { ImPencil2 } from "react-icons/im";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./Lobby.css";
+import { ROOM_CREATE_ROUTE_PATH } from "./RoomCreate";
+import { ROOM_JOIN_ROUTE_PATH } from "./RoomJoin";
+import { WAITING_ROOM_ROUTE_PATH } from "../WaitingRoom/WaitingRoom";
 
 const Lobby = () => {
     const navigate = useNavigate();
@@ -18,20 +21,20 @@ const Lobby = () => {
 
     const createRoom = (e) => {
         e.preventDefault();
-        navigate("/RoomCreate", { state: { userProfile },});
+        navigate(ROOM_CREATE_ROUTE_PATH, { state: { userProfile } });
         console.log("새로운 방 생성");
     };
 
     const encounterRoom = (e) => {
         e.preventDefault();
-        navigate("/RoomJoin", { state: { userProfile } });
+        navigate(ROOM_JOIN_ROUTE_PATH, { state: { userProfile } });
         console.log("기존 방에 참여");
     };
 
     // 현재는 대기실로 이동하게 해둠
     const randomRoom = (e) => {
         e.preventDefault();
-        navigate("/WaitingRoom", { state: { userProfile } });
+        navigate(WAITING_ROOM_ROUTE_PATH, { state: { userProfile } });
         console.log("랜덤 방에 들어가기 ");
     };
 
@@ -64,6 +67,6 @@ const Lobby = () => {
     );
 };
 
-export const ROUTE_PATH = "/Lobby";
+export const LOBBY_ROUTE_PATH = "/Lobby";
 
 export default Lobby;

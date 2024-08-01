@@ -43,7 +43,7 @@ export const PhaserGame = forwardRef(function PhaserGame(
     return <div id="game-container"></div>;
 });
 
-export const ROUTE_PATH = "/GameStart";
+export const PHASER_GAME_ROUTE_PATH = "/GameStart";
 
 export default PhaserGame;
 

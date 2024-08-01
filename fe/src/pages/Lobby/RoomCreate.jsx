@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import axios from "../../network/AxiosClient";
 
 import "./Lobby.css";
+import { WAITING_ROOM_ROUTE_PATH } from "../WaitingRoom/WaitingRoom";
 
 const RoomCreate = () => {
     const navigate = useNavigate();
@@ -25,7 +26,7 @@ const RoomCreate = () => {
                 })
             ).data;
 
-            navigate("/WaitingRoom", {
+            navigate(WAITING_ROOM_ROUTE_PATH, {
                 state: {
                     roomNumber: res.data.roomNumber,
                     topic: res.data.topic,
@@ -62,5 +63,5 @@ const RoomCreate = () => {
     );
 };
 
-export const ROUTE_PATH = "/RoomCreate";
+export const ROOM_CREATE_ROUTE_PATH = "/RoomCreate";
 export default RoomCreate;

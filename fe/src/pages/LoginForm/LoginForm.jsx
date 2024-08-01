@@ -7,6 +7,8 @@ import { getStompClient } from "../../network/StompClient";
 import { userRepository } from "../../repository";
 
 import "./LoginForm.css";
+import { PHASER_GAME_ROUTE_PATH } from "../../game/PhaserGame";
+import { LOBBY_ROUTE_PATH } from "../Lobby/Lobby";
 
 const LoginForm = () => {
     const navigate = useNavigate();
@@ -26,7 +28,7 @@ const LoginForm = () => {
     };
 
     const startGame = () => {
-        navigate("/GameStart");
+        navigate(PHASER_GAME_ROUTE_PATH);
     };
 
     const onGuestLoginBtnClicked = async () => {
@@ -43,7 +45,7 @@ const LoginForm = () => {
                 getStompClient(webSocketConnectionToken);
 
                 // 로비로 이동
-                navigate("/Lobby", {
+                navigate(LOBBY_ROUTE_PATH, {
                     state: {
                         uuid: userProfile.uuid,
                         accessToken,
@@ -177,5 +179,5 @@ const LoginForm = () => {
     );
 };
 
-export const ROUTE_PATH = "/";
+export const LOGIN_FORM_ROUTE_PATH = "/";
 export default LoginForm;
