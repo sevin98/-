@@ -19,7 +19,6 @@ const RoomCreate = () => {
                 password: roomPassword,
             });
             const roomNumber = res.data.roomNumber;
-            sessionStorage.setItem("roomNumber", roomNumber);
 
             const { roomSubscriptionInfo, playerSubscriptionInfo } = (
                 await axios.post(`/api/rooms/${roomNumber}/join`, {
