@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import axios from "../../network/AxiosClient";
 import { Client } from "@stomp/stompjs";
 
-import "./Loby.css";
+import "./Lobby.css";
 
 const RoomCreate = () => {
     const navigate = useNavigate();

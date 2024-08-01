@@ -3,7 +3,7 @@ import axios from "../../network/AxiosClient";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 
-import "./Loby.css";
+import "./Lobby.css";
 
 const RoomJoin = () => {
     const navigate = useNavigate();
