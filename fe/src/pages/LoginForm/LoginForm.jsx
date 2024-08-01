@@ -1,19 +1,22 @@
 import { useState } from "react";
-import axios, { setAccessToken } from "../../network/AxiosClient"; // 수정된 import
 import { useNavigate } from "react-router-dom";
-import "./LoginForm.css";
 import { FaUser, FaLock } from "react-icons/fa";
+
+import axios, { updateAxiosAccessToken } from "../../network/AxiosClient";
 import { getStompClient } from "../../network/StompClient";
+import { userRepository } from "../../repository";
+
+import "./LoginForm.css";
 
 const LoginForm = () => {
+    const navigate = useNavigate();
+
     const [action, setAction] = useState(""); // wrapper class activate
     const [username, setUsername] = useState(""); // 로그인 사용자명
     const [password, setPassword] = useState(""); // 로그인 비밀번호
     const [registUsername, setRegistUsername] = useState(""); // 회원가입 사용자명
     const [registPassword, setRegistPassword] = useState(""); // 회원가입 비밀번호
-    const [loginCheck, setLoginCheck] = useState(false); // 로그인 상태 체크
 
-    const navigate = useNavigate();
     const registerLink = () => {
         setAction("active");
     };
@@ -26,48 +29,39 @@ const LoginForm = () => {
         navigate("/GameStart");
     };
 
-    const movetoRoom = async () => {
-        try {
-            const response = await axios.post(`/api/auth/guest/sign-up`);
-            const { accessToken, userProfile, webSocketConnectionToken } =
-                response.data;
-            setAccessToken(accessToken);
-            const stompClient = getStompClient(webSocketConnectionToken);
-            sessionStorage.setItem("userProfile", JSON.stringify(userProfile));
-            sessionStorage.setItem("uuid", userProfile.uuid);
-            sessionStorage.setItem("nickname", userProfile.nickname);
-            console.log("로그인한 게스트의 닉네임: ", userProfile.nickname);
+    const onGuestLoginBtnClicked = async () => {
+        axios
+            .post(`/api/auth/guest/sign-up`)
+            .then((resp) => {
+                const { accessToken, userProfile, webSocketConnectionToken } =
+                    resp.data;
+                // 인증 및 사용자 정보 초기화
+                updateAxiosAccessToken(accessToken);
+                userRepository.setUserProfile(userProfile);
 
-            navigate("/Lobby", {
-                state: {
-                    uuid: userProfile.uuid,
-                    accessToken,
-                    userProfile,
-                },
+                // STOMP Client 초기화
+                getStompClient(webSocketConnectionToken);
+
+                // 로비로 이동
+                navigate("/Lobby", {
+                    state: {
+                        uuid: userProfile.uuid,
+                        accessToken,
+                        userProfile,
+                    },
+                });
+            })
+            .catch((error) => {
+                console.error(error);
+                throw new Error("게스트 로그인 실패");
             });
-        } catch (err) {
-            console.log(err);
-        }
     };
 
-    const onClickLogin = async (e, username, password) => {
+    const doLoginAndMoveToLobby = async (e, username, password) => {
         e.preventDefault();
-        console.log(`username: ${username}`);
-        console.log(`password: ${password}`);
-        setLoginCheck(true); // 로그인 상태 true로 변경
-
         try {
-            const response = await axios.post(`/api/auth/login`, {
-                username,
-                password,
-            });
-            const { accessToken, userProfile, webSocketConnectionToken } =
-                response.data;
-            setAccessToken(accessToken);
-
-            navigate("/Lobby", {
-                state: { userProfile, accessToken },
-            });
+            // TODO : Access token, User Profile 갱신, STOMP Client 초기화 및 /Lobby로 이동
+            console.log("로그인 시도...");
         } catch (err) {
             console.log(err);
         }
@@ -100,7 +94,9 @@ const LoginForm = () => {
                     </div>
                     <button
                         type="submit"
-                        onClick={(e) => onClickLogin(e, username, password)}
+                        onClick={(e) =>
+                            doLoginAndMoveToLobby(e, username, password)
+                        }
                     >
                         LOGIN
                     </button>
@@ -115,7 +111,7 @@ const LoginForm = () => {
                     <button
                         className="guest"
                         type="button"
-                        onClick={movetoRoom}
+                        onClick={onGuestLoginBtnClicked}
                     >
                         게스트 접속하기
                     </button>
@@ -150,7 +146,11 @@ const LoginForm = () => {
                     <button
                         type="submit"
                         onClick={(e) =>
-                            onClickLogin(e, registUsername, registPassword)
+                            doLoginAndMoveToLobby(
+                                e,
+                                registUsername,
+                                registPassword
+                            )
                         }
                     >
                         REGISTER
@@ -167,7 +167,7 @@ const LoginForm = () => {
                     <button
                         className="guest"
                         type="button"
-                        onClick={movetoRoom}
+                        onClick={onGuestLoginBtnClicked}
                     >
                         게스트 접속하기
                     </button>
@@ -177,4 +177,5 @@ const LoginForm = () => {
     );
 };
 
+export const ROUTE_PATH = "/";
 export default LoginForm;

@@ -72,4 +72,5 @@ const RoomJoin = () => {
     );
 };
 
+export const ROUTE_PATH = "/RoomJoin";
 export default RoomJoin;

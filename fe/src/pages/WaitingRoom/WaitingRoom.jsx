@@ -9,27 +9,45 @@ import ShareRoomCodeButton from "./ShareRoomCodeButton"; // 방 코드 공유 �
 import ChatBox from "./ChatBox"; // 채팅창 컴포넌트
 import "./WaitingRoom.css"; // CSS 파일
 import { getStompClient } from "../../network/StompClient";
+import { userRepository } from "../../repository";
+import { hasFalsy } from "../../util/validation";
 
 const WaitingRoom = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { roomSubscriptionInfo, playerSubscriptionInfo } =
-        location.state || {};
-    const userProfile = location.state?.userProfile || {};
-    const roomNumber = location.state?.roomNumber || {};
+    const {
+        // 방 및 플레이어 채널 구독에 필요한 정보
+        roomSubscriptionInfo,
+        playerSubscriptionInfo,
+        // 대기 중인 방 번호
+        roomNumber,
+    } = location.state;
+    const userProfile = userRepository.getUserProfile();
+    if (
+        hasFalsy(
+            roomSubscriptionInfo,
+            playerSubscriptionInfo,
+            roomNumber,
+            userProfile
+        )
+    ) {
+        console.log(
+            roomSubscriptionInfo,
+            playerSubscriptionInfo,
+            roomNumber,
+            userProfile
+        );
+        console.error("필수 정보가 없습니다.");
+        navigate("/");
+    }
 
     const [joinedPlayers, setJoinedPlayers] = useState([]);
     const [readyPlayers, setReadyPlayers] = useState([]);
-    const [gameTopic, setGameTopic] = useState(null);
     const [countdown, setCountdown] = useState(null); // 카운트다운 상태 추가
     const [countdownMessage, setCountdownMessage] = useState(""); // 카운트다운 완료 메시지 상태
-    const [isReady, setIsReady] = useState(false); // 레디 상태 추가
+    const [isReady, setIsReady] = useState(false); // 접속한 사용자의 레디 여부
 
     const handleSubscribe = useCallback(async () => {
-        if (!roomSubscriptionInfo || !playerSubscriptionInfo) {
-            throw new Error("구독 정보가 없습니다.");
-        }
-
         // 방 채널 구독
         (await getStompClient()).subscribe(
             roomSubscriptionInfo,
@@ -52,7 +70,6 @@ const WaitingRoom = () => {
                     case "SUBSCRIBE_GAME":
                         const { subscriptionInfo, startsAfterMilliSec } =
                             message.data;
-                        setGameTopic(subscriptionInfo.topic);
 
                         // 게임 채널 구독
                         (await getStompClient()).subscribe(
@@ -115,8 +132,7 @@ const WaitingRoom = () => {
     useEffect(() => {
         // 현재 사용자 정보 추가
         const currentUser = {
-            uuid: userProfile.uuid,
-            nickname: userProfile.nickname,
+            ...userProfile,
         };
         setJoinedPlayers((prevPlayers) => {
             const existingUser = prevPlayers.find(
@@ -129,15 +145,13 @@ const WaitingRoom = () => {
         });
 
         handleSubscribe();
-
-        // 컴포넌트 언마운트 시 정리 작업은 제거
-    }, [handleSubscribe]);
+    }, []);
 
     const handleReadyButtonClick = async () => {
         console.log(isReady);
         if (isReady) return; // 이미 준비 상태면 아무 작업도 하지 않음
 
-        const roomId = roomNumber(await getStompClient()).publish({
+        const roomId = (await getStompClient()).publish({
             destination: `/ws/rooms/${roomId}/ready`,
             body: JSON.stringify({}),
             headers: { "content-type": "application/json" },
@@ -146,25 +160,12 @@ const WaitingRoom = () => {
         toast.success("준비 상태로 변경되었습니다.");
     };
 
-    const handleBackToLobbyClick = () => {
+    const handleBackToLobbyClick = async () => {
         const roomId = roomNumber;
-        // 방 나가기 요청 (요청 성공 여부와 관계없이 상태 초기화 및 로비로 이동)
-        axios
-            .post(`/api/rooms/${roomId}/leave`)
-            .catch((e) => {
-                console.log(e);
-            })
-            .finally(() => {
-                setJoinedPlayers([]);
-                setReadyPlayers([]);
-                setGameTopic(null);
-                setCountdown(null);
-                setCountdownMessage("");
-                setIsReady(false);
-
-                // 웹소켓 연결 유지
-                navigate("/lobby");
-            });
+        // 방 나가기 요청 (요청 성공 여부와 관계없이 로비로 이동)
+        axios.post(`/api/rooms/${roomId}/leave`).finally(() => {
+            navigate("/Lobby");
+        });
     };
 
     return (
@@ -196,5 +197,7 @@ const WaitingRoom = () => {
         </div>
     );
 };
+
+export const ROUTE_PATH = "/WaitingRoom";
 
 export default WaitingRoom;

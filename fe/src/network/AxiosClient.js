@@ -14,11 +14,11 @@ instance.interceptors.response.use(
             "Error has occurred in Axios response interceptor: ",
             error
         );
-        return Promise.reject(error);
+        return Promise.reject(new Error(error));
     }
 );
 
-export function setAccessToken(token) {
+export function updateAxiosAccessToken(token) {
     instance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     authRepository.setAccessToken(token);
 }

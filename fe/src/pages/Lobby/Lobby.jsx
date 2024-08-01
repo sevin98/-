@@ -66,4 +66,6 @@ const Lobby = () => {
     );
 };
 
+export const ROUTE_PATH = "/Lobby";
+
 export default Lobby;
