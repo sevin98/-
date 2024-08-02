@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { hasFalsy } from "../../util/validation";
-import { userRepository } from "../../repository";
+import { getRoomRepository, userRepository } from "../../repository";
 import axios from "../../network/AxiosClient";
 import { getStompClient } from "../../network/StompClient";
 
@@ -42,39 +42,25 @@ export default function WaitingRoom() {
     }
 
     const [joinedPlayers, setJoinedPlayers] = useState([]);
-    const [readyPlayers, setReadyPlayers] = useState([]);
     const [leftSecondsToStart, setLeftSecondsToStart] = useState(Infinity);
     const [countdownMessage, setCountdownMessage] = useState(""); // 카운트다운 완료 메시지 상태
     const [isPlayerReady, setIsPlayerReady] = useState(false); // 접속한 사용자의 레디 여부
 
-    useEffect(() => {
+    const roomRepository = getRoomRepository(roomNumber, roomPassword);
+    useState(() => {
         axios
             .post(`/api/rooms/${roomNumber}/join`, { password: roomPassword })
             .then(async (resp) => {
                 // 방 진입, 방/플레이어 채널 구독 요청 먼저 수행하고
                 const { roomSubscriptionInfo, playerSubscriptionInfo } =
                     resp.data;
-                await subscribeChannels(
-                    roomSubscriptionInfo,
-                    playerSubscriptionInfo
-                );
-
-                // TODO : 기존에 방에 있던 플레이어들의 정보를 받아 joinedPlayers를 업데이트
-                // // 현재 사용자 정보 추가
-                // const currentUser = {
-                //     ...userProfile,
-                // };
-                // setJoinedPlayers((prevPlayers) => {
-                //     const existingUser = prevPlayers.find(
-                //         (player) => player.uuid === currentUser.uuid
-                //     );
-                //     if (!existingUser) {
-                //         return [...prevPlayers, currentUser];
-                //     }
-                //     return prevPlayers;
-                // });
+                roomRepository.startSubscribe(roomSubscriptionInfo);
             });
-    }, []);
+    });
+
+    const updateDataIntervalId = setInterval(() => {
+        setJoinedPlayers(roomRepository.getJoinedPlayers());
+    }, 10);
 
     const subscribeChannels = async (
         roomSubscriptionInfo,
@@ -92,10 +78,6 @@ export default function WaitingRoom() {
                     });
                     break;
                 case "PLAYER_READY":
-                    setReadyPlayers((prev) => {
-                        const updatedReadyPlayers = message.data;
-                        return [...prev, ...updatedReadyPlayers];
-                    });
                     break;
                 case "SUBSCRIBE_GAME":
                     const { subscriptionInfo, startsAfterMilliSec } =
@@ -187,7 +169,7 @@ export default function WaitingRoom() {
             <ShareRoomCodeButton />
 
             {/* 플레이어 슬롯 (가운데) */}
-            <PlayerGrid players={joinedPlayers} readyPlayers={readyPlayers} />
+            <PlayerGrid players={joinedPlayers} />
 
             {/* 왼쪽 아래: 레디 버튼 */}
             <ReadyButton onClick={onReadyBtnClicked} isReady={isPlayerReady} />
