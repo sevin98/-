@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { Scene } from "phaser";
 import Player, { Direction, HandlePlayerMove } from "./Player";
 import MapTile from "./MapTile";
+import TextGroup from "./TextGroup";
 
 // import webSocketClient from "../network";
 // import gameStatus from '../../game_status/index'
@@ -22,9 +23,10 @@ export class game extends Phaser.Scene {
         this.cursors = this.input.keyboard.createCursorKeys();
         this.headDir = 2; //under direction
         this.moving = 0;
-        const uuid = sessionStorage.getItem("uuid");
     }
     create() {
+        this.text = new TextGroup(this);
+
         this.graphics = this.add.graphics().setDepth(1000); //선만들기 위한 그래픽
         // MapTile.js에서 만들어놓은 함수로 map 호출해주기
         this.maptile = new MapTile(this);
@@ -155,25 +157,31 @@ export class game extends Phaser.Scene {
                 this.interactionEffect = null;
             }
         }
-        //publish
         // this.input.keyboard.enabled = false;
         // 상호작용 표시가 있고, space 키 이벤트 있는 경우
         if (this.interactionEffect && this.m_cursorKeys.space.isDown) {
+            //publish
             // console.log(closest.getData("id")); // key:ObjectId
             // key:playerID value: uuid
-            //subscribe
+            
+            //if (성공){
             // if res.type === "INTERACT_HIDE": 키다운
-            playerMoveHandler.freezePlayerMovement(); //움직임0으로바꿈
             console.log("정지");
-        } 
-        if (this.m_cursorKeys.shift.isDown) {
-            console.log("unfreeze");
+            playerMoveHandler.freezePlayerMovement(); //움직임0으로바꿈
+            this.localPlayer.visible = false; // 화면에 사용자 안보임
+            this.text.showTextHide(this, closest.body.x-20, closest.body.y-20);
+            // }
+            // else{}
+            }
+        else if (this.m_cursorKeys.shift.isDown) {
             //subscribe받은 재시작 좌표로 이동
-            // this.localPlayer.x = 100;
-            // this.localPlayer.y = 500;
-            playerMoveHandler.enablePlayerMovement();
+            // this.localPlayer.x = 500;
+            // this.localPlayer.y = 400;
+            playerMoveHandler.enablePlayerMovement(); //움직일수있음
+            this.localPlayer.visible = true; // 화면에 사용자 보임
+            this.text.showTextFailHide(this, closest.body.x - 20, closest.body.y - 20);
+            // console.log("unfreeze");
         }
-
 
         // if current time - last sent time is greater than 100ms
         if (Date.now() - this.lastSentTime > 100) {
