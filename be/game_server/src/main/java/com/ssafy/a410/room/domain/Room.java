@@ -193,5 +193,11 @@ public class Room extends Subscribable {
             player.getSurvivalTimeInSeconds();
         }
         gameThread.interrupt();
+        reset();
+    }
+
+    public void reset(){
+        this.playingGame = null;
+        this.gameThread = null;
     }
 }
