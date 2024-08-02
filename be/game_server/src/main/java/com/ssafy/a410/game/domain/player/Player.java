@@ -32,6 +32,8 @@ public class Player extends Subscribable {
     private boolean isFreeze;
     // 플레이어가 살아있는 지 여부
     private boolean isEliminated;
+    // 탐색 카운트
+    private int exploreCount;
     // 킬카운트
     private int catchCount;
     // 생존 시간 시작 시점
@@ -51,6 +53,7 @@ public class Player extends Subscribable {
         this.room = room;
         this.readyToStart = false;
         this.pos = new Pos(0, 0);
+        this.exploreCount = 0;
         this.catchCount = 0;
     }
 
@@ -109,5 +112,15 @@ public class Player extends Subscribable {
         // 탈락되었다면, 탈락된 시간, 게임이 종료될 때 까지 살아남았다면 DateTimeNow 가 endTime
         LocalDateTime endTime = this.isEliminated ? this.eliminationTime : LocalDateTime.now();
         this.playTime = Duration.between(startTime, endTime);
+    }
+
+    // 탐색 카운트 증가
+    public void incrementExploreCount() {
+        this.exploreCount++;
+    }
+
+    // 탐색 카운트 초기화
+    public void initExploreCount() {
+        this.exploreCount = 0;
     }
 }

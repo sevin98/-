@@ -137,6 +137,7 @@ public class Game extends Subscribable implements Runnable {
 
             log.debug("Room {} END Phase start --------------------------------------", room.getRoomNumber());
             runEndPhase();
+            resetExploreCount();
 
             exitPlayers();
             resetHPObjects();
@@ -341,5 +342,12 @@ public class Game extends Subscribable implements Runnable {
             player.eliminate();
         else
             throw new ResponseException(PLAYER_NOT_IN_ROOM);
+    }
+
+    // 라운드가 끝날 때 탐색 카운트 초기화
+    private void resetExploreCount(){
+        for(Player player : hidingTeam.getPlayers().values()){
+            player.initExploreCount();
+        }
     }
 }
