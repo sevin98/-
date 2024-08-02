@@ -67,6 +67,7 @@ public class InteractSeekReq extends InteractReq {
                 foundPlayer.getId()
         );
         broadcastService.broadcastTo(game, message);
+        game.checkForVictory();
     }
 
     private void handleFailure(HPObject hpObject, Player requestedPlayer, Game game, MessageBroadcastService broadcastService) {
