@@ -188,6 +188,10 @@ public class Room extends Subscribable {
     }
 
     public void endGame() {
+        //게임 종료시 각자 player 들의 endTime 기록
+        for(Player player : players.values()) {
+            player.getSurvivalTimeInSeconds();
+        }
         gameThread.interrupt();
     }
 }
