@@ -47,15 +47,12 @@ public class InteractExploreReq extends InteractReq {
         GameMap gameMap = game.getGameMap();
         Map<String, HPObject> hpObjects = gameMap.getHpObjects();
         HPObject hpObject = hpObjects.get(objectId);
+        requestedPlayer.incrementExploreCount();
 
-        if (hpObject.explore(requestedPlayer)){
-            requestedPlayer.incrementExploreCount();
+        if (hpObject.explore(requestedPlayer))
             handleSuccess(hpObject, requestedPlayer, game, broadcastService);
-        }
-        else{
-            requestedPlayer.incrementExploreCount();
+        else
             handleFailure(hpObject, requestedPlayer, game, broadcastService);
-        }
     }
 
     private void handleSuccess(HPObject hpObject, Player requestedPlayer, Game game, MessageBroadcastService broadcastService) {
