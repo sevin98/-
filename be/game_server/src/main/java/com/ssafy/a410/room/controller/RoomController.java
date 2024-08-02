@@ -2,10 +2,7 @@ package com.ssafy.a410.room.controller;
 
 import com.ssafy.a410.game.domain.Message;
 import com.ssafy.a410.game.domain.player.Player;
-import com.ssafy.a410.room.controller.dto.CreateRoomReq;
-import com.ssafy.a410.room.controller.dto.JoinRoomReq;
-import com.ssafy.a410.room.controller.dto.JoinRoomResp;
-import com.ssafy.a410.room.controller.dto.RoomResp;
+import com.ssafy.a410.room.controller.dto.*;
 import com.ssafy.a410.room.domain.Room;
 import com.ssafy.a410.room.service.RoomService;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +15,6 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -38,27 +33,15 @@ public class RoomController {
     }
 
     @GetMapping("/api/rooms/{roomId}/joined-players")
-    public ResponseEntity<List<Player>> getRoomInfo(@PathVariable String roomId) {
+    public ResponseEntity<JoinedPlayersResp> getRoomInfo(@PathVariable String roomId) {
+        JoinedPlayersResp resp = new JoinedPlayersResp();
+
         Room room = roomService.getRoomById(roomId);
         Map<String, Player> roomPlayers = room.getPlayers();
-        List<Player> players = new ArrayList<>();
         for (Player player : roomPlayers.values()) {
-            players.add(player);
+            resp.addPlayer(player);
         }
-        return ResponseEntity.status(HttpStatus.OK).body(players);
-    }
-
-    @GetMapping("/api/rooms/{roomId}/ready-players")
-    public ResponseEntity<List<Player>> getReadyInfo(@PathVariable String roomId) {
-        Room room = roomService.getRoomById(roomId);
-        Map<String, Player> players = room.getPlayers();
-        List<Player> readyPlayers = new ArrayList<>();
-        for (Player player : players.values()) {
-            if (player.isReadyToStart()) {
-                readyPlayers.add(player);
-            }
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(readyPlayers);
+        return ResponseEntity.status(HttpStatus.OK).body(resp);
     }
 
     // 해당 방에 입장하기 위한 토큰들을 반환한다.
