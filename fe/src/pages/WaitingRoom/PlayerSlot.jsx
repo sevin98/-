@@ -7,20 +7,20 @@ export default function PlayerSlot({ player, isMe }) {
 
     return (
         <div
-            className={`player-slot ${player.isReady ? "ready" : ""} ${
+            className={`player-slot ${player.getIsReady() ? "ready" : ""} ${
                 isMe ? "me" : ""
             }`}
         >
             <div className="player-icon">{player.icon}</div>
-            <div className="player-nickname">{player.nickname}</div>
+            <div className="player-nickname">{player.getPlayerNickname()}</div>
             <div className="player-ready-status">
-                {player.isReady ? "준비완료" : "대기중"}
+                {player.getIsReady() ? "준비완료" : "대기중"}
             </div>
         </div>
     );
 }
 
 PlayerSlot.propTypes = {
-    // TODO: 누락된 player props 정의
+    player: PropTypes.object,
     isMe: PropTypes.bool.isRequired,
 };
