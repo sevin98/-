@@ -47,18 +47,10 @@ export class game extends Phaser.Scene {
         //로컬플레이어와 layer의 충돌설정
         this.physics.add.collider(
             this.localPlayer,
-            this.maptile.getLayers().BackGround,
-            () => {
-                console.log("Background!!");
-            }
-        );
+            this.maptile.getLayers().BackGround);
         this.physics.add.collider(
             this.localPlayer,
-            this.maptile.getLayers().Walls,
-            () => {
-                console.log("WAll!!");
-            }
-        );
+            this.maptile.getLayers().Walls);
         this.physics.add.collider(
             this.localPlayer,
             this.maptile.getLayers().BackGround_Of_Wall
@@ -177,7 +169,7 @@ export class game extends Phaser.Scene {
             //subscribe - type": "INTERACT_HIDE",
             //숨을 수 있음
             console.log("정지");
-            playerMoveHandler.freezePlayerMovement(); //움직임0으로바꿈
+            this.localPlayer.stopMove();
             this.localPlayer.visible = false; // 화면에 사용자 안보임
             this.text.showTextHide(
                 this,
@@ -187,13 +179,15 @@ export class game extends Phaser.Scene {
             this.localPlayer.setIsHiding();// IsHIding 상태 바뀜
             // 숨을수 없을때:
             // else{this.text.showTextFailHide(this, closest.body.x - 20, closest.body.y - 20);}
+        } else{
+             this.localPlayer.move();
         }
+
         //숨는팀phase 재시작 : subscribe
-        else if (this.m_cursorKeys.shift.isDown) {
+        if (this.m_cursorKeys.shift.isDown) {
             //재시작 좌표로 이동
             // this.localPlayer.x = 500;
             // this.localPlayer.y = 400;
-            playerMoveHandler.enablePlayerMovement(); //움직일수있음
             this.localPlayer.visible = true; // 화면에 사용자 보임
             // console.log("unfreeze");
         }

@@ -16,23 +16,13 @@ export class HandlePlayerMove {
     //player 키조작
     constructor(cursors, player, headDir, moving) {
 
-        this.isMovementEnabled = true; // 키조작 가능여부
         this.m_cursorKeys = cursors;
         this.localPlayer = player;
         this.headDir = headDir;
         this.moving = moving;
     }
-    freezePlayerMovement() {
-        this.localPlayer.stopMove();
-    }
-    enablePlayerMovement() {
-        this.isMovementEnabled = true;
-    }
 
     update() {
-        if (!this.isMovementEnabled){
-            return
-        }
         if (
             this.m_cursorKeys.left.isUp &&
             this.m_cursorKeys.right.isUp &&
@@ -109,7 +99,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
     //static IsRacoon = true;
     constructor(scene, x, y, IsRacoon, IsHidingTeam) {
-        super(scene, x, y, IsRacoon, IsHidingTeam);
+        const textureKey = IsRacoon ? true:false
+        super(scene, x, y, textureKey);
 
         this.scale = 1;
         this.alpha = 1;
