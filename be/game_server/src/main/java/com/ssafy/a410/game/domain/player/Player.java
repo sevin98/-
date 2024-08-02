@@ -38,6 +38,8 @@ public class Player extends Subscribable {
     private LocalDateTime startTime;
     // 생존 시간 종료 시점
     private LocalDateTime eliminationTime;
+    // 해당 플레이어의 플레이타임
+    private Duration playTime;
 
     public Player(UserProfile userProfile, Room room) {
         this(userProfile.getUuid(), userProfile.getNickname(), room);
@@ -102,10 +104,10 @@ public class Player extends Subscribable {
     public void increaseCatchCount() { this.catchCount++; }
 
     // 생존 시간 구하기
-    public long getSurvivalTimeInSeconds(){
+    public void getSurvivalTimeInSeconds(){
 
         // 탈락되었다면, 탈락된 시간, 게임이 종료될 때 까지 살아남았다면 DateTimeNow 가 endTime
         LocalDateTime endTime = this.isEliminated ? this.eliminationTime : LocalDateTime.now();
-        return Duration.between(startTime, endTime).getSeconds();
+        this.playTime = Duration.between(startTime, endTime);
     }
 }
