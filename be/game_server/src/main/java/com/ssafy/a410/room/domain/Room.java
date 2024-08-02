@@ -96,7 +96,7 @@ public class Room extends Subscribable {
     }
 
     // 방이 가득 찼는지 확인
-    protected boolean isFull() {
+    public boolean isFull() {
         return players.size() >= NUM_OF_MAX_PLAYERS;
     }
 
