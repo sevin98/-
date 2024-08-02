@@ -198,16 +198,19 @@ export class game extends Phaser.Scene {
             // console.log("unfreeze");
         }
 
-        //찾기- 찾는팀,상호작용이펙트,스페이스다운
+        //탐색- 찾는팀,상호작용이펙트,스페이스다운
         if (!this.localPlayer.IsHidingTeam &&this.interactionEffect &&this.m_cursorKeys.space.isDown){
             //publish: /ws/rooms/{roomId}/game/seek
             // console.log(closest.getData("id")); // key:ObjectId
             // subscribe:
             // if type": "INTERACT_SEEK_SUCCESS",
-            this.text.showTextFind( this, closest.body.x - 20, closest.body.y - 20);
+            this.text.showTextFind( this, closest.body.x - 20, closest.body.y - 20); 
             
-            // else type": "INTERACT_SEEK_FAIL
-            this.text.showTextFind( this, closest.body.x - 20, closest.body.y - 20);
+            // else if type": "INTERACT_SEEK_FAIL :숨은 사람이 없음
+            this.text.showTextFailFind( this, closest.body.x - 20, closest.body.y - 20);
+            // els if type: 더이상 찾을 수 있는 횟수가 없음
+            this.text.showTextNoAvaiblableCount( this, closest.body.x - 20, closest.body.y - 20);
+
         }
 
         //상우 코드 
