@@ -350,4 +350,21 @@ public class Game extends Subscribable implements Runnable {
             player.initSeekCount();
         }
     }
+
+    public void checkForVictory() {
+        if (hidingTeam.getPlayers().isEmpty()) {
+            // 찾는 팀의 승리
+            endGame(seekingTeam);
+        } else if (seekingTeam.getPlayers().isEmpty()) {
+            // 숨는 팀의 승리
+            endGame(hidingTeam);
+        }
+    }
+
+    private void endGame(Team winningTeam) {
+        // 승리 팀을 알리고, 게임을 종료하고, 결과를 저장하는 등
+        GameInfo gameInfo = new GameInfo(this);
+        broadcastService.broadcastTo(this, gameInfo);
+        room.endGame();
+    }
 }
