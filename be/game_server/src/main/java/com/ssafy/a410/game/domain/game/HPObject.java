@@ -66,11 +66,9 @@ public class HPObject extends GameObject {
 
     // 해당 오브젝트에 대해 탐색
     public boolean explore(Player exploringPlayer) {
-        if (this.player != null) {
+        if (this.player != null)
             return true; // 플레이어를 찾은 경우
-        } else if (this.appliedItem != null) {
-            return false; // 아이템을 찾은 경우 아이템을 제거
-        }
+
         return false; // 빈 오브젝트인 경우
     }
 }
