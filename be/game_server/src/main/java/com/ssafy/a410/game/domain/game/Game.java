@@ -163,6 +163,7 @@ public class Game extends Subscribable implements Runnable {
 
         // 각 팀의 플레이어들에게 각자의 초기화 정보 전송
         for (Player player : this.room.getPlayers().values()) {
+            player.reset();
             player.setPlayerStartTime();
             PlayerPosition info = new PlayerPosition(player);
             Team playerTeam = hidingTeam.has(player) ? hidingTeam : seekingTeam;
