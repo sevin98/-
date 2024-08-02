@@ -346,7 +346,7 @@ public class Game extends Subscribable implements Runnable {
 
     // 라운드가 끝날 때 탐색 카운트 초기화
     private void resetExploreCount(){
-        for(Player player : room.getPlayers().values()){
+        for(Player player : hidingTeam.getPlayers().values()){
             player.initExploreCount();
         }
     }
