@@ -15,8 +15,7 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -50,6 +49,24 @@ public class RoomController {
         // 방에 입장시켜 플레이어를 만들고,
         Player player = roomService.joinRoomWithPassword(roomId, principal.getName(), req.password());
         // 방에 입장함과 동시에 구독할 수 있는 token들에 대한 정보를 반환한다.
+        JoinRoomResp tokens = roomService.getJoinRoomSubscriptionTokens(roomId, player.getId());
+        return ResponseEntity.ok(tokens);
+    }
+
+    // 랜덤으로 방에 입장하기 위한 토큰들을 반환하고, 방이 존재하지 않는다면 NO_CONTENT를 반환한다.
+    @PostMapping("/api/rooms/join")
+    public ResponseEntity<?> joinRandomRoom(Principal principal){
+
+        List<Room> rooms = roomService.findAvailableRooms();
+        if(rooms.isEmpty())
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+
+        Collections.shuffle(rooms);
+        Room room = rooms.get(0);
+        String roomId = room.getRoomNumber();
+
+        Player player = roomService.joinRoomWithPassword(roomId, principal.getName(), null);
+
         JoinRoomResp tokens = roomService.getJoinRoomSubscriptionTokens(roomId, player.getId());
         return ResponseEntity.ok(tokens);
     }

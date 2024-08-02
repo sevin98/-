@@ -17,6 +17,8 @@ import com.ssafy.a410.socket.controller.dto.SubscriptionInfoResp;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -148,6 +150,22 @@ public class MemoryBasedRoomService implements RoomService {
     public void removeRoom(String roomId) {
         rooms.remove(roomId);
     }
+
+    @Override
+    // 입장 가능한 방을 찾는 함수
+    public List<Room> findAvailableRooms() {
+        List<Room> roomsWithLessThanEightPlayers = new ArrayList<>();
+
+        for(Room room : rooms.values()) {
+            // 방이 가득 차 있지 않고 게임이 시작하지 않은 경우 리스트에 추가
+            if(!room.isFull() && !room.hasPlayingGame()){
+                roomsWithLessThanEightPlayers.add(room);
+            }
+        }
+
+        return roomsWithLessThanEightPlayers;
+    }
+
 
     @Override
     public Room getRoomById(String roomId) {

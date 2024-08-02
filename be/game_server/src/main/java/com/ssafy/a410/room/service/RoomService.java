@@ -5,6 +5,7 @@ import com.ssafy.a410.game.domain.player.Player;
 import com.ssafy.a410.room.controller.dto.JoinRoomResp;
 import com.ssafy.a410.room.domain.Room;
 
+import java.util.List;
 import java.util.Optional;
 
 // 방의 운영
@@ -30,4 +31,6 @@ public interface RoomService {
     Optional<Room> findRoomByPlayerId(String playerId);
 
     void removeRoom(String roomId);
+
+    List<Room> findAvailableRooms();
 }
