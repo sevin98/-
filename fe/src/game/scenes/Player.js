@@ -1,4 +1,3 @@
-import { Scene } from "phaser";
 import Phaser from "phaser";
 
 // import webSocketClient from '../network/index'

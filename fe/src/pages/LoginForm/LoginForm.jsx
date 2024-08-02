@@ -68,6 +68,8 @@ export default function LoginForm() {
         <div className={`wrapper ${action}`}>
             <div className="form-box login">
                 <form>
+                    {/* 게임시작으로 들어갈수 있게 임시 버튼 만들어놓음 */}
+                    <button style={{width:'10px', height:'10px'}} onClick={onStartGameBtnClicked} />
                     <h1>Login</h1>
                     <div className="input-box">
                         <input
@@ -113,7 +115,6 @@ export default function LoginForm() {
                         게스트 접속하기
                     </button>
                 </form>
-                <button onClick={onStartGameBtnClicked}>게임으로 이동</button>
             </div>
 
             <div className="form-box register">
