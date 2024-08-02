@@ -58,6 +58,7 @@ public class InteractExploreReq extends InteractReq {
     private void handleSuccess(HPObject hpObject, Player requestedPlayer, Game game, MessageBroadcastService broadcastService) {
         Player foundPlayer = hpObject.extractHidingPlayer();
         game.eliminate(foundPlayer);
+        requestedPlayer.increaseCatchCount();
 
         InteractExploreMessage message = InteractExploreMessage.successMessage(
                 roomId,
