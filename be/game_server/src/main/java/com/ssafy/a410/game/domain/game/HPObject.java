@@ -1,7 +1,6 @@
 package com.ssafy.a410.game.domain.game;
 
 import com.google.gson.JsonObject;
-import com.ssafy.a410.common.exception.ResponseException;
 import com.ssafy.a410.common.exception.UnhandledException;
 import com.ssafy.a410.game.domain.player.Player;
 import lombok.Getter;
@@ -65,7 +64,7 @@ public class HPObject extends GameObject {
     }
 
     // 해당 오브젝트에 대해 탐색
-    public boolean explore(Player exploringPlayer) {
+    public boolean isSeekSuccess(Player seekingPlayer) {
         if (this.player != null)
             return true; // 플레이어를 찾은 경우
 

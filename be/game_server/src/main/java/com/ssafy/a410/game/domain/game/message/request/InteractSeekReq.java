@@ -3,7 +3,7 @@ package com.ssafy.a410.game.domain.game.message.request;
 import com.ssafy.a410.game.domain.game.Game;
 import com.ssafy.a410.game.domain.game.GameMap;
 import com.ssafy.a410.game.domain.game.HPObject;
-import com.ssafy.a410.game.domain.game.message.control.interact.InteractExploreMessage;
+import com.ssafy.a410.game.domain.game.message.control.interact.InteractSeekMessage;
 import com.ssafy.a410.game.domain.player.Player;
 import com.ssafy.a410.game.domain.team.Team;
 import com.ssafy.a410.game.service.MessageBroadcastService;
@@ -12,11 +12,11 @@ import lombok.Setter;
 
 import java.util.Map;
 
-import static com.ssafy.a410.game.domain.player.message.request.GamePlayerRequestType.INTERACT_EXPLORE;
+import static com.ssafy.a410.game.domain.player.message.request.GamePlayerRequestType.INTERACT_SEEK;
 
-public class InteractExploreReq extends InteractReq {
+public class InteractSeekReq extends InteractReq {
 
-    private static final int MAX_EXPLORE_COUNT = 5; //TODO: 임시로 5로 설정
+    private static final int MAX_SEEK_COUNT = 5; //TODO: 임시로 5로 설정
     private final String objectId;
 
     @Getter
@@ -26,8 +26,8 @@ public class InteractExploreReq extends InteractReq {
     @Setter
     private String playerId;
 
-    public InteractExploreReq(String playerId, String objectId) {
-        super(playerId, INTERACT_EXPLORE, null);
+    public InteractSeekReq(String playerId, String objectId) {
+        super(playerId, INTERACT_SEEK, null);
         this.objectId = objectId;
     }
 
@@ -35,8 +35,8 @@ public class InteractExploreReq extends InteractReq {
     public void handle(Player requestedPlayer, Team senderTeam, Game game, MessageBroadcastService broadcastService) {
 
         // requestedPlayer 의 탐색카운트가 허용범위 초과 일 때
-        if(requestedPlayer.getExploreCount() >= MAX_EXPLORE_COUNT) {
-            InteractExploreMessage message = InteractExploreMessage.failureMessage(
+        if(requestedPlayer.getSeekCount() >= MAX_SEEK_COUNT) {
+            InteractSeekMessage message = InteractSeekMessage.failureMessage(
                     roomId,
                     requestedPlayer.getId(),
                     objectId
@@ -47,9 +47,9 @@ public class InteractExploreReq extends InteractReq {
         GameMap gameMap = game.getGameMap();
         Map<String, HPObject> hpObjects = gameMap.getHpObjects();
         HPObject hpObject = hpObjects.get(objectId);
-        requestedPlayer.incrementExploreCount();
+        requestedPlayer.incrementSeekCount();
 
-        if (hpObject.explore(requestedPlayer))
+        if (hpObject.isSeekSuccess(requestedPlayer))
             handleSuccess(hpObject, requestedPlayer, game, broadcastService);
         else
             handleFailure(hpObject, requestedPlayer, game, broadcastService);
@@ -60,7 +60,7 @@ public class InteractExploreReq extends InteractReq {
         game.eliminate(foundPlayer);
         requestedPlayer.increaseCatchCount();
 
-        InteractExploreMessage message = InteractExploreMessage.successMessage(
+        InteractSeekMessage message = InteractSeekMessage.successMessage(
                 roomId,
                 requestedPlayer.getId(),
                 objectId,
@@ -74,7 +74,7 @@ public class InteractExploreReq extends InteractReq {
 
         //TODO: 추후 아이템 적용 로직추가
 
-        InteractExploreMessage message = InteractExploreMessage.failureMessage(
+        InteractSeekMessage message = InteractSeekMessage.failureMessage(
                 roomId,
                 requestedPlayer.getId(),
                 objectId

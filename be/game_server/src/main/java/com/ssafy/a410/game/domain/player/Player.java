@@ -33,7 +33,7 @@ public class Player extends Subscribable {
     // 플레이어가 살아있는 지 여부
     private boolean isEliminated;
     // 탐색 카운트
-    private int exploreCount;
+    private int seekCount;
     // 킬카운트
     private int catchCount;
     // 생존 시간 시작 시점
@@ -53,7 +53,7 @@ public class Player extends Subscribable {
         this.room = room;
         this.readyToStart = false;
         this.pos = new Pos(0, 0);
-        this.exploreCount = 0;
+        this.seekCount = 0;
         this.catchCount = 0;
     }
 
@@ -115,12 +115,12 @@ public class Player extends Subscribable {
     }
 
     // 탐색 카운트 증가
-    public void incrementExploreCount() {
-        this.exploreCount++;
+    public void incrementSeekCount() {
+        this.seekCount++;
     }
 
     // 탐색 카운트 초기화
-    public void initExploreCount() {
-        this.exploreCount = 0;
+    public void initSeekCount() {
+        this.seekCount = 0;
     }
 }
