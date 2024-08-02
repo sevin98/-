@@ -37,21 +37,24 @@ public class RoomController {
         return ResponseEntity.status(HttpStatus.CREATED).body(roomResp);
     }
 
-    @PostMapping("/api/rooms/{roomId}/roomInfo")
+    @GetMapping("/api/rooms/{roomId}/joined-players")
     public ResponseEntity<List<Player>> getRoomInfo(@PathVariable String roomId) {
         Room room = roomService.getRoomById(roomId);
         Map<String, Player> roomPlayers = room.getPlayers();
-        List<Player> players = (List<Player>) roomPlayers.values();
+        List<Player> players = new ArrayList<>();
+        for (Player player : roomPlayers.values()) {
+            players.add(player);
+        }
         return ResponseEntity.status(HttpStatus.OK).body(players);
     }
 
-    @PostMapping("/api/rooms/{roomId}/readyInfo")
+    @GetMapping("/api/rooms/{roomId}/ready-players")
     public ResponseEntity<List<Player>> getReadyInfo(@PathVariable String roomId) {
         Room room = roomService.getRoomById(roomId);
         Map<String, Player> players = room.getPlayers();
         List<Player> readyPlayers = new ArrayList<>();
         for (Player player : players.values()) {
-            if(player.isReadyToStart()){
+            if (player.isReadyToStart()) {
                 readyPlayers.add(player);
             }
         }
