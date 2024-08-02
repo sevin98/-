@@ -32,6 +32,7 @@ public class DisconnectHandler {
             // 게임에 플레이어가 남아있다면 나갔음을 알림
             if (!game.getRoom().getPlayers().isEmpty())
                 game.notifyDisconnection(player);
+            game.checkForVictory();
         });
     }
 }
