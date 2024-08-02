@@ -1,7 +1,7 @@
 package com.ssafy.a410.game.controller;
 
 import com.ssafy.a410.game.controller.dto.PlayerPositionReq;
-import com.ssafy.a410.game.domain.game.message.request.InteractExploreReq;
+import com.ssafy.a410.game.domain.game.message.request.InteractSeekReq;
 import com.ssafy.a410.game.domain.game.message.request.InteractHideReq;
 import com.ssafy.a410.game.service.GameService;
 import com.ssafy.a410.game.service.InteractService;
@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
@@ -43,10 +42,10 @@ public class GameController {
     }
 
     // 오브젝트와 상호작용하여 숨은 플레이어 탐색을 시도한다.
-    @MessageMapping("/rooms/{roomId}/game/explore")
-    public void exploreObject(@DestinationVariable String roomId, @Payload InteractExploreReq interactExploreReq, Principal principal) {
-        interactExploreReq.setPlayerId(principal.getName());
-        interactExploreReq.setRoomId(roomId);
-        interactService.exploreObject(interactExploreReq);
+    @MessageMapping("/rooms/{roomId}/game/seek")
+    public void seekObject(@DestinationVariable String roomId, @Payload InteractSeekReq interactSeekReq, Principal principal) {
+        interactSeekReq.setPlayerId(principal.getName());
+        interactSeekReq.setRoomId(roomId);
+        interactService.seekObject(interactSeekReq);
     }
 }

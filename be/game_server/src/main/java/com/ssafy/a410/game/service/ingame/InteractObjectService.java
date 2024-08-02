@@ -1,11 +1,10 @@
 package com.ssafy.a410.game.service.ingame;
 
 import com.ssafy.a410.game.domain.game.Game;
-import com.ssafy.a410.game.domain.game.message.request.InteractExploreReq;
+import com.ssafy.a410.game.domain.game.message.request.InteractSeekReq;
 import com.ssafy.a410.game.domain.game.message.request.InteractHideReq;
 import com.ssafy.a410.game.domain.player.Player;
 import com.ssafy.a410.game.service.InteractService;
-import com.ssafy.a410.game.service.MessageBroadcastService;
 import com.ssafy.a410.room.domain.Room;
 import com.ssafy.a410.room.service.RoomService;
 import lombok.RequiredArgsConstructor;
@@ -27,11 +26,11 @@ public class InteractObjectService implements InteractService {
     }
 
     @Override
-    public void exploreObject(InteractExploreReq interactExploreReq){
-        Room room = roomService.getRoomById(interactExploreReq.getRoomId());
+    public void seekObject(InteractSeekReq interactSeekReq){
+        Room room = roomService.getRoomById(interactSeekReq.getRoomId());
         Game playingGame = room.playingGame;
-        Player requestedPlayer = room.getPlayerWith(interactExploreReq.getPlayerId());
+        Player requestedPlayer = room.getPlayerWith(interactSeekReq.getPlayerId());
 
-        playingGame.pushMessage(requestedPlayer, interactExploreReq);
+        playingGame.pushMessage(requestedPlayer, interactSeekReq);
     }
 }
