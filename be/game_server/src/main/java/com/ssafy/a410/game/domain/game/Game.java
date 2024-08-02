@@ -27,7 +27,6 @@ import static com.ssafy.a410.common.exception.ErrorDetail.PLAYER_NOT_IN_ROOM;
 @Slf4j
 public class Game extends Subscribable implements Runnable {
     private static final int TOTAL_ROUND = 3;
-
     // 게임 맵
     private final GameMap gameMap;
     // 플레이어들이 속해 있는 방
@@ -158,13 +157,14 @@ public class Game extends Subscribable implements Runnable {
 
     private void initializeGame() {
         // 게임 시작 알림
-        log.debug("방 번호 {}의 게임이 시작되었습니다.", this.room.getRoomNumber());
         broadcastService.broadcastTo(this, new GameStartMessage());
         // 게임 정보 전체 알림
         broadcastService.broadcastTo(this, new GameInfoMessage(new GameInfo(this)));
 
         // 각 팀의 플레이어들에게 각자의 초기화 정보 전송
         for (Player player : this.room.getPlayers().values()) {
+            player.reset();
+            player.setPlayerStartTime();
             PlayerPosition info = new PlayerPosition(player);
             Team playerTeam = hidingTeam.has(player) ? hidingTeam : seekingTeam;
             PlayerInitializeMessage message = new PlayerInitializeMessage(info, playerTeam);

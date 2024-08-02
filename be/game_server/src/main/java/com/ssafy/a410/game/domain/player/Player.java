@@ -106,6 +106,11 @@ public class Player extends Subscribable {
 
     public void increaseCatchCount() { this.catchCount++; }
 
+    // 시작 시간 할당
+    public void setPlayerStartTime(){
+        this.startTime = LocalDateTime.now();
+    }
+
     // 생존 시간 구하기
     public void getSurvivalTimeInSeconds(){
 
@@ -122,5 +127,16 @@ public class Player extends Subscribable {
     // 탐색 카운트 초기화
     public void initSeekCount() {
         this.seekCount = 0;
+    }
+
+    // 방 재참가시 플레이어 초기화
+    public void reset() {
+        this.readyToStart = false;
+        this.isEliminated = false;
+        this.seekCount = 0;
+        this.catchCount = 0;
+        this.startTime = null;
+        this.eliminationTime = null;
+        this.playTime = null;
     }
 }

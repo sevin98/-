@@ -2,10 +2,7 @@ package com.ssafy.a410.room.controller;
 
 import com.ssafy.a410.game.domain.Message;
 import com.ssafy.a410.game.domain.player.Player;
-import com.ssafy.a410.room.controller.dto.CreateRoomReq;
-import com.ssafy.a410.room.controller.dto.JoinRoomReq;
-import com.ssafy.a410.room.controller.dto.JoinRoomResp;
-import com.ssafy.a410.room.controller.dto.RoomResp;
+import com.ssafy.a410.room.controller.dto.*;
 import com.ssafy.a410.room.domain.Room;
 import com.ssafy.a410.room.service.RoomService;
 import lombok.RequiredArgsConstructor;
@@ -34,25 +31,16 @@ public class RoomController {
         return ResponseEntity.status(HttpStatus.CREATED).body(roomResp);
     }
 
-    @PostMapping("/api/rooms/{roomId}/roomInfo")
-    public ResponseEntity<List<Player>> getRoomInfo(@PathVariable String roomId) {
+    @GetMapping("/api/rooms/{roomId}/joined-players")
+    public ResponseEntity<JoinedPlayersResp> getRoomInfo(@PathVariable String roomId) {
+        JoinedPlayersResp resp = new JoinedPlayersResp();
+
         Room room = roomService.getRoomById(roomId);
         Map<String, Player> roomPlayers = room.getPlayers();
-        List<Player> players = (List<Player>) roomPlayers.values();
-        return ResponseEntity.status(HttpStatus.OK).body(players);
-    }
-
-    @PostMapping("/api/rooms/{roomId}/readyInfo")
-    public ResponseEntity<List<Player>> getReadyInfo(@PathVariable String roomId) {
-        Room room = roomService.getRoomById(roomId);
-        Map<String, Player> players = room.getPlayers();
-        List<Player> readyPlayers = new ArrayList<>();
-        for (Player player : players.values()) {
-            if(player.isReadyToStart()){
-                readyPlayers.add(player);
-            }
+        for (Player player : roomPlayers.values()) {
+            resp.addPlayer(player);
         }
-        return ResponseEntity.status(HttpStatus.OK).body(readyPlayers);
+        return ResponseEntity.status(HttpStatus.OK).body(resp);
     }
 
     // 해당 방에 입장하기 위한 토큰들을 반환한다.
