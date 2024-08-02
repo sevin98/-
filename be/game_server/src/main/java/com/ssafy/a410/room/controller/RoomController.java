@@ -18,6 +18,9 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Slf4j
@@ -32,6 +35,27 @@ public class RoomController {
         Room newRoom = roomService.createRoom(principal.getName(), req.password());
         RoomResp roomResp = new RoomResp(newRoom);
         return ResponseEntity.status(HttpStatus.CREATED).body(roomResp);
+    }
+
+    @PostMapping("/api/rooms/{roomId}/roomInfo")
+    public ResponseEntity<List<Player>> getRoomInfo(@PathVariable String roomId) {
+        Room room = roomService.getRoomById(roomId);
+        Map<String, Player> roomPlayers = room.getPlayers();
+        List<Player> players = (List<Player>) roomPlayers.values();
+        return ResponseEntity.status(HttpStatus.OK).body(players);
+    }
+
+    @PostMapping("/api/rooms/{roomId}/readyInfo")
+    public ResponseEntity<List<Player>> getReadyInfo(@PathVariable String roomId) {
+        Room room = roomService.getRoomById(roomId);
+        Map<String, Player> players = room.getPlayers();
+        List<Player> readyPlayers = new ArrayList<>();
+        for (Player player : players.values()) {
+            if(player.isReadyToStart()){
+                readyPlayers.add(player);
+            }
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(readyPlayers);
     }
 
     // 해당 방에 입장하기 위한 토큰들을 반환한다.
