@@ -16,13 +16,13 @@ form {
 }
 
 h1 {
-    margin:10px;
+    margin: 10px;
     color: #333;
 }
 
 button {
-    cursor:pointer;
-    margin:3px;
+    cursor: pointer;
+    margin: 3px;
     border: none;
     background: #374d220e;
     font-size: 16px;
@@ -39,16 +39,16 @@ button {
 }
 
 .wrapper .input-box input::placeholder {
-    color: rgba(0, 0, 0, 0.377); 
+    color: rgba(0, 0, 0, 0.377);
 }
 
 .wrapper .input-box input {
-    margin-left:10px;
+    margin-left: 10px;
     padding-left: 10px;
     position: relative;
     width: 70%;
     height: 25px;
-    border:none;
+    border: none;
     border-radius: 10px;
 }
 
@@ -57,8 +57,15 @@ button {
     border: white;
 }
 
-.wrapper .navigateRoom {
-    display:flex;
-    padding:10px;
+.wrapper .navigation-room {
+    display: flex;
+    padding: 10px;
+}
 
+#player-nickname-label {
+    color: black;
+}
+
+#password-info-message {
+    color: red;
 }

@@ -1,44 +1,45 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter } from "react-router-dom";
 
-import LoginForm from "../pages/LoginForm/LoginForm";
-import Lobby from "../pages/Lobby/Lobby";
-import RoomCreate from "../pages/Lobby/RoomCreate";
-import RoomJoin from "../pages/Lobby/RoomJoin";
-import WaitingRoom from "../pages/WaitingRoom/WaitingRoom";
-import PhaserGame from '../game/PhaserGame';
+import LoginForm, { LOGIN_FORM_ROUTE_PATH } from "../pages/LoginForm/LoginForm";
+import Lobby, { LOBBY_ROUTE_PATH } from "../pages/Lobby/Lobby";
+import RoomCreate, { ROOM_CREATE_ROUTE_PATH } from "../pages/Lobby/RoomCreate";
+import RoomJoin, { ROOM_JOIN_ROUTE_PATH } from "../pages/Lobby/RoomJoin";
+import WaitingRoom, {
+    WAITING_ROOM_ROUTE_PATH,
+} from "../pages/WaitingRoom/WaitingRoom";
+import PhaserGame, { PHASER_GAME_ROUTE_PATH } from "../game/PhaserGame";
 
-const Router = createBrowserRouter ([
+const Router = createBrowserRouter([
     {
-        path:'/',
-        element:<LoginForm/>,
+        path: LOGIN_FORM_ROUTE_PATH,
+        element: <LoginForm />,
         // errorElement:<NotFound />
     },
     {
-        path:'/Lobby',
-        element:<Lobby/>,
+        path: LOBBY_ROUTE_PATH,
+        element: <Lobby />,
         // errorElement:<NotFound />
     },
     {
-        path:'/RoomCreate',
-        element:<RoomCreate/>,
+        path: ROOM_CREATE_ROUTE_PATH,
+        element: <RoomCreate />,
         // errorElement:<NotFound />
     },
     {
-        path:'/RoomJoin',
-        element:<RoomJoin/>,
+        path: ROOM_JOIN_ROUTE_PATH,
+        element: <RoomJoin />,
         // errorElement:<NotFound />
     },
     {
-        path:'/WaitingRoom',
-        element:<WaitingRoom/>,
+        path: WAITING_ROOM_ROUTE_PATH,
+        element: <WaitingRoom />,
         // errorElement:<NotFound />
     },
     {
-        path:'/GameStart',
-        element:<PhaserGame/>,
+        path: PHASER_GAME_ROUTE_PATH,
+        element: <PhaserGame />,
         // errorElement:<NotFound />
     },
-
 ]);
-  
-  export default Router;
+
+export default Router;
