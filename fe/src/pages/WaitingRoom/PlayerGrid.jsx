@@ -1,3 +1,5 @@
+import PropTypes from "prop-types";
+
 import PlayerSlot from "./PlayerSlot.jsx";
 
 function PlayerGrid({ players }) {
@@ -18,5 +20,6 @@ function PlayerGrid({ players }) {
 
 export default PlayerGrid;
 
-// TODO : Props 정의
-PlayerGrid.propTypes = {};
+PlayerGrid.propTypes = {
+    players: PropTypes.array.isRequired,
+};

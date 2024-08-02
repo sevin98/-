@@ -42,92 +42,64 @@ export default function WaitingRoom() {
     }
 
     const [joinedPlayers, setJoinedPlayers] = useState([]);
-    const [leftSecondsToStart, setLeftSecondsToStart] = useState(Infinity);
-    const [countdownMessage, setCountdownMessage] = useState(""); // 카운트다운 완료 메시지 상태
     const [isPlayerReady, setIsPlayerReady] = useState(false); // 접속한 사용자의 레디 여부
 
+    const [leftSecondsToStart, setLeftSecondsToStart] = useState(Infinity);
+    const [countdownMessage, setCountdownMessage] = useState(""); // 카운트다운 완료 메시지 상태
+    const [gameStartsAt, setGameStartsAt] = useState(null); // 게임 시작 시각
+    let isCountdownStarted = false;
+
     const roomRepository = getRoomRepository(roomNumber, roomPassword);
-    useState(() => {
+    useEffect(() => {
         axios
             .post(`/api/rooms/${roomNumber}/join`, { password: roomPassword })
             .then(async (resp) => {
-                // 방 진입, 방/플레이어 채널 구독 요청 먼저 수행하고
+                // 방 진입, 방/플레이어 채널 구독 요청
                 const { roomSubscriptionInfo, playerSubscriptionInfo } =
                     resp.data;
                 roomRepository.startSubscribe(roomSubscriptionInfo);
             });
-    });
 
+        // 컴포넌트가 사라지면 주기적으로 방 관련 데이터를 업데이트하는 작업을 중지
+        return () => {
+            clearInterval(updateDataIntervalId);
+            roomRepository.endSubscribe();
+        };
+    }, []);
+
+    // 방 정보 업데이트 주기 설정
     const updateDataIntervalId = setInterval(() => {
         setJoinedPlayers(roomRepository.getJoinedPlayers());
+        setGameStartsAt(roomRepository.getGameStartsAt());
+
+        // 게임 시작 시간이 정해졌고, 아직 카운트다운을 시작하지 않았다면
+        if (gameStartsAt && !isCountdownStarted) {
+            // 카운트다운 시작
+            isCountdownStarted = true;
+            startCountdown(gameStartsAt);
+        }
     }, 10);
 
-    const subscribeChannels = async (
-        roomSubscriptionInfo,
-        playerSubscriptionInfo
-    ) => {
-        const stompClient = await getStompClient();
-        // 방 채널 구독
-        stompClient.subscribe(roomSubscriptionInfo, async (stompMessage) => {
-            const message = JSON.parse(stompMessage.body);
-            switch (message.type) {
-                case "PLAYER_JOIN":
-                    setJoinedPlayers((prev) => {
-                        const updatedPlayers = message.data;
-                        return [...prev, ...updatedPlayers];
-                    });
-                    break;
-                case "PLAYER_READY":
-                    break;
-                case "SUBSCRIBE_GAME":
-                    const { subscriptionInfo, startsAfterMilliSec } =
-                        message.data;
-
-                    // 게임 채널 구독
-                    stompClient.subscribe(subscriptionInfo, (gameMessage) => {
-                        const gameData = JSON.parse(gameMessage.body);
-                        if (gameData.type === "ROUND_CHANGE") {
-                            console.log(
-                                `라운드 변경: ${gameData.data.nextRound}/${gameData.data.totalRound}`
-                            );
-                        } else if (gameData.type === "PHASE_CHANGE") {
-                            console.log(
-                                `페이즈 변경: ${gameData.data.phase}, ${gameData.data.finishAfterMilliSec}ms 후 종료`
-                            );
-                        }
-                    });
-
-                    // 카운트다운 시작
-                    startCountdown(startsAfterMilliSec);
-                    break;
-                default:
-                    break;
-            }
-        });
-
-        // 플레이어 채널 구독
-        (await getStompClient()).subscribe(
-            playerSubscriptionInfo,
-            (stompMessage) => {}
-        );
-    };
-
-    const startCountdown = (startsAfterMilliSec) => {
+    const startCountdown = (gameStartsAt) => {
         setCountdownMessage("게임이 곧 시작됩니다!");
 
-        // 시작 시각을 계산해놓고
-        const startsAt = Date.now() + startsAfterMilliSec;
         // 매우 짧은 주기로 남은 시간을 초 단위로 계산하여 줄여 나감
-        setLeftSecondsToStart(Math.ceil(startsAfterMilliSec / 1000));
+        const leftSecondsToStart = Math.ceil(
+            (gameStartsAt - Date.now()) / 1000
+        );
+        setLeftSecondsToStart(leftSecondsToStart);
+
         const countdownTimer = setInterval(() => {
             // 남은 시간(초)이 바뀌었으면
-            const curLeftSeconds = Math.ceil((startsAt - Date.now()) / 1000);
+            const curLeftSeconds = Math.ceil(
+                (gameStartsAt - Date.now()) / 1000
+            );
             if (leftSecondsToStart > curLeftSeconds) {
-                // 반영해줌
+                // 반영해주고
                 setLeftSecondsToStart(curLeftSeconds);
 
                 // 시작 시간이 되었으면
-                if (startsAt <= Date.now()) {
+                if (gameStartsAt <= Date.now()) {
                     // 카운트다운 종료하고 게임 시작
                     clearInterval(countdownTimer);
                     setCountdownMessage("");
@@ -176,7 +148,7 @@ export default function WaitingRoom() {
 
             {/* 오른쪽 아래: 채팅창 */}
             <ChatBox
-                countdown={leftSecondsToStart}
+                leftSecondsToStart={leftSecondsToStart}
                 countdownMessage={countdownMessage}
             />
         </div>

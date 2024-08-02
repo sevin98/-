@@ -18,12 +18,15 @@ export default class RoomRepository {
     #stompClient;
     #joinedPlayers = [];
     #gameRepository;
+    #gameStartsAt;
 
     #joinedPlayerIntervalId;
 
     constructor(roomNumber, roomPassword) {
         this.#roomNumber = roomNumber;
         this.#roomPassword = roomPassword;
+        this.#gameRepository = null;
+        this.#gameStartsAt = null;
 
         const initializationTrial = setInterval(() => {
             getStompClient()
@@ -117,6 +120,8 @@ export default class RoomRepository {
             subscriptionInfo,
             startsAfterMilliSec
         );
+
+        this.#setGameStartsAt(startsAfterMilliSec);
     }
 
     // 방 번호 반환
@@ -139,5 +144,15 @@ export default class RoomRepository {
     // WARNING : 게임 정보 구독 요청이 처리될 때까지는 null을 반환한다.
     getGameRepository() {
         return this.#gameRepository;
+    }
+
+    // 게임 시작 여부 반환
+    getGameStartsAt() {
+        return this.#gameStartsAt;
+    }
+
+    // 게임 시작 시간 설정
+    #setGameStartsAt(startsAfterMilliSec) {
+        this.#gameStartsAt = Date.now() + startsAfterMilliSec;
     }
 }
