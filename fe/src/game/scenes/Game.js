@@ -25,7 +25,7 @@ export class game extends Phaser.Scene {
         this.moving = 0;
     }
     create() {
-        this.text = new TextGroup(this);
+        this.text = new TextGroup(this); // 팝업텍스트 객체
 
         this.graphics = this.add.graphics().setDepth(1000); //선만들기 위한 그래픽
         // MapTile.js에서 만들어놓은 함수로 map 호출해주기
@@ -38,9 +38,10 @@ export class game extends Phaser.Scene {
         const playercam = this.cameras.main;
         // playercam.zoomTo(1.2,300)
 
-        // 로컬플레이어 객체 생성, 카메라 follow
-        this.localPlayer = new Player(this, 800, 800, "fauna-idle-down", true);
-        this.localPlayer.IsRacoon = true;
+        //subsribe: type:init_position, data.x, data.y 에서 시작
+        //subsribe: type:game-Info, racoonTeam: IsRacoon = true; isHidingTeam: true/false
+        // IsRaccon값에 따른 로컬플레이어 생성, 카메라 follow
+        this.localPlayer = new Player(this, 800, 800, true, true); // IsRacoon, IsHidingTeam
         playercam.startFollow(this.localPlayer);
 
         //로컬플레이어와 layer의 충돌설정
@@ -101,6 +102,7 @@ export class game extends Phaser.Scene {
     }
 
     update() {
+
         // player.js 에서 player 키조작이벤트 불러옴
         const playerMoveHandler = new HandlePlayerMove(
             this.cursors,
@@ -109,6 +111,14 @@ export class game extends Phaser.Scene {
             this.moving
         );
         playerMoveHandler.update();
+        // this.localPlayer.setDead() //죽음상태(IsDead값이 false->true)
+        //publish: 플레이어 위치공유
+        //destination: /ws/rooms/{roomId}/game/share-position
+        // {
+	    //     "x": this.localPlayer.x,
+	    //     "y": this.localPlayer.y,
+	    //     "direction": this.headDir,
+        // }
 
         // 플레이어에서 물리적으로 가장 가까운 거리 찾는 객체
         const closest = this.physics.closest(
@@ -157,40 +167,58 @@ export class game extends Phaser.Scene {
                 this.interactionEffect = null;
             }
         }
+
         // this.input.keyboard.enabled = false;
-        // 상호작용 표시가 있고, space 키 이벤트 있는 경우
-        if (this.interactionEffect && this.m_cursorKeys.space.isDown) {
+        // 숨는팀, 상호작용 표시 있음, space 키 이벤트
+        if (this.localPlayer.IsHidingTeam && this.interactionEffect && this.m_cursorKeys.space.isDown) {
             //publish
             // console.log(closest.getData("id")); // key:ObjectId
-            // key:playerID value: uuid
-            
-            //if (성공){
-            // if res.type === "INTERACT_HIDE": 키다운
+
+            //subscribe - type": "INTERACT_HIDE",
+            //숨을 수 있음
             console.log("정지");
             playerMoveHandler.freezePlayerMovement(); //움직임0으로바꿈
             this.localPlayer.visible = false; // 화면에 사용자 안보임
-            this.text.showTextHide(this, closest.body.x-20, closest.body.y-20);
-            // }
-            // else{}
-            }
+            this.text.showTextHide(
+                this,
+                closest.body.x - 20,
+                closest.body.y - 20
+            );
+            this.localPlayer.setIsHiding();// IsHIding 상태 바뀜
+            // 숨을수 없을때:
+            // else{this.text.showTextFailHide(this, closest.body.x - 20, closest.body.y - 20);}
+        }
+        //숨는팀phase 재시작 : subscribe
         else if (this.m_cursorKeys.shift.isDown) {
-            //subscribe받은 재시작 좌표로 이동
+            //재시작 좌표로 이동
             // this.localPlayer.x = 500;
             // this.localPlayer.y = 400;
             playerMoveHandler.enablePlayerMovement(); //움직일수있음
             this.localPlayer.visible = true; // 화면에 사용자 보임
-            this.text.showTextFailHide(this, closest.body.x - 20, closest.body.y - 20);
             // console.log("unfreeze");
         }
 
-        // if current time - last sent time is greater than 100ms
-        if (Date.now() - this.lastSentTime > 100) {
-            this.lastSentTime = Date.now();
-            // this.sharePlayerPosition();
-            this.input.keyboard.enabled = true;
+        //찾기- 찾는팀,상호작용이펙트,스페이스다운
+        if (!this.localPlayer.IsHidingTeam &&this.interactionEffect &&this.m_cursorKeys.space.isDown){
+            //publish: /ws/rooms/{roomId}/game/seek
+            // console.log(closest.getData("id")); // key:ObjectId
+            // subscribe:
+            // if type": "INTERACT_SEEK_SUCCESS",
+            this.text.showTextFind( this, closest.body.x - 20, closest.body.y - 20);
+            
+            // else type": "INTERACT_SEEK_FAIL
+            this.text.showTextFind( this, closest.body.x - 20, closest.body.y - 20);
         }
 
-        sceneEvents.emit("player-health-changed", this.localPlayer.mhealth);
+        //상우 코드 
+            if (Date.now() - this.lastSentTime > 100) {
+                // if current time - last sent time is greater than 100ms
+                this.lastSentTime = Date.now();
+                // this.sharePlayerPosition();
+                this.input.keyboard.enabled = true;
+            }
+
+
     }
 
     // 맵타일단위를 pix로 변환
@@ -198,6 +226,9 @@ export class game extends Phaser.Scene {
         return tileCoord;
     }
 
+
+
+    // 상우 코드
     initPhase() {
         this.readyPhaseEvent = "YET";
         this.mainPhaseEvent = "YET";

@@ -10,9 +10,12 @@ export const Direction = Object.freeze({
     Right: "Right",
 });
 
+
+
 export class HandlePlayerMove {
     //player 키조작
     constructor(cursors, player, headDir, moving) {
+
         this.isMovementEnabled = true; // 키조작 가능여부
         this.m_cursorKeys = cursors;
         this.localPlayer = player;
@@ -27,6 +30,9 @@ export class HandlePlayerMove {
     }
 
     update() {
+        if (!this.isMovementEnabled){
+            return
+        }
         if (
             this.m_cursorKeys.left.isUp &&
             this.m_cursorKeys.right.isUp &&
@@ -95,23 +101,23 @@ export class HandlePlayerMove {
         }
     }
 }
-
+// player class
 export default class Player extends Phaser.Physics.Arcade.Sprite {
     static PLAYER_SPEED = 200;
     static moveX = [0, 1, 0, -1];
     static moveY = [-1, 0, 1, 0];
-    static mhealth = 3;
 
-    get health() {
-        return this.mhealth;
-    }
     //static IsRacoon = true;
-    constructor(scene, x, y, texture) {
-        super(scene, x, y, texture);
+    constructor(scene, x, y, IsRacoon, IsHidingTeam) {
+        super(scene, x, y, IsRacoon, IsHidingTeam);
 
         this.scale = 1;
         this.alpha = 1;
-        //if(!racoon) this.IsRacoon = false;
+        this.IsRacoon = IsRacoon;
+        this.IsHidingTeam = IsHidingTeam;// IsHidingTeam은 return
+        this.IsDead = false; // setDead() 하면 false
+        this.IsHiding = false;// setIsHiding() 하면 반대로 바뀜 
+
 
         scene.add.existing(this);
         scene.physics.add.existing(this);
@@ -123,7 +129,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         this.body.setSize(28, 28);
 
         //racoon animation
-        if (true /*this.IsRacoon*/) {
+        if (this.IsRacoon) {
             this.anims.create({
                 key: "racoon-idle-down",
                 frames: this.anims.generateFrameNames("racoon", {
@@ -220,7 +226,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
             this.anims.play("racoon-idle-down");
         }
-        if (true /*!this.IsRacoon*/) {
+        if (!this.IsRacoon) {
             this.anims.create({
                 key: "fox-idle-down",
                 frames: this.anims.generateFrameNames("fox", {
@@ -318,16 +324,25 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
             this.anims.play("fox-idle-down");
         }
     }
+    // IsHidingTeam(){
+    //     return this.IsHidingTeam;
+    // }
+    setIsHidingTeam(){
+        this.IsHidingTeam = !this.IsHidingTeam; // ?? 키이벤트 한번만 적용되게 할수있나? 
+    }
+    setDead(){ // dead상태 변환
+        this.IsDead = true;
+    }
+    setIsHiding(){
+        this.IsHiding = !this.IsHiding;
+    }
+
     reflectFromWall(direction) {
         this.x -= Player.moveX[direction] * Player.PLAYER_SPEED;
         this.y -= Player.moveY[direction] * Player.PLAYER_SPEED;
     }
 
     stopMove(headDir) {
-        --this.mhealth;
-        if (this.mhealth <= 0) {
-            // TODO : die
-        }
         this.setVelocityX(0);
         this.setVelocityY(0);
         if (this.IsRacoon) {
