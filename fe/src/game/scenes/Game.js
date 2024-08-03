@@ -22,8 +22,6 @@ export class game extends Phaser.Scene {
             [500, 370],
         ];
         this.currentPos = this.positions[0];
-        this.headDir = 0;
-
         ///
 
         // super("game");
@@ -43,23 +41,22 @@ export class game extends Phaser.Scene {
 
     create() {
         ///
-        this.otherPlayer = new otherPlayer(
-            this,
-            this.currentPos[0],
-            this.currentPos[1],
-            "fauna-idle-down",
-        );
-        this.cameras.main.startFollow(this.otherPlayer);
+        // this.otherPlayer = new otherPlayer(
+        //     this,
+        //     this.currentPos[0],
+        //     this.currentPos[1],
+        //     "fauna-idle-down",
+        // );
 
-        this.time.addEvent({
-            delay: 500,
-            callback: this.updatePlayerPosition,
-            callbackScope: this,
-            loop: true,
-        });
+        // this.time.addEvent({
+        //     delay: 500,
+        //     callback: this.updatePlayerPosition,
+        //     callbackScope: this,
+        //     loop: true,
+        // });
         ///
         // this.newPlayer.updatePosition(newPos[0], newPos[1], newHeadDir);
-        console.log(this.otherPlayer.isRacoon)
+        // console.log(this.otherPlayer.isRacoon)
 
 
         this.text = new TextGroup(this); // 팝업텍스트 객체
@@ -79,8 +76,9 @@ export class game extends Phaser.Scene {
         const me = this.gameRepository.getMe();
         const { x, y, direction } = me.getPosition();
         this.localPlayer = new Player(this, x, y, "fauna-idle-down", true);
-        // this.localPlayer.isRacoon = true;
+        this.localPlayer.isRacoon = true;
         // playercam.startFollow(this.localPlayer);
+        this.cameras.main.startFollow(this.otherPlayer);
 
         // 다른 플레이어 객체 생성
         // const playersGroup = this.gameRepository.getPlayerGroup();
