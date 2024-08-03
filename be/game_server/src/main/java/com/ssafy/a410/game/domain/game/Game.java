@@ -86,6 +86,21 @@ public class Game extends Subscribable implements Runnable {
                 seekingTeam.addPlayer(player);
             }
         }
+
+        // 각팀에 모자란 인원 만큼 봇으로 채워넣기
+        for(int i = 0 ; i < 4 - hidingTeam.getPlayers().size(); i ++){
+            Player bot = createBot();
+            hidingTeam.addPlayer(bot);
+        }
+
+        for(int i = 0 ; i < 4 - seekingTeam.getPlayers().size(); i ++){
+            Player bot = createBot();
+            seekingTeam.addPlayer(bot);
+        }
+    }
+
+    private Player createBot() {
+        return new Player(room, true);
     }
 
     // 해당 팀에 속해 있는 플레이어들의 초기 위치를 겹치지 않게 지정
@@ -129,6 +144,7 @@ public class Game extends Subscribable implements Runnable {
 
             log.debug("Room {} READY Phase start ------------------------------------", room.getRoomNumber());
             runReadyPhase();
+            hideBotPlayers();
             eliminateUnhidePlayers();
 
             log.debug("Room {} MAIN Phase start -------------------------------------", room.getRoomNumber());
@@ -200,6 +216,14 @@ public class Game extends Subscribable implements Runnable {
                 Player player = hidingTeam.getPlayerWithId(request.getPlayerId());
                 request.handle(player, hidingTeam, this, broadcastService);
             }
+        }
+    }
+
+    // Bot 들을 현재 위치 기반으로 가장 가까운 숨을 수 있는 HPObjects에 숨김
+    private void hideBotPlayers() {
+        List<Player> botPlayers = new ArrayList<>();
+        for(Player player : hidingTeam.getPlayers().values()) {
+            if(player.isBot()) botPlayers.add(player);
         }
     }
 
