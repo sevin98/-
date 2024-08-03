@@ -2,10 +2,10 @@ package com.ssafy.a410.auth.service.jpa;
 
 import com.ssafy.a410.auth.domain.UserProfile;
 import com.ssafy.a410.auth.service.AuthService;
+import com.ssafy.a410.auth.service.JWTService;
+import com.ssafy.a410.auth.service.JWTType;
 import com.ssafy.a410.auth.service.UserService;
 import com.ssafy.a410.common.constant.MilliSecOf;
-import com.ssafy.a410.common.service.JWTService;
-import com.ssafy.a410.common.service.JWTType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
