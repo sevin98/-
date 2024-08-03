@@ -2,9 +2,13 @@ package com.ssafy.a410.auth.service.jpa;
 
 import com.ssafy.a410.auth.domain.UserProfile;
 import com.ssafy.a410.auth.domain.UserRole;
+import com.ssafy.a410.auth.model.entity.AuthInfoEntity;
 import com.ssafy.a410.auth.model.entity.UserProfileEntity;
+import com.ssafy.a410.auth.model.repository.AuthInfoRepository;
 import com.ssafy.a410.auth.model.repository.UserProfileRepository;
 import com.ssafy.a410.auth.service.UserService;
+import com.ssafy.a410.common.exception.ErrorDetail;
+import com.ssafy.a410.common.exception.ResponseException;
 import com.ssafy.a410.common.exception.UnhandledException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,7 +20,9 @@ import java.util.Random;
 @Slf4j
 @Service
 public class JPAUserService implements UserService {
+
     private final UserProfileRepository userProfileRepository;
+    private final AuthInfoRepository authInfoRepository;
 
     // 랜덤하게 클라이언트의 이름을 조합하기 위한 단어 목록
     private final List<String> randomNicknamePrefixes;
@@ -25,10 +31,11 @@ public class JPAUserService implements UserService {
 
     public JPAUserService(@Value("${guest.nickname.prefix}") String rawNicknamePrefixes,
                           @Value("${guest.nickname.suffix}") String rawNicknameSuffixes,
-                          UserProfileRepository userProfileRepository) {
+                          UserProfileRepository userProfileRepository, AuthInfoRepository authInfoRepository) {
         this.userProfileRepository = userProfileRepository;
         this.randomNicknamePrefixes = List.of(rawNicknamePrefixes.split(" "));
         this.randomNicknameSuffixes = List.of(rawNicknameSuffixes.split(" "));
+        this.authInfoRepository = authInfoRepository;
     }
 
     @Override
@@ -36,6 +43,14 @@ public class JPAUserService implements UserService {
         UserProfileEntity userProfile = userProfileRepository.findByUuid(uuid)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         return UserProfile.fromEntity(userProfile);
+    }
+
+    @Override
+    public UserProfile getUserProfileByLoginId(String loginId) {
+        AuthInfoEntity authInfoEntity = authInfoRepository.findByLoginId(loginId)
+                .orElseThrow(() -> new ResponseException(ErrorDetail.INVALID_LOGIN_ID));
+        UserProfileEntity userProfileEntity = authInfoEntity.getUserProfile();
+        return UserProfile.fromEntity(userProfileEntity);
     }
 
     @Override
