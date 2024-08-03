@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "auth_info")
-public class AuthInfo {
+public class AuthInfoEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,7 +27,7 @@ public class AuthInfo {
     private String loginId;
 
     @Column(name = "hashed_password", nullable = false)
-    private String password;
+    private String hashedPassword;
 
     @Column(name = "salt", nullable = false)
     private String salt;
