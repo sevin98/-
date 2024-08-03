@@ -28,6 +28,8 @@ public class WebSecurityConfiguration {
             // AuthController
             // Only to match '/api/auth/guest/sign-up'
             Pattern.compile("^/api/auth/guest/sign-up$"),
+            Pattern.compile("^/api/auth/sign-up$"),
+            Pattern.compile("^/api/auth/login$"),
             // Match '/ws' and '/ws' with query parameters
             Pattern.compile("^/ws(\\?.*)?$"),
     };
