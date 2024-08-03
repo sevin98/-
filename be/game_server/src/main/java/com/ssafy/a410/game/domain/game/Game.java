@@ -259,20 +259,11 @@ public class Game extends Subscribable implements Runnable {
     // 가장 가까운 HPObject 찾기
     private HPObject findClosestHPObject(Player bot, List<HPObject> hpObjects){
         Pos playerPos = bot.getPos();
-        double y = playerPos.getY();
-        double x = playerPos.getX();
-        double closestDist = Double.MAX_VALUE;
-        HPObject closestHPObject = null;
-
-        for(HPObject hpObject : hpObjects) {
-            Pos objectPos = hpObject.getPos();
-            double currentDist = Math.abs(y - objectPos.getY()) + Math.abs(x - objectPos.getX());
-            if(currentDist < closestDist) {
-                closestDist = currentDist;
-                closestHPObject = hpObject;
-            }
-        }
-        return closestHPObject;
+        return hpObjects.stream()
+                .min(Comparator.comparingDouble(hpObject ->
+                        Math.abs(playerPos.getY() - hpObject.getPos().getY()) +
+                        Math.abs(playerPos.getX() - hpObject.getPos().getX())))
+                .orElse(null);
     }
 
     // 준비 페이즈 동안 안 숨은 플레이어들을 찾아서 탈락 처리한다.
