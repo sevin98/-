@@ -91,7 +91,7 @@ export class HandlePlayerMove {
         }
     }
 }
-// player class
+// gameplayer class
 export default class gamePlayer extends Phaser.Physics.Arcade.Sprite {
     static PLAYER_SPEED = 200;
     static moveX = [0, 1, 0, -1];
@@ -329,8 +329,8 @@ export default class gamePlayer extends Phaser.Physics.Arcade.Sprite {
     }
 
     reflectFromWall(direction) {
-        this.x -= Player.moveX[direction] * Player.PLAYER_SPEED;
-        this.y -= Player.moveY[direction] * Player.PLAYER_SPEED;
+        this.x -= gamePlayer.moveX[direction] * gamePlayer.PLAYER_SPEED;
+        this.y -= gamePlayer.moveY[direction] * gamePlayer.PLAYER_SPEED;
     }
 
     stopMove(headDir) {
@@ -380,9 +380,9 @@ export default class gamePlayer extends Phaser.Physics.Arcade.Sprite {
         switch (direction) {
             case Direction.Up:
                 //this.setVelocityX(-30);
-                this.setVelocityY(-1 * Player.PLAYER_SPEED);
+                this.setVelocityY(-1 * gamePlayer.PLAYER_SPEED);
                 this.setVelocityX(0);
-                //this.y -= Player.PLAYER_SPEED;
+                //this.y -= gamePlayer.PLAYER_SPEED;
 
                 if (
                     this.IsRacoon &&
@@ -397,7 +397,7 @@ export default class gamePlayer extends Phaser.Physics.Arcade.Sprite {
 
                 break;
             case Direction.Down:
-                this.setVelocityY(Player.PLAYER_SPEED);
+                this.setVelocityY(gamePlayer.PLAYER_SPEED);
                 this.setVelocityX(0);
                 //this.y += Player.PLAYER_SPEED;
                 if (
@@ -413,7 +413,7 @@ export default class gamePlayer extends Phaser.Physics.Arcade.Sprite {
 
                 break;
             case Direction.Right:
-                this.setVelocityX(Player.PLAYER_SPEED);
+                this.setVelocityX(gamePlayer.PLAYER_SPEED);
                 this.setVelocityY(0);
                 //this.x += Player.PLAYER_SPEED;
                 if (
@@ -428,7 +428,7 @@ export default class gamePlayer extends Phaser.Physics.Arcade.Sprite {
                     this.anims.play("fox-run-right");
                 break;
             case Direction.Left:
-                this.setVelocityX(-1 * Player.PLAYER_SPEED);
+                this.setVelocityX(-1 * gamePlayer.PLAYER_SPEED);
                 this.setVelocityY(0);
                 //this.x -= Player.PLAYER_SPEED;
                 if (

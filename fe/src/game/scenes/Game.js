@@ -1,13 +1,11 @@
 import Phaser from "phaser";
-import { Scene } from "phaser";
-import gamePlayer, { Direction, HandlePlayerMove } from "./Player";
-import MapTile from "./MapTile";
-import TextGroup from "./TextGroup";
+import gamePlayer, { HandlePlayerMove } from "./Player"; //gamePlayer:키컨트롤이 정의된 로컬플레이어 클래스
+import MapTile from "./MapTile"; //맵타일
+import TextGroup from "./TextGroup"; // 팝업메세지 
+// import { GameRepository } from "../../repository/_game";
 import { Player, Team } from '../../repository/interface'
 
-// import webSocketClient from "../network";
-// import gameStatus from '../../game_status/index'
-import { sceneEvents } from "../../events/EventsCenter";
+// import { sceneEvents } from "../../events/EventsCenter";
 
 export class game extends Phaser.Scene {
     //cursor = this.cursor.c
@@ -15,9 +13,9 @@ export class game extends Phaser.Scene {
     //fauna = Phaser.Physics.Arcade.Sprite;
     constructor() {
         super("game");
-        this.MapTile = null;
-        this.objects = null;
-        this.lastSentTime = Date.now();
+        this.MapTile = null; //맵타일
+        this.objects = null; // hp 정보 받아 설치한 objects 그룹
+        this.lastSentTime = Date.now(); //상우코드
     }
 
     preload() {
