@@ -286,7 +286,7 @@ public class Game extends Subscribable implements Runnable {
             // 만약 플레이어는 숨지 않았을 경우
             if (!hpObjectKeys.contains(playerId)) {
                 // 플레이어 탈락 처리
-                player.setEliminated(true);
+                player.eliminate();
             }
         }
     }
