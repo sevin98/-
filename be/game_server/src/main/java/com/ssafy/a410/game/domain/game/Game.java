@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.stream.Collectors;
 
 import static com.ssafy.a410.common.exception.ErrorDetail.PLAYER_NOT_IN_ROOM;
 
@@ -233,6 +234,45 @@ public class Game extends Subscribable implements Runnable {
         for(Player player : hidingTeam.getPlayers().values()) {
             if(player.isBot()) botPlayers.add(player);
         }
+
+        // 현재 비어있는 HPObject만 리스트로 가져옴
+        // TODO : 자기장(?)이 생길 경우 숨을 수 없는 곳인지 체크 추가 해야함
+        List<HPObject> hpObjects = gameMap.getHpObjects().values()
+                .stream()
+                .filter(HPObject::isEmpty)
+                .collect(Collectors.toList());
+
+        // 봇 플레이어들에게 비어있는 가장 가까운 HPObject를 찾아서 숨게 한다.
+        for(Player bot : botPlayers) {
+            HPObject closestHPObject = findClosestHPObject(bot, hpObjects);
+            if(closestHPObject != null) {
+                closestHPObject.hidePlayer(bot);
+                hpObjects.remove(closestHPObject);
+            } else {
+                // 봇 하나라도 숨을 수 없는 경우, 나머지 봇도 숨을 수 없음
+                break;
+            }
+        }
+
+    }
+
+    // 가장 가까운 HPObject 찾기
+    private HPObject findClosestHPObject(Player bot, List<HPObject> hpObjects){
+        Pos playerPos = bot.getPos();
+        double y = playerPos.getY();
+        double x = playerPos.getX();
+        double closestDist = Double.MAX_VALUE;
+        HPObject closestHPObject = null;
+
+        for(HPObject hpObject : hpObjects) {
+            Pos objectPos = hpObject.getPos();
+            double currentDist = Math.abs(y - objectPos.getY()) + Math.abs(x - objectPos.getX());
+            if(currentDist < closestDist) {
+                closestDist = currentDist;
+                closestHPObject = hpObject;
+            }
+        }
+        return closestHPObject;
     }
 
     // 준비 페이즈 동안 안 숨은 플레이어들을 찾아서 탈락 처리한다.
