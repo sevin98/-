@@ -66,6 +66,14 @@ export class Player {
         return this.#team;
     }
 
+    isInitialized() {
+        return (
+            this.#x !== undefined &&
+            this.#y !== undefined &&
+            this.#direction !== undefined
+        );
+    }
+
     isHidingTeam() {
         return this.#team.isHidingTeam();
     }
@@ -125,5 +133,10 @@ export class Team {
     isRacoonTeam() {
         return this.#character.toLowerCase() === "racoon";
     }
-}
 
+    getPlayerWithId(playerId) {
+        return this.#players.find(
+            (player) => player.getPlayerId() === playerId
+        );
+    }
+}

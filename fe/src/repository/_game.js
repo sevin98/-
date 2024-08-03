@@ -177,7 +177,9 @@ export default class GameRepository {
         const { playerId, x, y, direction } = data;
         if (playerId === this.#me.getPlayerId()) {
             this.#me.setPosition({ x, y, direction });
-            return;
+        } else {
+            const player = this.getPlayerWithId(playerId);
+            player.setPosition({ x, y, direction });
         }
     }
 
@@ -196,6 +198,14 @@ export default class GameRepository {
         return this.#me;
     }
 
+    // 해당 id를 가지는 플레이어를 찾아 반환
+    getPlayerWithId(playerId) {
+        return (
+            this.#racoonTeam.getPlayerWithId(playerId) ??
+            this.#foxTeam.getPlayerWithId(playerId)
+        );
+    }
+
     // 내 위치 정보 수정
     setMyPosition(position) {
         const { x, y, direction } = position;
@@ -209,4 +219,3 @@ export default class GameRepository {
         });
     }
 }
-
