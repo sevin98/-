@@ -8,10 +8,15 @@ public record GameInfo(
         String roomNumber,
         Phase currentPhase,
         PublicTeamInfo racoonTeam,
-        PublicTeamInfo foxTeam
+        PublicTeamInfo foxTeam,
+        String requestId
 ) {
     public GameInfo(Game game) {
+        this(game, null);
+    }
+
+    public GameInfo(Game game, String requestId) {
         this(game.getRoom().getRoomNumber(), game.getCurrentPhase(),
-                new PublicTeamInfo(game.getRacoonTeam()), new PublicTeamInfo(game.getFoxTeam()));
+                new PublicTeamInfo(game.getRacoonTeam()), new PublicTeamInfo(game.getFoxTeam()), requestId);
     }
 }
