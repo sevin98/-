@@ -3,6 +3,7 @@ import { Scene } from "phaser";
 import Player, { Direction, HandlePlayerMove } from "./Player";
 import MapTile from "./MapTile";
 import TextGroup from "./TextGroup";
+import { getRoomRepository } from "../../repository";
 
 // import webSocketClient from "../network";
 // import gameStatus from '../../game_status/index'
@@ -17,6 +18,9 @@ export class game extends Phaser.Scene {
         this.MapTile = null;
         this.objects = null;
         this.lastSentTime = Date.now();
+
+        this.roomRepository = getRoomRepository();
+        this.gameRepository = this.roomRepository.getGameRepository();
     }
 
     preload() {
@@ -39,7 +43,9 @@ export class game extends Phaser.Scene {
         // playercam.zoomTo(1.2,300)
 
         // 로컬플레이어 객체 생성, 카메라 follow
-        this.localPlayer = new Player(this, 800, 800, "fauna-idle-down", true);
+        const me = this.gameRepository.getMe();
+        const { x, y, direction } = me.getPosition();
+        this.localPlayer = new Player(this, x, y, "fauna-idle-down", true);
         this.localPlayer.IsRacoon = true;
         playercam.startFollow(this.localPlayer);
 
@@ -163,23 +169,30 @@ export class game extends Phaser.Scene {
             //publish
             // console.log(closest.getData("id")); // key:ObjectId
             // key:playerID value: uuid
-            
+
             //if (성공){
             // if res.type === "INTERACT_HIDE": 키다운
             console.log("정지");
             playerMoveHandler.freezePlayerMovement(); //움직임0으로바꿈
             this.localPlayer.visible = false; // 화면에 사용자 안보임
-            this.text.showTextHide(this, closest.body.x-20, closest.body.y-20);
+            this.text.showTextHide(
+                this,
+                closest.body.x - 20,
+                closest.body.y - 20
+            );
             // }
             // else{}
-            }
-        else if (this.m_cursorKeys.shift.isDown) {
+        } else if (this.m_cursorKeys.shift.isDown) {
             //subscribe받은 재시작 좌표로 이동
             // this.localPlayer.x = 500;
             // this.localPlayer.y = 400;
             playerMoveHandler.enablePlayerMovement(); //움직일수있음
             this.localPlayer.visible = true; // 화면에 사용자 보임
-            this.text.showTextFailHide(this, closest.body.x - 20, closest.body.y - 20);
+            this.text.showTextFailHide(
+                this,
+                closest.body.x - 20,
+                closest.body.y - 20
+            );
             // console.log("unfreeze");
         }
 
@@ -241,3 +254,4 @@ export class game extends Phaser.Scene {
     //   }
     // }
 }
+
