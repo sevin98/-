@@ -2,14 +2,18 @@ import Phaser from "phaser";
 import { getRoomRepository } from "../../repository";
 import { Phase } from "../../repository/_game";
 
+
+
+
 export default class otherPlayer extends Phaser.Physics.Arcade.Sprite {
     static PLAYER_SPEED = 200;
     static moveX = [0, 1, 0, -1];
     static moveY = [-1, 0, 1, 0];
 
-    constructor(scene, x, y, texture) {
-        super(scene, x, y, texture);
+    constructor(scene, x, y, texture,id) {
+        super(scene, x, y, texture,id);
 
+        this.id = id;
         this.scale = 1;
         this.alpha = 1;
         this.setDepth(10); //화면 제일 앞에 렌더링
@@ -22,14 +26,13 @@ export default class otherPlayer extends Phaser.Physics.Arcade.Sprite {
         // 물리 바디의 크기를 1px * 1px로 설정
         this.body.setSize(28, 28);
 
-        // this.roomRepository = getRoomRepository();
-        // this.gameRepository = this.roomRepository.getGameRepository();
-        // this.isRacoon = this.gameRepository.getPlayerwith(this.id).isRacoonTeam();
-        // this.isHidingTeam = this.gameRepository.getPlayerwith(this.id).isHidingTeam();
+        this.roomRepository = getRoomRepository();
+        this.gameRepository = this.roomRepository.getGameRepository();
+        this.isRacoon = this.gameRepository.getPlayerWithId(id).isRacoonTeam();
 
-        this.isRacoon = true;
         this.setupAnimations();
     }
+
     //애니메이션
     setupAnimations() {
         //racoon animation
@@ -232,6 +235,7 @@ export default class otherPlayer extends Phaser.Physics.Arcade.Sprite {
         this.x -= otherPlayer.moveX[headDir] * otherPlayer.PLAYER_SPEED;
         this.y -= otherPlayer.moveY[headDir] * otherPlayer.PLAYER_SPEED;
     }
+
     stopMove(headDir) {
         this.setVelocityX(0);
         this.setVelocityY(0);
@@ -316,15 +320,6 @@ export default class otherPlayer extends Phaser.Physics.Arcade.Sprite {
 
 
     }
-    //특정 phase에 움직일수있는지 확인
-    // canMove() {
-    //     const currentPhase = this.gameRepository.getCurrentPhase();
-    //     return (
-    //         (this.gameRepository.getplayerwith(this.id).isHidingTeam() &&
-    //             currentPhase === Phase.READY) ||
-    //         (this.gameRepository.getplayerwith(this.id).isSeekingTeam() &&
-    //             currentPhase === Phase.MAIN)
-    //     );
-    // }
+
 
 }

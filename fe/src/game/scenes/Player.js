@@ -343,9 +343,9 @@ export default class gamePlayer extends Phaser.Physics.Arcade.Sprite {
             this.anims.play("fox-idle-down");
         }
     }
-    // IsHidingTeam(){
-    //     return this.IsHidingTeam;
-    // }
+    IsHidingTeam(){
+        return this.IsHidingTeam;
+    }
     setIsHidingTeam() {
         this.IsHidingTeam = !this.IsHidingTeam; // ?? 키이벤트 한번만 적용되게 할수있나?
     }

@@ -2,11 +2,10 @@ import Phaser from "phaser";
 
 import { Scene } from "phaser";
 import Player, { Direction, HandlePlayerMove } from "./Player";
-import otherPlayer from "./OtherPlayer"
+import otherPlayer from "./OtherPlayer";
 import MapTile from "./MapTile";
 import TextGroup from "./TextGroup";
 import { getRoomRepository } from "../../repository";
-
 
 export class game extends Phaser.Scene {
     //cursor = this.cursor.c
@@ -41,24 +40,6 @@ export class game extends Phaser.Scene {
     }
 
     create() {
-        this.add.image(400, 300, "raccon");
-        
-        this.otherPlayer = new otherPlayer(
-            this,
-            this.currentPos[0],
-            this.currentPos[1],
-            "fauna-idle-down",
-        );
-        this.time.addEvent({
-            delay: 500,
-            callback: this.updatePlayerPosition,
-            callbackScope: this,
-            loop: true,
-        });
-        
-        // console.log(this.otherPlayer.visible)
-
-
         this.text = new TextGroup(this); // 팝업텍스트 객체
 
         this.graphics = this.add.graphics().setDepth(1000); //선만들기 위한 그래픽
@@ -77,16 +58,31 @@ export class game extends Phaser.Scene {
         const { x, y, direction } = me.getPosition();
         this.localPlayer = new Player(this, x, y, "fauna-idle-down", true);
         this.localPlayer.isRacoon = true;
-        // playercam.startFollow(this.localPlayer);
-        this.cameras.main.startFollow(this.otherPlayer);
+        playercam.startFollow(this.localPlayer);
 
-        // 다른 플레이어 객체 생성
-        // const playersGroup = this.gameRepository.getPlayerGroup();
-        // for (id of playersGroup) {
-        // const otherPlayer = this.gameRepository.getplayerId(id);
-        // const {x, y, direction } = otherPlayer.getPosition()
-        // this.newPlayer = new otherPlayer(this, x, y, "fauna-idle-down", true);
-        // }
+        const otherplayerGroup = this.gameRepository.getAllPlayers();
+        otherplayerGroup.forEach((player) => {
+            if (player.getPlayerId != me.getPlayerId) {
+                const { x, y, direction } = player.getPosition(); // this == player
+                this.otherPlayer[player.getPlayerId()] = new otherPlayer(
+                    this,
+                    x,
+                    y,
+                    "fauna-idle-down",
+                    true,
+                    player.getPlayerId()
+                );
+            }
+            // 숨는팀이고 다른팀일때만 화면에서 안보여야함(같은팀일떄는 보여도됨)
+            if (
+                this.otherPlayer[player.getPlayerId()].IsHidingTeam &&
+                this.otherPlayer[player.getPlayerId()].isRacoon !=
+                    this.localPlayer.isRacoon
+            ) {
+                this.otherPlayer[player.getPlayerId()].visible = false;
+            }
+        });
+        // this.cameras.main.startFollow(this.otherPlayer);
 
         //로컬플레이어와 layer의 충돌설정
         this.physics.add.collider(
@@ -142,6 +138,37 @@ export class game extends Phaser.Scene {
     }
 
     update() {
+        // 클래스의 메서드로 정의
+        // updatePlayerPosition() {
+        // this.currentPos = this.positions[Math.floor(Math.random() * this.positions.length)];
+        // this.headDir = Math.floor(Math.random() * 4);
+
+        // this.otherPlayer.x = this.currentPos[0];
+        // this.otherPlayer.y = this.currentPos[1];
+        // this.otherPlayer.stopMove(this.headDir);
+
+        // 위치 업데이트
+        const otherplayerGroup = this.gameRepository.getAllPlayers();
+        const me = this.gameRepository.getMe();
+        otherplayerGroup.forEach((player) => {
+            if (this.otherPlayer[player.getPlayerId()]) {
+                const { x, y, direction } = player.getPosition();
+                this.otherPlayer[player.getPlayerId()].x = x;
+                this.otherPlayer[player.getPlayerId()].y = y;
+                this.otherPlayer[player.getPlayerId()].move(direction);
+
+                //가시성 업데이트
+                if (
+                    player.IsHidingTeam() &&
+                    player.isRacoonTeam() !== me.isRacoonTeam()
+                ) {
+                    otherPlayer.visible = false;
+                } else {
+                    otherPlayer.visible = true;
+                }
+            }
+        });
+
         // player.js 에서 player 키조작이벤트 불러옴
         const playerMoveHandler = new HandlePlayerMove(
             this.cursors,
@@ -284,59 +311,4 @@ export class game extends Phaser.Scene {
     tileToPixel(tileCoord) {
         return tileCoord;
     }
-
-    // 클래스의 메서드로 정의
-    updatePlayerPosition() {
-    this.currentPos = this.positions[Math.floor(Math.random() * this.positions.length)];
-    this.headDir = Math.floor(Math.random() * 4);
-
-    this.otherPlayer.x = this.currentPos[0];
-    this.otherPlayer.y = this.currentPos[1];
-    this.otherPlayer.stopMove(this.headDir);
-
-    }
-
-    // 상우 코드
-    initPhase() {
-        this.readyPhaseEvent = "YET";
-        this.mainPhaseEvent = "YET";
-        this.endPhaseEvent = "YET";
-        this.resultPhaseEvent = "YET";
-    }
-    readyPhaseStart() {
-        this.initPhase();
-        this.readyPhaseEvent = "DURING";
-        if (this.hideTeam === "RACOON" && this.localPlayer.isRacoon) {
-        } else if (this.hideTeam === "FOX" && !this.localPlayer.isRacoon) {
-        } else {
-        }
-    }
-    readyPhaseEnd() {
-        this.readyPhaseEvent = "YET";
-    }
-    mainPhaseStart() {
-        this.initPhase();
-        this.mainPhaseEvent = "DURING";
-        if (this.hideTeam === "RACOON" && this.localPlayer.isRacoon) {
-        } else if (this.hideTeam === "FOX" && !this.localPlayer.isRacoon) {
-        } else {
-        }
-    }
-
-    // sharePlayerPosition() {
-    //   if (webSocketClient.active) {
-    //     webSocketClient.publish({
-    //       destination: `/ws/rooms/${gameStatus.room.id}/players/position`,
-    //       body: JSON.stringify({
-    //           requestId: null,
-    //           data: {
-    //               playerId: gameStatus.player.id,
-    //               x: this.localPlayer.x,
-    //               y: this.localPlayer.y,
-    //               direction: this.getDirectionOfPlayer()
-    //           }
-    //       })
-    //     })
-    //   }
-    // }
 }
