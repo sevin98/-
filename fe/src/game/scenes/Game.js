@@ -1,8 +1,9 @@
 import Phaser from "phaser";
 import { Scene } from "phaser";
-import Player, { Direction, HandlePlayerMove } from "./Player";
+import gamePlayer, { Direction, HandlePlayerMove } from "./Player";
 import MapTile from "./MapTile";
 import TextGroup from "./TextGroup";
+import { Player, Team } from '../../repository/interface'
 
 // import webSocketClient from "../network";
 // import gameStatus from '../../game_status/index'
@@ -41,7 +42,7 @@ export class game extends Phaser.Scene {
         //subsribe: type:init_position, data.x, data.y 에서 시작
         //subsribe: type:game-Info, racoonTeam: IsRacoon = true; isHidingTeam: true/false
         // IsRaccon값에 따른 로컬플레이어 생성, 카메라 follow
-        this.localPlayer = new Player(this, 800, 800, true, true); // IsRacoon, IsHidingTeam
+        this.localPlayer = new gamePlayer(this, 800, 800, true, true); // IsRacoon, IsHidingTeam
         playercam.startFollow(this.localPlayer);
 
         //로컬플레이어와 layer의 충돌설정

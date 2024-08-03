@@ -92,7 +92,7 @@ export class HandlePlayerMove {
     }
 }
 // player class
-export default class Player extends Phaser.Physics.Arcade.Sprite {
+export default class gamePlayer extends Phaser.Physics.Arcade.Sprite {
     static PLAYER_SPEED = 200;
     static moveX = [0, 1, 0, -1];
     static moveY = [-1, 0, 1, 0];
