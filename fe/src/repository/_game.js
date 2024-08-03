@@ -9,6 +9,14 @@ const GAME_INFO = "GAME_INFO";
 const ROUND_CHANGE = "ROUND_CHANGE";
 // 페이즈 전환 이벤트
 const PHASE_CHANGE = "PHASE_CHANGE";
+// 화면 가리기 명령 이벤트
+const COVER_SCREEN = "COVER_SCREEN";
+// 화면 가리기 해제 명령 이벤트
+const UNCOVER_SCREEN = "UNCOVER_SCREEN";
+// 플레이어 조작 불가 명령 이벤트
+const FREEZE = "FREEZE";
+// 플레이어 조작 불가 해제 명령 이벤트
+const UNFREEZE = "UNFREEZE";
 
 export class Phase {
     // 게임을 초기화 하고 있는 상태
@@ -73,8 +81,18 @@ export default class GameRepository {
             case PHASE_CHANGE:
                 this.#handlePhaseChangeEvent(data);
                 break;
+            case COVER_SCREEN:
+                break;
+            case UNCOVER_SCREEN:
+                break;
+            case FREEZE:
+                break;
+            case UNFREEZE:
+                break;
             default:
-                throw new Error("Unknown message type in GameRepository");
+                throw new Error(
+                    "Unknown message type in GameRepository:" + type
+                );
         }
     }
 
