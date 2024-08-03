@@ -5,7 +5,7 @@ import com.ssafy.a410.auth.domain.UserRole;
 import com.ssafy.a410.auth.model.entity.UserProfileEntity;
 import com.ssafy.a410.auth.model.repository.UserProfileRepository;
 import com.ssafy.a410.auth.service.UserService;
-import com.ssafy.a410.common.exception.handler.GameException;
+import com.ssafy.a410.common.exception.UnhandledException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -65,7 +65,7 @@ public class JPAUserService implements UserService {
             }
         }
         // WARNING : 조회와 삽입 사이에서 동시성 문제가 발생할 수 있음
-        throw new GameException("Failed to generate a unique random nickname");
+        throw new UnhandledException("Failed to generate a unique random nickname");
     }
 
     @Override
