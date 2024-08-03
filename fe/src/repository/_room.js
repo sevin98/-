@@ -11,6 +11,9 @@ const PLAYER_READY = "PLAYER_READY";
 // 게임이 시작되어 구독을 시작하는 이벤트
 const SUBSCRIBE_GAME = "SUBSCRIBE_GAME";
 
+// 플레이어의 게임 시작 위치 수신
+const INITIALIZE_PLAYER = "INITIALIZE_PLAYER";
+
 // 사용자가 현재 참여하고 있는 방에 대한 정보를 담는 레포지토리
 export default class RoomRepository {
     #roomNumber;
@@ -39,7 +42,7 @@ export default class RoomRepository {
         }, 100);
     }
 
-    startSubscribe(roomSubscriptionInfo) {
+    startSubscribeRoom(roomSubscriptionInfo) {
         const trial = setInterval(() => {
             if (this.#stompClient) {
                 clearInterval(trial);
@@ -47,11 +50,26 @@ export default class RoomRepository {
                     roomSubscriptionInfo,
                     async (stompMessage) => {
                         const message = JSON.parse(stompMessage.body);
-                        this.#handleMessage(message);
+                        this.#handleRoomMessage(message);
                     }
                 );
             }
         }, 100);
+    }
+
+    startSubscribePlayer(playerSubscriptionInfo) {
+        const trial = setInterval(() => {
+            if (this.#stompClient) {
+                clearInterval(trial);
+                this.#stompClient.subscribe(
+                    playerSubscriptionInfo,
+                    async (stompMessage) => {
+                        const message = JSON.parse(stompMessage.body);
+                        this.#handlePlayerMessage(message);
+                    }
+                );
+            }
+        });
     }
 
     endSubscribe() {
@@ -69,11 +87,20 @@ export default class RoomRepository {
         }, UPDATE_INTERVAL);
     }
 
-    #handleMessage(message) {
+    #handleRoomMessage(message) {
         const { type, data } = message;
         switch (type) {
             case SUBSCRIBE_GAME:
                 this.#handleSubscribeGameEvent(data);
+                break;
+        }
+    }
+
+    #handlePlayerMessage(message) {
+        const { type, data } = message;
+        switch (type) {
+            case INITIALIZE_PLAYER:
+                this.#handleInitializePlayerEvent(data);
                 break;
         }
     }
@@ -124,6 +151,10 @@ export default class RoomRepository {
         this.#setGameStartsAt(startsAfterMilliSec);
     }
 
+    #handleInitializePlayerEvent(data) {
+        this.#gameRepository.initializePlayer(data);
+    }
+
     // 방 번호 반환
     getRoomNumber() {
         return this.#roomNumber;
@@ -156,3 +187,4 @@ export default class RoomRepository {
         this.#gameStartsAt = Date.now() + startsAfterMilliSec;
     }
 }
+
