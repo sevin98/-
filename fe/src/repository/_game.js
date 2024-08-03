@@ -111,6 +111,13 @@ export default class GameRepository {
         console.log(
             `페이즈 변경: ${data.phase}, ${data.finishAfterMilliSec}ms 후 종료`
         );
+
+        // 한 라운드가 끝나면 역할 반전
+        this.#currentPhase = data.phase;
+        if (this.#currentPhase === Phase.END) {
+            this.#racoonTeam.setIsHidingTeam(!this.#racoonTeam.isHidingTeam());
+            this.#foxTeam.setIsHidingTeam(!this.#foxTeam.isHidingTeam());
+        }
     }
 
     initializePlayer(data) {
@@ -125,6 +132,12 @@ export default class GameRepository {
         });
         this.#me.setCharacter(teamCharacter.toLowerCase());
         this.#me.setPosition(playerPositionInfo);
+
+        if (this.#me.isFoxTeam()) {
+            this.#me.setTeam(this.#foxTeam);
+        } else {
+            this.#me.setTeam(this.#racoonTeam);
+        }
 
         // 팀 메시지 구독 시작
         this.startSubscribeTeam(teamSubscriptionInfo);
@@ -151,8 +164,10 @@ export default class GameRepository {
             case UNCOVER_SCREEN:
                 break;
             case FREEZE:
+                // this.#me.setCanMove(false);
                 break;
             case UNFREEZE:
+                // this.#me.setCanMove(true);
                 break;
         }
     }

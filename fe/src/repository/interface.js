@@ -7,6 +7,7 @@ export class Player {
     #x;
     #y;
     #direction;
+    #team;
 
     constructor({ playerId, playerNickname, isReady }) {
         this.#playerId = playerId;
@@ -56,6 +57,22 @@ export class Player {
     getPosition() {
         return { x: this.#x, y: this.#y, direction: this.#direction };
     }
+
+    setTeam(team) {
+        this.#team = team;
+    }
+
+    getTeam() {
+        return this.#team;
+    }
+
+    isHidingTeam() {
+        return this.#team.isHidingTeam();
+    }
+
+    isSeekingTeam() {
+        return this.#team.isSeekingTeam();
+    }
 }
 
 export class Team {
@@ -83,8 +100,18 @@ export class Team {
         return this.#isHidingTeam;
     }
 
+    setIsHidingTeam(isHidingTeam) {
+        this.#isHidingTeam = isHidingTeam;
+        this.#isSeekingTeam = !isHidingTeam;
+    }
+
     isSeekingTeam() {
         return this.#isSeekingTeam;
+    }
+
+    setIsSeekingTeam(isSeekingTeam) {
+        this.#isSeekingTeam = isSeekingTeam;
+        this.#isHidingTeam = !isSeekingTeam;
     }
 
     getPlayers() {

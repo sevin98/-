@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 
 import { getRoomRepository } from "../../repository";
+import { Phase } from "../../repository/_game";
 
 // import webSocketClient from '../network/index'
 
@@ -31,7 +32,21 @@ export class HandlePlayerMove {
         this.isMovementEnabled = true;
     }
 
+    canMove() {
+        const currentPhase = this.gameRepository.getCurrentPhase();
+        return (
+            (this.gameRepository.getMe().isHidingTeam() &&
+                currentPhase === Phase.READY) ||
+            (this.gameRepository.getMe().isSeekingTeam() &&
+                currentPhase === Phase.MAIN)
+        );
+    }
+
     update() {
+        if (!this.canMove()) {
+            this.freezePlayerMovement();
+            return;
+        }
         if (
             this.m_cursorKeys.left.isUp &&
             this.m_cursorKeys.right.isUp &&
