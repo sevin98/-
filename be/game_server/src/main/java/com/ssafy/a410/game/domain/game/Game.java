@@ -194,6 +194,14 @@ public class Game extends Subscribable implements Runnable {
             PlayerInitializeMessage message = new PlayerInitializeMessage(info, playerTeam);
             broadcastService.unicastTo(player, message);
         }
+
+        // 같은 팀 플레이어들의 초기 위치를 전송
+        for (Player player : hidingTeam.getPlayers().values()) {
+            broadcastService.broadcastTo(hidingTeam, new PlayerPositionMessage(new PlayerPosition(player)));
+        }
+        for (Player player : seekingTeam.getPlayers().values()) {
+            broadcastService.broadcastTo(seekingTeam, new PlayerPositionMessage(new PlayerPosition(player)));
+        }
     }
 
     private void runReadyPhase() {
