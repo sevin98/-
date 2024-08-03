@@ -34,29 +34,29 @@ export class game extends Phaser.Scene {
     }
 
     preload() {
+        this.load.image("racoon", "assets/character/image.png");
         this.cursors = this.input.keyboard.createCursorKeys();
         this.headDir = 2; //under direction
         this.moving = 0;
     }
 
     create() {
-        ///
-        // this.otherPlayer = new otherPlayer(
-        //     this,
-        //     this.currentPos[0],
-        //     this.currentPos[1],
-        //     "fauna-idle-down",
-        // );
-
-        // this.time.addEvent({
-        //     delay: 500,
-        //     callback: this.updatePlayerPosition,
-        //     callbackScope: this,
-        //     loop: true,
-        // });
-        ///
-        // this.newPlayer.updatePosition(newPos[0], newPos[1], newHeadDir);
-        // console.log(this.otherPlayer.isRacoon)
+        this.add.image(400, 300, "raccon");
+        
+        this.otherPlayer = new otherPlayer(
+            this,
+            this.currentPos[0],
+            this.currentPos[1],
+            "fauna-idle-down",
+        );
+        this.time.addEvent({
+            delay: 500,
+            callback: this.updatePlayerPosition,
+            callbackScope: this,
+            loop: true,
+        });
+        
+        // console.log(this.otherPlayer.visible)
 
 
         this.text = new TextGroup(this); // 팝업텍스트 객체

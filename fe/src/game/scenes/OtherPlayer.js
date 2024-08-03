@@ -12,20 +12,21 @@ export default class otherPlayer extends Phaser.Physics.Arcade.Sprite {
 
         this.scale = 1;
         this.alpha = 1;
+        this.setDepth(10); //화면 제일 앞에 렌더링
 
         scene.add.existing(this);
         scene.physics.add.existing(this);
-        
+
         // 스프라이트의 표시 크기를 1px * 1px로 설정
         this.setDisplaySize(16, 16);
         // 물리 바디의 크기를 1px * 1px로 설정
         this.body.setSize(28, 28);
-        
+
         // this.roomRepository = getRoomRepository();
         // this.gameRepository = this.roomRepository.getGameRepository();
         // this.isRacoon = this.gameRepository.getPlayerwith(this.id).isRacoonTeam();
         // this.isHidingTeam = this.gameRepository.getPlayerwith(this.id).isHidingTeam();
-        
+
         this.isRacoon = true;
         this.setupAnimations();
     }
@@ -226,9 +227,10 @@ export default class otherPlayer extends Phaser.Physics.Arcade.Sprite {
             this.anims.play("fox-idle-down");
         }
     }
-    reflectFromWall(direction) {
-        this.x -= otherPlayer.moveX[direction] * otherPlayer.PLAYER_SPEED;
-        this.y -= otherPlayer.moveY[direction] * otherPlayer.PLAYER_SPEED;
+    //벽부딫힐때 움직임
+    reflectFromWall(headDir) {
+        this.x -= otherPlayer.moveX[headDir] * otherPlayer.PLAYER_SPEED;
+        this.y -= otherPlayer.moveY[headDir] * otherPlayer.PLAYER_SPEED;
     }
     stopMove(headDir) {
         this.setVelocityX(0);
@@ -273,7 +275,48 @@ export default class otherPlayer extends Phaser.Physics.Arcade.Sprite {
             }
         }
     }
-    //특정 phase에 움직일수있는지 확인 
+    move(headDir) {
+        this.setVelocityX(
+            otherPlayer.moveX[headDir] * otherPlayer.PLAYER_SPEED
+        );
+        this.setVelocityY(
+            otherPlayer.moveY[headDir] * otherPlayer.PLAYER_SPEED
+        );
+        if(this.isRacoon){
+            // 애니메이션 업데이트
+            if (headDir === 0) {
+                // Up
+                this.anims.play("racoon-run-up");
+            } else if (headDir === 1) {
+                // Right
+                this.anims.play("racoon-run-right");
+            } else if (headDir === 2) {
+                // Down
+                this.anims.play("racoon-run-down");
+            } else if (headDir === 3) {
+                // Left
+                this.anims.play("racoon-run-left");
+            }
+        } else{
+            if (headDir === 0) {
+                // Up
+                this.anims.play("fox-run-up");
+            } else if (headDir === 1) {
+                // Right
+                this.anims.play("fox-run-right");
+            } else if (headDir === 2) {
+                // Down
+                this.anims.play("fox-run-down");
+            } else if (headDir === 3) {
+                // Left
+                this.anims.play("fox-run-left");
+            }
+
+        }
+
+
+    }
+    //특정 phase에 움직일수있는지 확인
     // canMove() {
     //     const currentPhase = this.gameRepository.getCurrentPhase();
     //     return (
@@ -283,5 +326,5 @@ export default class otherPlayer extends Phaser.Physics.Arcade.Sprite {
     //             currentPhase === Phase.MAIN)
     //     );
     // }
-}
 
+}
