@@ -11,13 +11,13 @@ public class InteractHideFailMessage extends InteractHideMessage {
     private final String objectId;
     private final String item;
 
-    public InteractHideFailMessage(String roomId, String playerId, String objectId, Item item) {
+    public InteractHideFailMessage(String roomId, String playerId, String objectId, Item item, String requestId) {
         super(InteractType.INTERACT_HIDE_FAIL, Map.of(
                 "roomId", roomId,
                 "playerId", playerId,
                 "objectId", objectId,
                 "item", item != null ? item.name() : "NONE"
-        ));
+        ), requestId);
         this.roomId = roomId;
         this.playerId = playerId;
         this.objectId = objectId;

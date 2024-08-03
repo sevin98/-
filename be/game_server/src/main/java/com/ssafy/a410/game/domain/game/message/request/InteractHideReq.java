@@ -29,8 +29,8 @@ public class InteractHideReq extends InteractReq {
     @Setter
     private String playerId;
 
-    public InteractHideReq(String playerId, String objectId) {
-        super(playerId, INTERACT_HIDE, null);
+    public InteractHideReq(String playerId, String objectId, String requestId) {
+        super(playerId, INTERACT_HIDE, null, requestId);
         this.objectId = objectId;
     }
 
@@ -42,21 +42,24 @@ public class InteractHideReq extends InteractReq {
 
         // 유효하지 않은 오브젝트 ID인 경우 실패 메시지
         if (hpObject == null){
-            InteractHideFailMessage failMessage = new InteractHideFailMessage(roomId, playerId, objectId, null);
+            InteractHideFailMessage failMessage = new InteractHideFailMessage(roomId, playerId, objectId, null, this.getRequestId());
             broadcastService.broadcastTo(game, failMessage);
+            broadcastService.unicastTo(requestedPlayer, failMessage);
             return;
         }
 
         // 오브젝트가 이미 점유된 경우 실패 메시지
         if (!Objects.requireNonNull(hpObject).isEmpty()){
             Item item = hpObject.getAppliedItem();
-            InteractHideFailMessage failMessage = new InteractHideFailMessage(roomId, playerId, objectId, item);
+            InteractHideFailMessage failMessage = new InteractHideFailMessage(roomId, playerId, objectId, item, getRequestId());
             broadcastService.broadcastTo(game, failMessage);
+            broadcastService.unicastTo(requestedPlayer, failMessage);
             return;
         }
 
         hpObject.hidePlayer(requestedPlayer);
-        InteractHideSuccessMessage successMessage = new InteractHideSuccessMessage(roomId, playerId, objectId);
+        InteractHideSuccessMessage successMessage = new InteractHideSuccessMessage(roomId, playerId, objectId, this.getRequestId());
         broadcastService.broadcastTo(game, successMessage);
+        broadcastService.unicastTo(requestedPlayer, successMessage);
     }
 }
