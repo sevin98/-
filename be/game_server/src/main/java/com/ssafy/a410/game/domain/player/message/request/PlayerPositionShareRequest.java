@@ -25,5 +25,11 @@ public class PlayerPositionShareRequest extends GamePlayerRequest {
         // 같은 팀에 위치 공유
         PlayerPositionMessage message = new PlayerPositionMessage((PlayerPosition) getData());
         broadcastService.broadcastTo(senderTeam, message);
+
+        // 만약 송신자가 찾는 상태라면
+        if (senderTeam.isSeekingTeam()) {
+            // 상대편에게도 위치를 알림
+            broadcastService.broadcastTo(senderTeam.getOpponentTeam(), message);
+        }
     }
 }
