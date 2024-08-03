@@ -26,8 +26,8 @@ public class InteractSeekReq extends InteractReq {
     @Setter
     private String playerId;
 
-    public InteractSeekReq(String playerId, String objectId) {
-        super(playerId, INTERACT_SEEK, null);
+    public InteractSeekReq(String playerId, String objectId, String requestId) {
+        super(playerId, INTERACT_SEEK, null, requestId);
         this.objectId = objectId;
     }
 
@@ -39,7 +39,8 @@ public class InteractSeekReq extends InteractReq {
             InteractSeekMessage message = InteractSeekMessage.failureMessage(
                     roomId,
                     requestedPlayer.getId(),
-                    objectId
+                    objectId,
+                    this.getRequestId()
             );
             broadcastService.unicastTo(requestedPlayer, message);
             return;
@@ -64,9 +65,11 @@ public class InteractSeekReq extends InteractReq {
                 roomId,
                 requestedPlayer.getId(),
                 objectId,
-                foundPlayer.getId()
+                foundPlayer.getId(),
+                this.getRequestId()
         );
         broadcastService.broadcastTo(game, message);
+        broadcastService.unicastTo(requestedPlayer, message);
         game.checkForVictory();
     }
 
@@ -78,8 +81,10 @@ public class InteractSeekReq extends InteractReq {
         InteractSeekMessage message = InteractSeekMessage.failureMessage(
                 roomId,
                 requestedPlayer.getId(),
-                objectId
+                objectId,
+                this.getRequestId()
         );
         broadcastService.broadcastTo(game, message);
+        broadcastService.unicastTo(requestedPlayer, message);
     }
 }
