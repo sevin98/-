@@ -230,17 +230,14 @@ public class Game extends Subscribable implements Runnable {
 
     // Bot 들을 현재 위치 기반으로 가장 가까운 숨을 수 있는 HPObjects에 숨김
     private void hideBotPlayers() {
+        // 숨기 역할 팀의 봇 플레이어를 가져옴
         List<Player> botPlayers = new ArrayList<>();
         for(Player player : hidingTeam.getPlayers().values()) {
             if(player.isBot()) botPlayers.add(player);
         }
 
-        // 현재 비어있는 HPObject만 리스트로 가져옴
-        // TODO : 자기장(?)이 생길 경우 숨을 수 없는 곳인지 체크 추가 해야함
-        List<HPObject> hpObjects = gameMap.getHpObjects().values()
-                .stream()
-                .filter(HPObject::isEmpty)
-                .collect(Collectors.toList());
+        // 현재 숨을 수 있는 HPObject만 가져옴
+        List<HPObject> hpObjects = getEmptyHPObjects();
 
         // 봇 플레이어들에게 비어있는 가장 가까운 HPObject를 찾아서 숨게 한다.
         for(Player bot : botPlayers) {
@@ -253,7 +250,15 @@ public class Game extends Subscribable implements Runnable {
                 break;
             }
         }
+    }
 
+    // 현재 비어있는 HPObject만 리스트로 가져옴
+    // TODO : 자기장(?)이 생길 경우 그로 인해 숨을 수 없는 곳인지 체크 추가 해야함
+    private List<HPObject> getEmptyHPObjects(){
+        return gameMap.getHpObjects().values()
+                .stream()
+                .filter(HPObject::isEmpty)
+                .collect(Collectors.toList());
     }
 
     // 가장 가까운 HPObject 찾기
