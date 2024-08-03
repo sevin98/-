@@ -3,6 +3,11 @@ export class Player {
     #playerNickname;
     #isReady;
     #isDead;
+    #character;
+    #x;
+    #y;
+    #direction;
+    #team;
 
     constructor({ playerId, playerNickname, isReady }) {
         this.#playerId = playerId;
@@ -29,6 +34,44 @@ export class Player {
 
     setDead() {
         this.#isDead = true;
+    }
+
+    setCharacter(character) {
+        this.#character = character;
+    }
+
+    isRacoonTeam() {
+        return this.#character.toLowerCase() === "racoon";
+    }
+
+    isFoxTeam() {
+        return this.#character.toLowerCase() === "fox";
+    }
+
+    setPosition({ x, y, direction }) {
+        this.#x = x;
+        this.#y = y;
+        this.#direction = direction;
+    }
+
+    getPosition() {
+        return { x: this.#x, y: this.#y, direction: this.#direction };
+    }
+
+    setTeam(team) {
+        this.#team = team;
+    }
+
+    getTeam() {
+        return this.#team;
+    }
+
+    isHidingTeam() {
+        return this.#team.isHidingTeam();
+    }
+
+    isSeekingTeam() {
+        return this.#team.isSeekingTeam();
     }
 }
 
@@ -57,8 +100,18 @@ export class Team {
         return this.#isHidingTeam;
     }
 
+    setIsHidingTeam(isHidingTeam) {
+        this.#isHidingTeam = isHidingTeam;
+        this.#isSeekingTeam = !isHidingTeam;
+    }
+
     isSeekingTeam() {
         return this.#isSeekingTeam;
+    }
+
+    setIsSeekingTeam(isSeekingTeam) {
+        this.#isSeekingTeam = isSeekingTeam;
+        this.#isHidingTeam = !isSeekingTeam;
     }
 
     getPlayers() {
@@ -73,3 +126,4 @@ export class Team {
         return this.#character.toLowerCase() === "racoon";
     }
 }
+

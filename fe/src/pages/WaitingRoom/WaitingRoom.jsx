@@ -57,7 +57,8 @@ export default function WaitingRoom() {
                 // 방 진입, 방/플레이어 채널 구독 요청
                 const { roomSubscriptionInfo, playerSubscriptionInfo } =
                     resp.data;
-                roomRepository.startSubscribe(roomSubscriptionInfo);
+                roomRepository.startSubscribeRoom(roomSubscriptionInfo);
+                roomRepository.startSubscribePlayer(playerSubscriptionInfo);
             });
 
         // 컴포넌트가 사라지면 주기적으로 방 관련 데이터를 업데이트하는 작업을 중지
@@ -156,3 +157,4 @@ export default function WaitingRoom() {
 }
 
 export const WAITING_ROOM_ROUTE_PATH = "/WaitingRoom";
+

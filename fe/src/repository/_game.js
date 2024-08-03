@@ -1,5 +1,5 @@
 import { getStompClient } from "../network/StompClient";
-import { Team } from "./interface";
+import { Team, Player } from "./interface";
 
 // 게임 시작 이벤트
 const GAME_START = "GAME_START";
@@ -9,6 +9,16 @@ const GAME_INFO = "GAME_INFO";
 const ROUND_CHANGE = "ROUND_CHANGE";
 // 페이즈 전환 이벤트
 const PHASE_CHANGE = "PHASE_CHANGE";
+// 화면 가리기 명령 이벤트
+const COVER_SCREEN = "COVER_SCREEN";
+// 화면 가리기 해제 명령 이벤트
+const UNCOVER_SCREEN = "UNCOVER_SCREEN";
+// 위치 공유 이벤트
+const SHARE_POSITION = "SHARE_POSITION";
+// 플레이어 조작 불가 명령 이벤트
+const FREEZE = "FREEZE";
+// 플레이어 조작 불가 해제 명령 이벤트
+const UNFREEZE = "UNFREEZE";
 
 export class Phase {
     // 게임을 초기화 하고 있는 상태
@@ -32,6 +42,7 @@ export default class GameRepository {
     #currentPhase;
     #foxTeam;
     #racoonTeam;
+    #me;
 
     constructor(roomNumber, gameSubscriptionInfo, startsAfterMilliSec) {
         this.#roomNumber = roomNumber;
@@ -41,25 +52,24 @@ export default class GameRepository {
                 .then((client) => {
                     clearInterval(initializationTrial);
                     this.#stompClient = client;
-                    this.startSubscribe(gameSubscriptionInfo);
+                    this.startSubscribeGame(gameSubscriptionInfo);
                 })
                 .catch((e) => {});
         }, 100);
     }
 
-    startSubscribe(gameSubscriptionInfo) {
+    startSubscribeGame(gameSubscriptionInfo) {
         this.#stompClient.subscribe(
             gameSubscriptionInfo,
             async (stompMessage) => {
                 const message = JSON.parse(stompMessage.body);
-                this.#handleMessage(message);
+                this.#handleGameMessage(message);
             }
         );
     }
 
-    #handleMessage(message) {
+    #handleGameMessage(message) {
         const { type, data } = message;
-        console.log(message);
         switch (type) {
             case GAME_START:
                 this.#handleGameStartEvent(data);
@@ -74,7 +84,9 @@ export default class GameRepository {
                 this.#handlePhaseChangeEvent(data);
                 break;
             default:
-                throw new Error("Unknown message type in GameRepository");
+                throw new Error(
+                    "Unknown message type in GameRepository:" + type
+                );
         }
     }
 
@@ -89,8 +101,6 @@ export default class GameRepository {
         // 팀 정보 초기화
         this.#foxTeam = new Team(data.foxTeam);
         this.#racoonTeam = new Team(data.racoonTeam);
-
-        console.log(this.#racoonTeam.isRacoonTeam());
     }
 
     #handleRoundChangeEvent(data) {
@@ -101,6 +111,73 @@ export default class GameRepository {
         console.log(
             `페이즈 변경: ${data.phase}, ${data.finishAfterMilliSec}ms 후 종료`
         );
+
+        // 한 라운드가 끝나면 역할 반전
+        this.#currentPhase = data.phase;
+        if (this.#currentPhase === Phase.END) {
+            this.#racoonTeam.setIsHidingTeam(!this.#racoonTeam.isHidingTeam());
+            this.#foxTeam.setIsHidingTeam(!this.#foxTeam.isHidingTeam());
+        }
+    }
+
+    initializePlayer(data) {
+        // 플레이어 초기 정보 설정
+        const { playerPositionInfo, teamCharacter, teamSubscriptionInfo } =
+            data;
+
+        this.#me = new Player({
+            playerId: playerPositionInfo.playerId,
+            playerNickname: "me",
+            isReady: true,
+        });
+        this.#me.setCharacter(teamCharacter.toLowerCase());
+        this.#me.setPosition(playerPositionInfo);
+
+        if (this.#me.isFoxTeam()) {
+            this.#me.setTeam(this.#foxTeam);
+        } else {
+            this.#me.setTeam(this.#racoonTeam);
+        }
+
+        // 팀 메시지 구독 시작
+        this.startSubscribeTeam(teamSubscriptionInfo);
+    }
+
+    startSubscribeTeam(teamSubscriptionInfo) {
+        this.#stompClient.subscribe(
+            teamSubscriptionInfo,
+            async (stompMessage) => {
+                const message = JSON.parse(stompMessage.body);
+                this.#handleTeamMessage(message);
+            }
+        );
+    }
+
+    #handleTeamMessage(message) {
+        const { type, data } = message;
+        switch (type) {
+            case SHARE_POSITION:
+                this.#handleSharePositionEvent(data);
+                break;
+            case COVER_SCREEN:
+                break;
+            case UNCOVER_SCREEN:
+                break;
+            case FREEZE:
+                // this.#me.setCanMove(false);
+                break;
+            case UNFREEZE:
+                // this.#me.setCanMove(true);
+                break;
+        }
+    }
+
+    #handleSharePositionEvent(data) {
+        const { playerId, x, y, direction } = data;
+        if (playerId === this.#me.getPlayerId()) {
+            this.#me.setPosition({ x, y, direction });
+            return;
+        }
     }
 
     // 게임 시작 시각
@@ -112,4 +189,23 @@ export default class GameRepository {
     getCurrentPhase() {
         return this.#currentPhase;
     }
+
+    // 내 플레이어 정보
+    getMe() {
+        return this.#me;
+    }
+
+    // 내 위치 정보 수정
+    setMyPosition(position) {
+        const { x, y, direction } = position;
+        this.#stompClient.publish({
+            destination: `/ws/rooms/${this.#roomNumber}/game/share-position`,
+            body: JSON.stringify({
+                x,
+                y,
+                direction,
+            }),
+        });
+    }
 }
+
