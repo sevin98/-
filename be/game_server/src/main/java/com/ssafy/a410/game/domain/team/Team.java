@@ -84,6 +84,10 @@ public class Team extends Subscribable {
         return players.get(playerId);
     }
 
+    public Team getOpponentTeam() {
+        return this.isHidingTeam() ? this.game.getSeekingTeam() : this.game.getHidingTeam();
+    }
+
     public enum Character {
         RACOON, FOX
     }
