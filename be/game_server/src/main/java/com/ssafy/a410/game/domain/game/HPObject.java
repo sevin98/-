@@ -1,6 +1,8 @@
 package com.ssafy.a410.game.domain.game;
 
 import com.google.gson.JsonObject;
+import com.ssafy.a410.common.exception.ErrorDetail;
+import com.ssafy.a410.common.exception.ResponseException;
 import com.ssafy.a410.common.exception.UnhandledException;
 import com.ssafy.a410.game.domain.player.Player;
 import lombok.Getter;
@@ -37,7 +39,7 @@ public class HPObject extends GameObject {
     public void hidePlayer(Player player) {
         extracted();
         if (this.getId() == null) {
-            throw new UnhandledException("Invalid object ID");
+            throw new ResponseException(ErrorDetail.HP_OBJECT_NOT_FOUND);
         }
         this.player = player;
     }
@@ -45,7 +47,7 @@ public class HPObject extends GameObject {
     // 해당 HP에 누군가가 있거나 어떤 아이템이 적용되어있다면.
     private void extracted() {
         if (!isEmpty()) {
-            throw new UnhandledException("The object already contains another player or item.");
+            throw new ResponseException(ErrorDetail.HP_OBJECT_ALREADY_OCCUPIED);
         }
     }
 

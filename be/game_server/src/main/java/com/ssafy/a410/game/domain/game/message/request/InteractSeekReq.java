@@ -16,7 +16,7 @@ import static com.ssafy.a410.game.domain.player.message.request.GamePlayerReques
 
 public class InteractSeekReq extends InteractReq {
 
-    private static final int MAX_SEEK_COUNT = 5; //TODO: 임시로 5로 설정
+    private static final int MAX_SEEK_COUNT = 5;
     private final String objectId;
 
     @Getter
