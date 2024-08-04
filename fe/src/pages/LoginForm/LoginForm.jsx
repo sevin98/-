@@ -21,7 +21,8 @@ export default function LoginForm() {
     const [registUsername, setRegistUsername] = useState(""); // 회원가입 사용자명
     const [registPassword, setRegistPassword] = useState(""); // 회원가입 비밀번호
 
-    const changeToRegisterForm = () => {
+    const changeToRegisterForm = (e) => {
+        e.preventDefault();
         setAction("active");
     };
 
@@ -95,7 +96,6 @@ export default function LoginForm() {
                         <div>
                             <button
                                 className="rpgui-button"
-                                type="submit"
                                 onClick={(e) =>
                                     doLoginAndMoveToLobby(e, username, password)
                                 }
