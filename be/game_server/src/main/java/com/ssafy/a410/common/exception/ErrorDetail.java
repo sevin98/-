@@ -25,6 +25,7 @@ public enum ErrorDetail {
     CANNOT_JOIN_ROOM(HttpStatus.CONFLICT, "E409004", "Room is full or game has started"),
     PLAYER_NOT_IN_ROOM(HttpStatus.CONFLICT, "E409005", "Player is not in room"),
     HP_OBJECT_ALREADY_OCCUPIED(HttpStatus.CONFLICT, "E409006", "HP Object is already occupied"),
+    DUPLICATE_ID(HttpStatus.CONFLICT, "E409007", "Duplicate ID"),
     ;
 
     private final HttpStatus status;
