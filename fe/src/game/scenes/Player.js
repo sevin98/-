@@ -13,7 +13,6 @@ export const Direction = Object.freeze({
     Right: "Right",
 });
 
-
 export class HandlePlayerMove {
     //player 키조작
     constructor(cursors, player, headDir, moving) {
@@ -25,8 +24,6 @@ export class HandlePlayerMove {
         this.roomRepository = getRoomRepository();
         this.gameRepository = this.roomRepository.getGameRepository();
         // const { x, y, direction } = this.gameRepository.getPosition();
-
-
     }
 
     freezePlayerMovement() {
@@ -347,11 +344,11 @@ export default class gamePlayer extends Phaser.Physics.Arcade.Sprite {
         }
     }
 
-    isHidingTeam(){
+    isHidingTeam() {
         return this.gameRepository.getMe().isHidingTeam();
     }
     setIsHidingTeam() {
-        this.gameRepository.getMe().setIsHidingTeam(); 
+        this.gameRepository.getMe().setIsHidingTeam();
     }
     setDead() {
         this.gameRepository.getMe().setDead();
@@ -473,4 +470,3 @@ export default class gamePlayer extends Phaser.Physics.Arcade.Sprite {
         }
     }
 }
-
