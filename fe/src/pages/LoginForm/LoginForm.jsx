@@ -26,7 +26,8 @@ export default function LoginForm() {
         setAction("active");
     };
 
-    const changeToLoginForm = () => {
+    const changeToLoginForm = (e) => {
+        e.preventDefault();
         setAction("");
     };
 
