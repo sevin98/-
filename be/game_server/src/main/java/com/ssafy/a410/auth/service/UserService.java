@@ -13,4 +13,6 @@ public interface UserService {
     String generateUniqueRandomNickname();
 
     boolean isExistUserProfile(String uuid);
+
+    UserProfile updateUserProfile(UserProfile userProfile);
 }
