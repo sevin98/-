@@ -13,15 +13,16 @@ export const Direction = Object.freeze({
     Right: "Right",
 });
 
+
+
 export class HandlePlayerMove {
     //player 키조작
     constructor(cursors, player, headDir, moving) {
-        this.isMovementEnabled = true; // 키조작 가능여부
+
         this.m_cursorKeys = cursors;
         this.localPlayer = player;
         this.headDir = headDir;
         this.moving = moving;
-
         this.roomRepository = getRoomRepository();
         this.gameRepository = this.roomRepository.getGameRepository();
     }
@@ -121,23 +122,17 @@ export class HandlePlayerMove {
         }
     }
 }
-
-export default class Player extends Phaser.Physics.Arcade.Sprite {
+// gameplayer class
+export default class gamePlayer extends Phaser.Physics.Arcade.Sprite {
     static PLAYER_SPEED = 200;
     static moveX = [0, 1, 0, -1];
     static moveY = [-1, 0, 1, 0];
-    static mhealth = 3;
 
-    get health() {
-        return this.mhealth;
-    }
-    //static IsRacoon = true;
     constructor(scene, x, y, texture) {
         super(scene, x, y, texture);
 
         this.scale = 1;
         this.alpha = 1;
-        //if(!racoon) this.isRacoon = false;
 
         scene.add.existing(this);
         scene.physics.add.existing(this);
@@ -348,16 +343,26 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
             this.anims.play("fox-idle-down");
         }
     }
+    IsHidingTeam(){
+        return this.IsHidingTeam;
+    }
+    setIsHidingTeam() {
+        this.IsHidingTeam = !this.IsHidingTeam; // ?? 키이벤트 한번만 적용되게 할수있나?
+    }
+    setDead() {
+        // dead상태 변환
+        this.IsDead = true;
+    }
+    setIsHiding() {
+        this.IsHiding = !this.IsHiding;
+    }
+
     reflectFromWall(direction) {
-        this.x -= Player.moveX[direction] * Player.PLAYER_SPEED;
-        this.y -= Player.moveY[direction] * Player.PLAYER_SPEED;
+        this.x -= gamePlayer.moveX[direction] * gamePlayer.PLAYER_SPEED;
+        this.y -= gamePlayer.moveY[direction] * gamePlayer.PLAYER_SPEED;
     }
 
     stopMove(headDir) {
-        --this.mhealth;
-        if (this.mhealth <= 0) {
-            // TODO : die
-        }
         this.setVelocityX(0);
         this.setVelocityY(0);
         if (this.isRacoon) {
@@ -404,9 +409,9 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         switch (direction) {
             case Direction.Up:
                 //this.setVelocityX(-30);
-                this.setVelocityY(-1 * Player.PLAYER_SPEED);
+                this.setVelocityY(-1 * gamePlayer.PLAYER_SPEED);
                 this.setVelocityX(0);
-                //this.y -= Player.PLAYER_SPEED;
+                //this.y -= gamePlayer.PLAYER_SPEED;
 
                 if (
                     this.isRacoon &&
@@ -421,7 +426,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
                 break;
             case Direction.Down:
-                this.setVelocityY(Player.PLAYER_SPEED);
+                this.setVelocityY(gamePlayer.PLAYER_SPEED);
                 this.setVelocityX(0);
                 //this.y += Player.PLAYER_SPEED;
                 if (
@@ -437,7 +442,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
                 break;
             case Direction.Right:
-                this.setVelocityX(Player.PLAYER_SPEED);
+                this.setVelocityX(gamePlayer.PLAYER_SPEED);
                 this.setVelocityY(0);
                 //this.x += Player.PLAYER_SPEED;
                 if (
@@ -452,7 +457,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
                     this.anims.play("fox-run-right");
                 break;
             case Direction.Left:
-                this.setVelocityX(-1 * Player.PLAYER_SPEED);
+                this.setVelocityX(-1 * gamePlayer.PLAYER_SPEED);
                 this.setVelocityY(0);
                 //this.x -= Player.PLAYER_SPEED;
                 if (
