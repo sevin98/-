@@ -10,6 +10,9 @@ public enum ErrorDetail {
     // 401 Unauthorized
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "E401000", "Unauthorized"),
     INVALID_ROOM_PASSWORD(HttpStatus.UNAUTHORIZED, "E401001", "Password is incorrect"),
+    INVALID_LOGIN_ID(HttpStatus.UNAUTHORIZED, "E401002", "Invalid login id"),
+    INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "E401003", "Invalid password"),
+    LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "E401004", "Invalid login credentials"),
     // 404 Not Found
     NOT_FOUND(HttpStatus.NOT_FOUND, "E404000", "Not Found"),
     HP_OBJECT_NOT_FOUND(HttpStatus.NOT_FOUND, "E404001", "HP Object not found"),

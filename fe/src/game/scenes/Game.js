@@ -2,11 +2,14 @@ import Phaser from "phaser";
 
 import { Scene } from "phaser";
 import Player, { Direction, HandlePlayerMove } from "./Player";
+<<<<<<< HEAD
 import OtherPlayer from "./OtherPlayer"
+=======
+import OtherPlayer from "./OtherPlayer";
+>>>>>>> a48b53bb9fae14da9acc943424fd8c67e0c74211
 import MapTile from "./MapTile";
 import TextGroup from "./TextGroup";
 import { getRoomRepository } from "../../repository";
-
 
 export class game extends Phaser.Scene {
     //cursor = this.cursor.c
@@ -34,6 +37,7 @@ export class game extends Phaser.Scene {
     }
 
     preload() {
+        this.load.image("racoon", "assets/character/image.png");
         this.cursors = this.input.keyboard.createCursorKeys();
         this.headDir = 2; //under direction
         this.moving = 0;
@@ -58,8 +62,36 @@ export class game extends Phaser.Scene {
         const { x, y, direction } = me.getPosition();
         this.localPlayer = new Player(this, x, y, "fauna-idle-down", true);
         this.localPlayer.isRacoon = true;
+<<<<<<< HEAD
         // 잠깐 주석처리하고 카메라가 otherplayer를 따라가도록 바꿔놓음 
         // playercam.startFollow(this.localPlayer);
+=======
+        playercam.startFollow(this.localPlayer);
+
+        const otherPlayerGroup = this.gameRepository.getAllPlayers();
+        otherPlayerGroup.forEach((player) => {
+            if (player.getPlayerId() != me.getPlayerId()) {
+                const { x, y, direction } = player.getPosition(); // this == player
+                this.otherPlayer[player.getPlayerId()] = new OtherPlayer(
+                    this,
+                    x,
+                    y,
+                    "fauna-idle-down",
+                    true,
+                    player.getPlayerId()
+                );
+            }
+            // 숨는팀이고 다른팀일때만 화면에서 안보여야함(같은팀일떄는 보여도됨)
+            if (
+                this.otherPlayer[player.getPlayerId()].IsHidingTeam &&
+                this.otherPlayer[player.getPlayerId()].isRacoon !=
+                    this.localPlayer.isRacoon
+            ) {
+                this.otherPlayer[player.getPlayerId()].visible = false;
+            }
+        });
+        // this.cameras.main.startFollow(this.otherPlayer);
+>>>>>>> a48b53bb9fae14da9acc943424fd8c67e0c74211
 
         //로컬플레이어와 layer의 충돌설정
         this.physics.add.collider(
@@ -132,6 +164,35 @@ export class game extends Phaser.Scene {
     }
 
     update() {
+<<<<<<< HEAD
+=======
+        // 클래스의 메서드로 정의
+
+        // 위치 업데이트
+        const otherPlayerGroup = this.gameRepository.getAllPlayers()
+        const me = this.gameRepository.getMe();
+
+        otherPlayerGroup.forEach((player) => {
+            if (player.getPlayerId() != me.getPlayerId()) {
+
+                // 화면에 보이는 다른 player들의 위치와 headDir 변경
+                const { x, y, direction } = player.getPosition();
+                this.otherPlayer[player.getPlayerId()].x = x;
+                this.otherPlayer[player.getPlayerId()].y = y;
+                this.otherPlayer[player.getPlayerId()].move(direction);
+
+                //가시성 업데이트
+                if (
+                    player.IsHidingTeam() &&
+                    player.isRacoonTeam() !== me.isRacoonTeam()
+                ) {
+                    this.otherPlayer[player.getPlayerId()].visible = false;
+                } else {
+                    this.otherPlayer[player.getPlayerId()].visible = true;
+                }
+            }
+        });
+>>>>>>> a48b53bb9fae14da9acc943424fd8c67e0c74211
 
         // player.js 에서 player 키조작이벤트 불러옴
         const playerMoveHandler = new HandlePlayerMove(
@@ -267,6 +328,7 @@ export class game extends Phaser.Scene {
     tileToPixel(tileCoord) {
         return tileCoord;
     }
+<<<<<<< HEAD
 
     //isHidingTeam (interface.js)에서 가끔 에러나요 이유를 못찾음ㅠ 
     //constructor에 있는 임의의 position 배열에서 좌표 꺼내는 랜덤함수
@@ -326,3 +388,6 @@ export class game extends Phaser.Scene {
     //   }
     // }
 }
+=======
+}
+>>>>>>> a48b53bb9fae14da9acc943424fd8c67e0c74211
