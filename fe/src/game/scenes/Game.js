@@ -7,14 +7,13 @@ import MapTile from "./MapTile";
 import TextGroup from "./TextGroup";
 import { getRoomRepository } from "../../repository";
 
-
 export class game extends Phaser.Scene {
     //cursor = this.cursor.c
     //cursors = Phaser.Input.Keyboard.KeyboardPlugin;
     //fauna = Phaser.Physics.Arcade.Sprite;
     constructor() {
         super("game");
-        /// 임의로 포지션 넣은 코드
+        /// 임의로 포지션 넣은 코드, 이후 삭제
         this.positions = [
             [500, 400],
             [500, 390],
@@ -23,7 +22,6 @@ export class game extends Phaser.Scene {
             [500, 360],
             [500, 350],
         ];
-
 
         this.MapTile = null;
         this.objects = null;
@@ -34,6 +32,7 @@ export class game extends Phaser.Scene {
     }
 
     preload() {
+        this.load.image("racoon", "assets/character/image.png");
         this.cursors = this.input.keyboard.createCursorKeys();
         this.headDir = 2; //under direction
         this.moving = 0;
@@ -43,6 +42,7 @@ export class game extends Phaser.Scene {
         this.text = new TextGroup(this); // 팝업텍스트 객체
 
         this.graphics = this.add.graphics().setDepth(1000); //선만들기 위한 그래픽
+
         // MapTile.js에서 만들어놓은 함수로 map 호출해주기
         this.maptile = new MapTile(this);
         this.maptile
@@ -57,7 +57,7 @@ export class game extends Phaser.Scene {
         const me = this.gameRepository.getMe();
         const { x, y, direction } = me.getPosition();
         this.localPlayer = new Player(this, x, y, "fauna-idle-down", true);
-        this.localPlayer.isRacoon = true;
+        
         // 잠깐 주석처리하고 카메라가 otherplayer를 따라가도록 바꿔놓음 
         // playercam.startFollow(this.localPlayer);
 
@@ -120,18 +120,13 @@ export class game extends Phaser.Scene {
 
         //game-ui 씬
         this.scene.run("game-ui");
-        //24.07.25 phase check timer
-        this.hideTeam = "RACOON";
-
-        this.readyPhaseEvent = "YET";
-        this.mainPhaseEvent = "YET";
-        this.endPhaseEvent = "YET";
-        this.resultPhaseEvent = "YET";
-
         this.m_cursorKeys = this.input.keyboard.createCursorKeys();
     }
 
     update() {
+        // 로컬플레이어 포지션 트래킹 , 이후 위치는 x,y,headDir로 접근
+        const me = this.gameRepository.getMe();
+        const { x,y, headDir} = me.getPosition();
 
         // player.js 에서 player 키조작이벤트 불러옴
         const playerMoveHandler = new HandlePlayerMove(
@@ -151,20 +146,17 @@ export class game extends Phaser.Scene {
         const minDistance = Phaser.Math.Distance.Between(
             closest.body.center.x,
             closest.body.center.y,
-            this.localPlayer.x,
-            this.localPlayer.y
+            x, //this.localPlayer.x,
+            y, //this.localPlayer.y
         );
 
         // 시각적으로 가까운 오브젝트와의 선 표시, 나중에 지우면되는코드
-        this.graphics
-            .clear()
-            .lineStyle(1, 0xff3300)
-            .lineBetween(
-                closest.body.center.x,
-                closest.body.center.y,
-                this.localPlayer.x,
-                this.localPlayer.y
-            );
+        this.graphics.clear().lineStyle(1, 0xff3300).lineBetween(
+            closest.body.center.x,
+            closest.body.center.y,
+            x, //this.localPlayer.x,
+            y //this.localPlayer.y
+        );
 
         // 30px 이하로 가까이 있을때 상호작용 표시 로직
         if (minDistance < 30) {
@@ -194,11 +186,11 @@ export class game extends Phaser.Scene {
         // 본인 팀(localPlayer의 isHiding)에 따라서도 구분되어야함
         // 숨는팀, 상호작용 표시 있음, space 키 이벤트
         if (
-            this.localPlayer.IsHidingTeam &&
+            this.gameRepository.getMe().isHidingTeam() &&
             this.interactionEffect &&
             this.m_cursorKeys.space.isDown
         ) {
-
+            //숨기 성공시
             console.log("정지");
             this.localPlayer.stopMove();
             this.localPlayer.visible = false; // 화면에 사용자 안보임
@@ -207,11 +199,15 @@ export class game extends Phaser.Scene {
                 closest.body.x - 20,
                 closest.body.y - 20
             );
-            this.localPlayer.setIsHiding(); // IsHIding 상태 바뀜
-            // 숨을수 없을때:
-            // else{this.text.showTextFailHide(this, closest.body.x - 20, closest.body.y - 20);}
+            //숨었을때 로컬플레이어 숨음으로 상태 변경
+            this.getGameRepository.getMe().setIsHiding();
+
+        // 숨을수 없을때:
+        // else{this.text.showTextFailHide(this, closest.body.x - 20, closest.body.y - 20);}
         } else {
-            this.localPlayer.move();
+            //숨기 실패
+            // headDir 변수는 udpate내부에서 setPosition으로 갱신되는 중임
+            this.localPlayer.move(headDir);
         }
 
         //숨는팀phase 재시작 
@@ -230,7 +226,7 @@ export class game extends Phaser.Scene {
 
         //탐색- 찾는팀,상호작용이펙트,스페이스다운
         if (
-            !this.localPlayer.IsHidingTeam &&
+            this.gameRepository.getMe().isSeekingTeam() &&
             this.interactionEffect &&
             this.m_cursorKeys.space.isDown
         ) {
@@ -254,13 +250,6 @@ export class game extends Phaser.Scene {
             );
         }
 
-        //상우 코드
-        if (Date.now() - this.lastSentTime > 100) {
-            // if current time - last sent time is greater than 100ms
-            this.lastSentTime = Date.now();
-            // this.sharePlayerPosition();
-            this.input.keyboard.enabled = true;
-        }
     }
 
     // 맵타일단위를 pix로 변환
@@ -268,7 +257,6 @@ export class game extends Phaser.Scene {
         return tileCoord;
     }
 
-    //isHidingTeam (interface.js)에서 가끔 에러나요 이유를 못찾음ㅠ 
     //constructor에 있는 임의의 position 배열에서 좌표 꺼내는 랜덤함수
     mockingPosition(){
         this.currentPos = this.positions[Math.floor(Math.random() * this.positions.length)];
@@ -280,49 +268,4 @@ export class game extends Phaser.Scene {
         this.otherPlayer.move(this.headDir);
     }
 
-
-
-    // 상우 코드
-    initPhase() {
-        this.readyPhaseEvent = "YET";
-        this.mainPhaseEvent = "YET";
-        this.endPhaseEvent = "YET";
-        this.resultPhaseEvent = "YET";
-    }
-    readyPhaseStart() {
-        this.initPhase();
-        this.readyPhaseEvent = "DURING";
-        if (this.hideTeam === "RACOON" && this.localPlayer.isRacoon) {
-        } else if (this.hideTeam === "FOX" && !this.localPlayer.isRacoon) {
-        } else {
-        }
-    }
-    readyPhaseEnd() {
-        this.readyPhaseEvent = "YET";
-    }
-    mainPhaseStart() {
-        this.initPhase();
-        this.mainPhaseEvent = "DURING";
-        if (this.hideTeam === "RACOON" && this.localPlayer.isRacoon) {
-        } else if (this.hideTeam === "FOX" && !this.localPlayer.isRacoon) {
-        } else {
-        }
-    }
-
-    // sharePlayerPosition() {
-    //   if (webSocketClient.active) {
-    //     webSocketClient.publish({
-    //       destination: `/ws/rooms/${gameStatus.room.id}/players/position`,
-    //       body: JSON.stringify({
-    //           requestId: null,
-    //           data: {
-    //               playerId: gameStatus.player.id,
-    //               x: this.localPlayer.x,
-    //               y: this.localPlayer.y,
-    //               direction: this.getDirectionOfPlayer()
-    //           }
-    //       })
-    //     })
-    //   }
-    // }
 }
