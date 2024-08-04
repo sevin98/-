@@ -48,24 +48,6 @@ export default class RoomRepository {
                     clearInterval(initializationTrial);
                     this.#stompClient = client;
                     this.#startPlayerListInterval();
-
-                    setInterval(async () => {
-                        const requestId = uuid();
-                        this.#stompClient.publish({
-                            destination: `/ws/rooms/${
-                                this.#roomNumber
-                            }/game/foo`,
-                            body: JSON.stringify({
-                                requestId,
-                                data: {
-                                    message: "foo",
-                                },
-                            }),
-                        });
-
-                        const gotResult = await asyncResponses.get(requestId);
-                        console.log("gotResult:", gotResult);
-                    }, 1000);
                 })
                 .catch((e) => {});
         }, 100);
