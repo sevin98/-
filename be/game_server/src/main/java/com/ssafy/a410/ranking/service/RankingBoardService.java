@@ -1,7 +1,7 @@
 package com.ssafy.a410.ranking.service;
 
-import com.ssafy.a410.auth.model.entity.AuthInfoEntity;
-import com.ssafy.a410.auth.model.repository.AuthInfoRepository;
+import com.ssafy.a410.auth.model.entity.UserProfileEntity;
+import com.ssafy.a410.auth.model.repository.UserProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -12,20 +12,20 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RankingBoardService implements RankingService{
 
-    private final AuthInfoRepository authInfoRepository;
+    private final UserProfileRepository userProfileRepository;
 
     @Override
-    public List<AuthInfoEntity> getAllUsersSortedByWins() {
-        return authInfoRepository.findAll(Sort.by(Sort.Direction.DESC, "wins"));
+    public List<UserProfileEntity> getAllUsersSortedByWins() {
+        return userProfileRepository.findAll(Sort.by(Sort.Direction.DESC, "wins"));
     }
 
     @Override
-    public List<AuthInfoEntity> getAllUsersSortedByCatchCount() {
-        return authInfoRepository.findAll(Sort.by(Sort.Direction.DESC, "catchCount"));
+    public List<UserProfileEntity> getAllUsersSortedByCatchCount() {
+        return userProfileRepository.findAll(Sort.by(Sort.Direction.DESC, "catchCount"));
     }
 
     @Override
-    public List<AuthInfoEntity> getAllUsersSortedBySurvivalTime() {
-        return authInfoRepository.findAll(Sort.by(Sort.Direction.DESC, "survivalTimeInSeconds"));
+    public List<UserProfileEntity> getAllUsersSortedBySurvivalTime() {
+        return userProfileRepository.findAll(Sort.by(Sort.Direction.DESC, "survivalTimeInSeconds"));
     }
 }
