@@ -113,7 +113,6 @@ export default function LoginForm() {
                         </div>
                         <div className="register-link">
                             <button
-                                id="register-btn"
                                 className="rpgui-button"
                                 onClick={changeToRegisterForm}
                             >

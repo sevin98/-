@@ -7,7 +7,6 @@
     padding-top: 3%;
     background-image: url("image/title-background.png");
     background-size: 100% 100%;
-    cursor: url("rpgui/img/cursor/default.png");
 }
 
 #logo-area {
@@ -32,9 +31,6 @@
     position: absolute;
     left: 0;
     width: 100%;
-    padding: 30px 40px;
-    /* background: rgba(103, 119, 78, 0.332); */
-    box-sizing: border-box;
     transition: transform 0.3s ease;
 }
 
@@ -62,7 +58,6 @@
 
 .form-box h1 {
     color: white;
-    /* font-size: 36px; */
     text-align: center;
     font-family: "MoveSans-Bold";
 }
@@ -80,29 +75,6 @@
     height: 2rem;
 }
 
-form .input-box input::placeholder {
-    /* color: #fff; */
-}
-
-form .input-box .icon {
-    top: 100% !important;
-}
-
 form .register-link {
-    font-size: 14.5px;
     text-align: center;
-}
-
-.register-link p a {
-    color: #fff;
-    text-decoration: none;
-    font-weight: 600;
-}
-
-.register-link p a:hover {
-    text-decoration: underline;
-}
-
-#register-btn {
-    width: 10rem;
 }
