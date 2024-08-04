@@ -1,6 +1,6 @@
 package com.ssafy.a410.game.domain.game;
 
-import com.ssafy.a410.auth.model.entity.AuthInfoEntity;
+import com.ssafy.a410.auth.model.entity.UserProfileEntity;
 import com.ssafy.a410.auth.service.UserService;
 import com.ssafy.a410.common.exception.ResponseException;
 import com.ssafy.a410.common.exception.UnhandledException;
@@ -457,24 +457,22 @@ public class Game extends Subscribable implements Runnable {
     private void updatePlayerStats(Team winningTeam, Team losingTeam) {
         for (Player player : winningTeam.getPlayers().values()) {
             if (!player.isBot())
-                updatePlayerAuthInfo(player, true);
+                updateUserProfile(player, true);
         }
         for (Player player : losingTeam.getPlayers().values()) {
             if (!player.isBot())
-                updatePlayerAuthInfo(player, false);
+                updateUserProfile(player, false);
         }
     }
 
-    private void updatePlayerAuthInfo(Player player, boolean isWinner) {
-        AuthInfoEntity authInfo = userService.getAuthInfoByPlayerId(player.getId());
-        if (authInfo != null) {
-            authInfo.addCatchCount(player.getCatchCount());
-            authInfo.addSurvivalTimeInSeconds(player.getSurvivalTimeInSeconds());
-            if (isWinner)
-                authInfo.addwins();
-            else
-                authInfo.addLosses();
-            userService.updateAuthInfo(authInfo);
-        }
+    private void updateUserProfile(Player player, boolean isWinner) {
+        UserProfileEntity userProfile = userService.getUserProfileEntityByUuid(player.getId());
+        userProfile.addCatchCount(player.getCatchCount());
+        userProfile.addSurvivalTimeInSeconds(player.getSurvivalTimeInSeconds());
+        if (isWinner)
+            userProfile.addwins();
+        else
+            userProfile.addLosses();
+        userService.updateUserProfileEntity(userProfile);
     }
 }
