@@ -95,6 +95,17 @@ public class JPAUserService implements UserService {
         return UserProfile.fromEntity(savedEntity);
     }
 
+    @Override
+    public AuthInfoEntity getAuthInfoByPlayerId(String playerId) {
+        return authInfoRepository.findByUserProfile_Uuid(playerId)
+                .orElseThrow(() -> new ResponseException(ErrorDetail.PLAYER_NOT_FOUND));
+    }
+
+    @Override
+    public void updateAuthInfo(AuthInfoEntity authInfo) {
+            authInfoRepository.save(authInfo);
+    }
+
     // 랜덤 닉네임을 생성
     public String generateRandomNickname() {
         String prefix = randomNicknamePrefixes.get(random.nextInt(randomNicknamePrefixes.size()));
