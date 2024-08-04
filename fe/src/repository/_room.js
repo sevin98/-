@@ -115,7 +115,7 @@ export default class RoomRepository {
 
     async #handlePlayerMessage(message) {
         const { type, data, requestId } = message;
-const result = { type, data };
+        const result = { type, data };
 
         // 초기화 이벤트가 아닌 경우, 초기화가 완료될 때까지 대기
         if (!this.#isInitialized && type !== INITIALIZE_PLAYER) {
@@ -130,11 +130,17 @@ const result = { type, data };
                 this.#isInitialized = true;
                 gameInitializationMutex.release();
                 break;
-            case INTERACT_SEEK_SUCCESS:
-            case INTERACT_SEEK_FAIL:
             case INTERACT_HIDE_SUCCESS:
+                this.#handleHideRequestSuccessEvent(requestId, result);
+                break;
             case INTERACT_HIDE_FAIL:
-                asyncResponses.set(requestId, data);
+                this.#handleHideRequestFailedEvent(requestId, result);
+                break;
+            case INTERACT_SEEK_SUCCESS:
+                this.#handleSeekRequestSuccessEvent(requestId, result);
+                break;
+            case INTERACT_SEEK_FAIL:
+                this.#handleSeekRequestFailedEvent(requestId, result);
                 break;
         }
     }
@@ -185,14 +191,29 @@ const result = { type, data };
         this.#setGameStartsAt(startsAfterMilliSec);
     }
 
-    #handleInitializePlayerEvent(data, requestId) {
-        this.#gameRepository.initializePlayer(data);
+    #handleInitializePlayerEvent(requestId, result) {
+        this.#gameRepository.initializePlayer(result.data);
+        asyncResponses.set(requestId, result);
+    }
 
-        console.log(data, requestId);
+    #handleHideRequestSuccessEvent(requestId, result) {
+        console.log("숨기 성공:", result);
+        asyncResponses.set(requestId, result);
+    }
 
-        if (requestId) {
-            asyncResponses.set(requestId, data);
-        }
+    #handleHideRequestFailedEvent(requestId, result) {
+        console.log("숨기 실패:", result);
+        asyncResponses.set(requestId, result);
+    }
+
+    #handleSeekRequestSuccessEvent(requestId, result) {
+        console.log("찾기 성공:", result);
+        asyncResponses.set(requestId, result);
+    }
+
+    #handleSeekRequestFailedEvent(requestId, result) {
+        console.log("찾기 실패:", result);
+        asyncResponses.set(requestId, result);
     }
 
     // 방 번호 반환

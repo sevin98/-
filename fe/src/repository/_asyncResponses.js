@@ -2,21 +2,26 @@ class AsyncResponses {
     #responses = {};
 
     set(requestId, result) {
-        this.#responses[requestId] = result;
+        const { type, data } = result;
+
+        this.#responses[requestId] = {
+            type,
+            data,
+        };
     }
 
-    async get(key) {
+    async get(requestId) {
         return new Promise((resolve) => {
             const awaiter = setInterval(() => {
-                if (this.#responses[key]) {
+                if (this.#responses[requestId]) {
                     // 반복 중지
                     clearInterval(awaiter);
                     // 데이터 반환
-                    const data = this.#responses[key];
+                    const result = this.#responses[requestId];
                     // 데이터 삭제
-                    this.remove(key);
+                    this.remove(requestId);
 
-                    return resolve(data);
+                    return resolve(result);
                 }
             }, 50);
         });

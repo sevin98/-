@@ -1,13 +1,13 @@
 import Phaser from "phaser";
 import { Scene } from "phaser";
-import Player, { Direction, HandlePlayerMove } from "./Player";
 import MapTile from "./MapTile";
 import TextGroup from "./TextGroup";
-import { getRoomRepository } from "../../repository";
 
-// import webSocketClient from "../network";
-// import gameStatus from '../../game_status/index'
+import { isFirstPress } from "../../util/keyStroke";
+import { getRoomRepository } from "../../repository";
+import Player, { HandlePlayerMove } from "./Player";
 import { sceneEvents } from "../../events/EventsCenter";
+import { Phase } from "../../repository/_game";
 
 export class game extends Phaser.Scene {
     //cursor = this.cursor.c
@@ -165,24 +165,69 @@ export class game extends Phaser.Scene {
         }
         // this.input.keyboard.enabled = false;
         // 상호작용 표시가 있고, space 키 이벤트 있는 경우
-        if (this.interactionEffect && this.m_cursorKeys.space.isDown) {
+        if (
+            this.interactionEffect &&
+            isFirstPress(
+                this.m_cursorKeys.space.keyCode,
+                this.m_cursorKeys.space.isDown
+            )
+        ) {
             //publish
             // console.log(closest.getData("id")); // key:ObjectId
             // key:playerID value: uuid
+            const objectId = closest.getData("id");
 
-            //if (성공){
-            // if res.type === "INTERACT_HIDE": 키다운
-            console.log("정지");
-            playerMoveHandler.freezePlayerMovement(); //움직임0으로바꿈
-            this.localPlayer.visible = false; // 화면에 사용자 안보임
-            this.text.showTextHide(
-                this,
-                closest.body.x - 20,
-                closest.body.y - 20
-            );
-            // }
-            // else{}
-        } else if (this.m_cursorKeys.shift.isDown) {
+            // 숨을 차례이면 숨기 요청
+            if (this.gameRepository.getMe().isHidingTeam()) {
+                // 단, 레디 페이즈에만 숨을 수 있음
+                if (this.gameRepository.getCurrentPhase() !== Phase.READY) {
+                    console.log("READY 페이즈만 숨을 수 있습니다.");
+                } else {
+                    this.gameRepository
+                        .requestHide(objectId)
+                        .then(({ isSucceeded }) => {
+                            if (isSucceeded) {
+                                console.log("숨기 성공");
+                                // if res.type === "INTERACT_HIDE": 키다운
+                                playerMoveHandler.freezePlayerMovement(); //움직임0으로바꿈
+                                this.localPlayer.visible = false; // 화면에 사용자 안보임
+                                this.text.showTextHide(
+                                    this,
+                                    closest.body.x - 20,
+                                    closest.body.y - 20
+                                );
+                            }
+                            // else{}
+                        });
+                }
+            }
+            // 찾을 차례면 탐색 요청
+            else {
+                // 단, 메인 페이즈에만 탐색할 수 있음
+                if (this.gameRepository.getCurrentPhase() !== Phase.MAIN) {
+                    console.log("MAIN 페이즈에만 탐색할 수 있습니다.");
+                }
+                // 찾을 수 있는 횟수가 남아 있어야 함
+                else if (!this.gameRepository.getMe().canSeek()) {
+                    console.log("탐색 횟수가 부족합니다.");
+                } else {
+                    this.gameRepository
+                        .requestSeek(objectId)
+                        .then(({ isSucceeded }) => {
+                            if (isSucceeded) {
+                                console.log("탐색 성공");
+                            } else {
+                                console.log("탐색 실패");
+                            }
+                        });
+                }
+            }
+        } else if (
+            isFirstPress(
+                this.m_cursorKeys.shift.keyCode,
+                this.m_cursorKeys.shift.isDown
+            )
+        ) {
             //subscribe받은 재시작 좌표로 이동
             // this.localPlayer.x = 500;
             // this.localPlayer.y = 400;
@@ -202,8 +247,6 @@ export class game extends Phaser.Scene {
             // this.sharePlayerPosition();
             this.input.keyboard.enabled = true;
         }
-
-        sceneEvents.emit("player-health-changed", this.localPlayer.mhealth);
     }
 
     // 맵타일단위를 pix로 변환
@@ -254,4 +297,3 @@ export class game extends Phaser.Scene {
     //   }
     // }
 }
-
