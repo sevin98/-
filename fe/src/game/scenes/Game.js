@@ -224,6 +224,7 @@ export class game extends Phaser.Scene {
 
         // this.input.keyboard.enabled = false;
         // 숨는팀, 상호작용 표시 있음
+        let requestId // 임시변수 이후 삭제
         if (
             this.localPlayer.IsHidingTeam &&
             this.interactionEffect) {
