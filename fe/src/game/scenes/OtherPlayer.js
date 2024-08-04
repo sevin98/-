@@ -7,26 +7,27 @@ export default class otherPlayer extends Phaser.Physics.Arcade.Sprite {
     static moveX = [0, 1, 0, -1];
     static moveY = [-1, 0, 1, 0];
 
-    constructor(scene, x, y, texture) {
-        super(scene, x, y, texture);
+    constructor(scene, x, y, texture, id) {
+        super(scene, x, y, texture, id);
 
         this.scale = 1;
         this.alpha = 1;
 
         scene.add.existing(this);
         scene.physics.add.existing(this);
-        
+
         // 스프라이트의 표시 크기를 1px * 1px로 설정
         this.setDisplaySize(16, 16);
         // 물리 바디의 크기를 1px * 1px로 설정
         this.body.setSize(28, 28);
-        
-        // this.roomRepository = getRoomRepository();
-        // this.gameRepository = this.roomRepository.getGameRepository();
-        // this.isRacoon = this.gameRepository.getPlayerwith(this.id).isRacoonTeam();
-        // this.isHidingTeam = this.gameRepository.getPlayerwith(this.id).isHidingTeam();
-        
+
+        this.roomRepository = getRoomRepository();
+        this.gameRepository = this.roomRepository.getGameRepository();
+
+        // 이후 repo의 정보값으로 대체
+        this.isHidingTeam = true;
         this.isRacoon = true;
+
         this.setupAnimations();
     }
     //애니메이션
@@ -226,62 +227,48 @@ export default class otherPlayer extends Phaser.Physics.Arcade.Sprite {
             this.anims.play("fox-idle-down");
         }
     }
-    reflectFromWall(direction) {
-        this.x -= otherPlayer.moveX[direction] * otherPlayer.PLAYER_SPEED;
-        this.y -= otherPlayer.moveY[direction] * otherPlayer.PLAYER_SPEED;
-    }
-    stopMove(headDir) {
-        this.setVelocityX(0);
-        this.setVelocityY(0);
+    //headDir에 따른 움직임 추가
+    move(headDir) {
         if (this.isRacoon) {
-            switch (headDir) {
-                case 0:
-                    if (this.anims.currentAnim.key != "racoon-idle-up")
-                        this.anims.play("racoon-idle-up");
-                    break;
-                case 1:
-                    if (this.anims.currentAnim.key != "racoon-idle-right")
-                        this.anims.play("racoon-idle-right");
-                    break;
-                case 2:
-                    if (this.anims.currentAnim.key != "racoon-idle-down")
-                        this.anims.play("racoon-idle-down");
-                    break;
-                case 3:
-                    if (this.anims.currentAnim.key != "racoon-idle-left")
-                        this.anims.play("racoon-idle-left");
-                    break;
+            // 애니메이션 업데이트
+            if (headDir === 0) {
+                // Up
+                this.anims.play("racoon-run-up");
+            } else if (headDir === 1) {
+                // Right
+                this.anims.play("racoon-run-right");
+            } else if (headDir === 2) {
+                // Down
+                this.anims.play("racoon-run-down");
+            } else if (headDir === 3) {
+                // Left
+                this.anims.play("racoon-run-left");
             }
-        } else if (!this.isRacoon) {
-            switch (headDir) {
-                case 0:
-                    if (this.anims.currentAnim.key != "fox-idle-up")
-                        this.anims.play("fox-idle-up");
-                    break;
-                case 1:
-                    if (this.anims.currentAnim.key != "fox-idle-right")
-                        this.anims.play("fox-idle-right");
-                    break;
-                case 2:
-                    if (this.anims.currentAnim.key != "fox-idle-down")
-                        this.anims.play("fox-idle-down");
-                    break;
-                case 3:
-                    if (this.anims.currentAnim.key != "fox-idle-left")
-                        this.anims.play("fox-idle-left");
-                    break;
+        } else {
+            if (headDir === 0) {
+                // Up
+                this.anims.play("fox-run-up");
+            } else if (headDir === 1) {
+                // Right
+                this.anims.play("fox-run-right");
+            } else if (headDir === 2) {
+                // Down
+                this.anims.play("fox-run-down");
+            } else if (headDir === 3) {
+                // Left
+                this.anims.play("fox-run-left");
             }
         }
     }
-    //특정 phase에 움직일수있는지 확인 
-    // canMove() {
-    //     const currentPhase = this.gameRepository.getCurrentPhase();
-    //     return (
-    //         (this.gameRepository.getplayerwith(this.id).isHidingTeam() &&
-    //             currentPhase === Phase.READY) ||
-    //         (this.gameRepository.getplayerwith(this.id).isSeekingTeam() &&
-    //             currentPhase === Phase.MAIN)
-    //     );
-    // }
+
+    // phase 에 따른 움직임 추가
+    // 내가 하이딩팀일때/ otherplayer 가 하이딩팀일 때 
+    // 언제 otherplayter 화면에 보여지고 안보여지는 
+    // phaser 따라서 구분. 
+
+    // 만약에 나: 하이딩 상대방: 하이딩 -> 상대방보임
+    // 나: 찾 상대방:하이딩 -> this.otherPlayer.visibel == false (if phase==숨는시간)
 }
+
+
 

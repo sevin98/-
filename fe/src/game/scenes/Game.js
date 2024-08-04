@@ -2,7 +2,7 @@ import Phaser from "phaser";
 
 import { Scene } from "phaser";
 import Player, { Direction, HandlePlayerMove } from "./Player";
-import otherPlayer from "./OtherPlayer"
+import OtherPlayer from "./OtherPlayer"
 import MapTile from "./MapTile";
 import TextGroup from "./TextGroup";
 import { getRoomRepository } from "../../repository";
@@ -14,17 +14,17 @@ export class game extends Phaser.Scene {
     //fauna = Phaser.Physics.Arcade.Sprite;
     constructor() {
         super("game");
-        ///
+        /// 임의로 포지션 넣은 코드
         this.positions = [
             [500, 400],
             [500, 390],
             [500, 380],
             [500, 370],
+            [500, 360],
+            [500, 350],
         ];
-        this.currentPos = this.positions[0];
-        ///
 
-        // super("game");
+
         this.MapTile = null;
         this.objects = null;
         this.lastSentTime = Date.now();
@@ -40,25 +40,6 @@ export class game extends Phaser.Scene {
     }
 
     create() {
-        ///
-        // this.otherPlayer = new otherPlayer(
-        //     this,
-        //     this.currentPos[0],
-        //     this.currentPos[1],
-        //     "fauna-idle-down",
-        // );
-
-        // this.time.addEvent({
-        //     delay: 500,
-        //     callback: this.updatePlayerPosition,
-        //     callbackScope: this,
-        //     loop: true,
-        // });
-        ///
-        // this.newPlayer.updatePosition(newPos[0], newPos[1], newHeadDir);
-        // console.log(this.otherPlayer.isRacoon)
-
-
         this.text = new TextGroup(this); // 팝업텍스트 객체
 
         this.graphics = this.add.graphics().setDepth(1000); //선만들기 위한 그래픽
@@ -77,16 +58,8 @@ export class game extends Phaser.Scene {
         const { x, y, direction } = me.getPosition();
         this.localPlayer = new Player(this, x, y, "fauna-idle-down", true);
         this.localPlayer.isRacoon = true;
+        // 잠깐 주석처리하고 카메라가 otherplayer를 따라가도록 바꿔놓음 
         // playercam.startFollow(this.localPlayer);
-        this.cameras.main.startFollow(this.otherPlayer);
-
-        // 다른 플레이어 객체 생성
-        // const playersGroup = this.gameRepository.getPlayerGroup();
-        // for (id of playersGroup) {
-        // const otherPlayer = this.gameRepository.getplayerId(id);
-        // const {x, y, direction } = otherPlayer.getPosition()
-        // this.newPlayer = new otherPlayer(this, x, y, "fauna-idle-down", true);
-        // }
 
         //로컬플레이어와 layer의 충돌설정
         this.physics.add.collider(
@@ -127,6 +100,23 @@ export class game extends Phaser.Scene {
         });
 
         // 다른 플레이어 화면 구현
+        this.otherPlayer = new OtherPlayer(
+            this,
+            500,
+            500,
+            "fauna-idle-down",
+            1 // 임의의 id
+        );
+        //setinteval 대신 addevent 함수씀
+        this.time.addEvent({
+            delay: 500,
+            //500마다 mockingPosition함수 실행
+            callback: this.mockingPosition, // mockingPostion 이라는 함수 만듦
+            callbackScope: this, // this를 현재 씬으로 지정
+            loop: true, // 여러번 실행
+        });
+        // camera가 otherplayer 따라가게만듦
+        this.cameras.main.startFollow(this.otherPlayer);
 
         //game-ui 씬
         this.scene.run("game-ui");
@@ -142,6 +132,7 @@ export class game extends Phaser.Scene {
     }
 
     update() {
+
         // player.js 에서 player 키조작이벤트 불러옴
         const playerMoveHandler = new HandlePlayerMove(
             this.cursors,
@@ -199,19 +190,15 @@ export class game extends Phaser.Scene {
             }
         }
 
-        // this.input.keyboard.enabled = false;
+        // 숨기&찾기가 phase에 따라서,
+        // 본인 팀(localPlayer의 isHiding)에 따라서도 구분되어야함
         // 숨는팀, 상호작용 표시 있음, space 키 이벤트
         if (
             this.localPlayer.IsHidingTeam &&
             this.interactionEffect &&
             this.m_cursorKeys.space.isDown
         ) {
-            //publish
-            // console.log(closest.getData("id")); // key:ObjectId
-            // key:playerID value: uuid
 
-            //if (성공){
-            // if res.type === "INTERACT_HIDE": 키다운
             console.log("정지");
             this.localPlayer.stopMove();
             this.localPlayer.visible = false; // 화면에 사용자 안보임
@@ -227,7 +214,7 @@ export class game extends Phaser.Scene {
             this.localPlayer.move();
         }
 
-        //숨는팀phase 재시작 : subscribe
+        //숨는팀phase 재시작 
         if (this.m_cursorKeys.shift.isDown) {
             //재시작 좌표로 이동
             // this.localPlayer.x = 500;
@@ -247,17 +234,13 @@ export class game extends Phaser.Scene {
             this.interactionEffect &&
             this.m_cursorKeys.space.isDown
         ) {
-            //publish: /ws/rooms/{roomId}/game/seek
-            // console.log(closest.getData("id")); // key:ObjectId
-            // subscribe:
-            // if type": "INTERACT_SEEK_SUCCESS",
             this.text.showTextFind(
                 this,
                 closest.body.x - 20,
                 closest.body.y - 20
             );
 
-            // else if type": "INTERACT_SEEK_FAIL :숨은 사람이 없음
+            // else if 숨은 사람이 없음
             this.text.showTextFailFind(
                 this,
                 closest.body.x - 20,
@@ -285,16 +268,19 @@ export class game extends Phaser.Scene {
         return tileCoord;
     }
 
-    // 클래스의 메서드로 정의
-    updatePlayerPosition() {
-    this.currentPos = this.positions[Math.floor(Math.random() * this.positions.length)];
-    this.headDir = Math.floor(Math.random() * 4);
-
-    this.otherPlayer.x = this.currentPos[0];
-    this.otherPlayer.y = this.currentPos[1];
-    this.otherPlayer.stopMove(this.headDir);
-
+    //isHidingTeam (interface.js)에서 가끔 에러나요 이유를 못찾음ㅠ 
+    //constructor에 있는 임의의 position 배열에서 좌표 꺼내는 랜덤함수
+    mockingPosition(){
+        this.currentPos = this.positions[Math.floor(Math.random() * this.positions.length)];
+        //headDir보이기
+        this.headDir = Math.floor(Math.random() * 4);
+        // otherPlayer의 포지션 변경
+        this.otherPlayer.x = this.currentPos[0];
+        this.otherPlayer.y = this.currentPos[1];
+        this.otherPlayer.move(this.headDir);
     }
+
+
 
     // 상우 코드
     initPhase() {
