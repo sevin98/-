@@ -2,14 +2,13 @@ import Phaser from "phaser";
 import { getRoomRepository } from "../../repository";
 import { Phase } from "../../repository/_game";
 
-
 export default class OtherPlayer extends Phaser.Physics.Arcade.Sprite {
     static PLAYER_SPEED = 200;
     static moveX = [0, 1, 0, -1];
     static moveY = [-1, 0, 1, 0];
 
-    constructor(scene, x, y, texture,id) {
-        super(scene, x, y, texture,id);
+    constructor(scene, x, y, texture, id) {
+        super(scene, x, y, texture, id);
 
         this.id = id;
         this.scale = 1;
@@ -27,9 +26,12 @@ export default class OtherPlayer extends Phaser.Physics.Arcade.Sprite {
         this.roomRepository = getRoomRepository();
         this.gameRepository = this.roomRepository.getGameRepository();
 
+        //id로 player초기화
+        this.otherPlayer = this.gameRepository.getPlayerWithId(id);
+
         // 이후 repo의 정보값으로 대체
-        this.isHidingTeam = true;
-        this.isRacoon = true;
+        this.isHidingTeam = this.otherPlayer.isHidingTeam();
+        this.isRacoon = this.otherPlayer.isRacoonTeam();
 
         this.setupAnimations();
     }
@@ -232,7 +234,7 @@ export default class OtherPlayer extends Phaser.Physics.Arcade.Sprite {
         }
     }
     move(headDir) {
-        if(this.isRacoon){
+        if (this.isRacoon) {
             // 애니메이션 업데이트
             if (headDir === 0) {
                 // Up
@@ -247,7 +249,7 @@ export default class OtherPlayer extends Phaser.Physics.Arcade.Sprite {
                 // Left
                 this.anims.play("racoon-run-left");
             }
-        } else{
+        } else {
             if (headDir === 0) {
                 // Up
                 this.anims.play("fox-run-up");
@@ -261,9 +263,7 @@ export default class OtherPlayer extends Phaser.Physics.Arcade.Sprite {
                 // Left
                 this.anims.play("fox-run-left");
             }
-
         }
-
     }
 
     stopMove(headDir) {
@@ -299,13 +299,10 @@ export default class OtherPlayer extends Phaser.Physics.Arcade.Sprite {
         }
     }
     // phase 에 따른 움직임 추가
-    // 내가 하이딩팀일때/ otherplayer 가 하이딩팀일 때 
-    // 언제 otherplayter 화면에 보여지고 안보여지는 
-    // phaser 따라서 구분. 
+    // 내가 하이딩팀일때/ otherplayer 가 하이딩팀일 때
+    // 언제 otherplayter 화면에 보여지고 안보여지는
+    // phaser 따라서 구분.
 
     // 만약에 나: 하이딩 상대방: 하이딩 -> 상대방보임
     // 나: 찾 상대방:하이딩 -> this.otherPlayer.visibel == false (if phase==숨는시간)
 }
-
-
-

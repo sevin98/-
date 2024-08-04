@@ -14,20 +14,23 @@ export const Direction = Object.freeze({
 });
 
 
-
 export class HandlePlayerMove {
     //player 키조작
     constructor(cursors, player, headDir, moving) {
-
         this.m_cursorKeys = cursors;
         this.localPlayer = player;
         this.headDir = headDir;
         this.moving = moving;
+
         this.roomRepository = getRoomRepository();
         this.gameRepository = this.roomRepository.getGameRepository();
+        // const { x, y, direction } = this.gameRepository.getPosition();
+
+
     }
+
     freezePlayerMovement() {
-        this.localPlayer.stopMove();
+        this.gameRepository.getMe().stopMove();
     }
     enablePlayerMovement() {
         this.isMovementEnabled = true;
@@ -343,18 +346,15 @@ export default class gamePlayer extends Phaser.Physics.Arcade.Sprite {
             this.anims.play("fox-idle-down");
         }
     }
-    IsHidingTeam(){
-        return this.IsHidingTeam;
+
+    isHidingTeam(){
+        return this.gameRepository.getMe().isHidingTeam();
     }
     setIsHidingTeam() {
-        this.IsHidingTeam = !this.IsHidingTeam; // ?? 키이벤트 한번만 적용되게 할수있나?
+        this.gameRepository.getMe().setIsHidingTeam(); 
     }
     setDead() {
-        // dead상태 변환
-        this.IsDead = true;
-    }
-    setIsHiding() {
-        this.IsHiding = !this.IsHiding;
+        this.gameRepository.getMe().setDead();
     }
 
     reflectFromWall(direction) {
@@ -408,10 +408,8 @@ export default class gamePlayer extends Phaser.Physics.Arcade.Sprite {
     move(direction) {
         switch (direction) {
             case Direction.Up:
-                //this.setVelocityX(-30);
                 this.setVelocityY(-1 * gamePlayer.PLAYER_SPEED);
                 this.setVelocityX(0);
-                //this.y -= gamePlayer.PLAYER_SPEED;
 
                 if (
                     this.isRacoon &&
