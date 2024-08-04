@@ -132,11 +132,10 @@ public class Player extends Subscribable {
     }
 
     // 생존 시간 구하기
-    public void getSurvivalTimeInSeconds(){
-
-        // 탈락되었다면, 탈락된 시간, 게임이 종료될 때 까지 살아남았다면 DateTimeNow 가 endTime
+    public long getSurvivalTimeInSeconds(){
         LocalDateTime endTime = this.isEliminated ? this.eliminationTime : LocalDateTime.now();
         this.playTime = Duration.between(startTime, endTime);
+        return playTime.getSeconds();
     }
 
     // 탐색 카운트 증가
