@@ -126,11 +126,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     static PLAYER_SPEED = 200;
     static moveX = [0, 1, 0, -1];
     static moveY = [-1, 0, 1, 0];
-    static mhealth = 3;
 
-    get health() {
-        return this.mhealth;
-    }
     //static IsRacoon = true;
     constructor(scene, x, y, texture) {
         super(scene, x, y, texture);
@@ -354,10 +350,6 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     stopMove(headDir) {
-        --this.mhealth;
-        if (this.mhealth <= 0) {
-            // TODO : die
-        }
         this.setVelocityX(0);
         this.setVelocityY(0);
         if (this.isRacoon) {
@@ -470,4 +462,3 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         }
     }
 }
-
