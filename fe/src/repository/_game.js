@@ -217,4 +217,16 @@ export default class GameRepository {
             }),
         });
     }
+
+    getRacoonTeam() {
+        return this.#racoonTeam;
+    }
+
+    getFoxTeam() {
+        return this.#foxTeam;
+    }
+
+    getAllPlayers() {
+        return this.#racoonTeam.getPlayers().concat(this.#foxTeam.getPlayers());
+    }
 }
