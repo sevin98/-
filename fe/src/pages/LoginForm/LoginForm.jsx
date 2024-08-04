@@ -65,111 +65,118 @@ export default function LoginForm() {
     };
 
     return (
-        <div className={`wrapper ${action}`}>
-            <div className="form-box login">
-                <form>
-                    {/* 게임시작으로 들어갈수 있게 임시 버튼 만들어놓음 */}
-                    <button style={{width:'10px', height:'10px'}} onClick={onStartGameBtnClicked} />
-                    <h1>Login</h1>
-                    <div className="input-box">
-                        <input
-                            type="text"
-                            placeholder="Username"
-                            id="username"
-                            onChange={(e) => setUsername(e.target.value)}
-                            required
-                        />
-                        <FaUser className="icon" />
-                    </div>
-                    <div className="input-box">
-                        <input
-                            type="password"
-                            placeholder="Password"
-                            id="password"
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
-                        <FaLock className="icon" />
-                    </div>
-                    <button
-                        type="submit"
-                        onClick={(e) =>
-                            doLoginAndMoveToLobby(e, username, password)
-                        }
-                    >
-                        LOGIN
-                    </button>
-                    <div className="register-link">
-                        <p>
-                            Don't have an account?
-                            <a href="#" onClick={changeToRegisterForm}>
-                                회원가입 하기
-                            </a>
-                        </p>
-                    </div>
-                    <button
-                        className="guest"
-                        type="button"
-                        onClick={onGuestLoginBtnClicked}
-                    >
-                        게스트 접속하기
-                    </button>
-                </form>
+        <div id="container">
+            <div id="logo-area">
+                <img id="logo-img" src="image/logo.png" alt="logo" />
             </div>
+            <div className={`wrapper ${action}`}>
+                <div className="form-box login">
+                    <form>
+                        <h1>Login</h1>
+                        <div className="input-box">
+                            <input
+                                type="text"
+                                placeholder="Username"
+                                id="username"
+                                onChange={(e) => setUsername(e.target.value)}
+                                required
+                            />
+                            <FaUser className="icon" />
+                        </div>
+                        <div className="input-box">
+                            <input
+                                type="password"
+                                placeholder="Password"
+                                id="password"
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                            />
+                            <FaLock className="icon" />
+                        </div>
+                        <button
+                            type="submit"
+                            onClick={(e) =>
+                                doLoginAndMoveToLobby(e, username, password)
+                            }
+                        >
+                            LOGIN
+                        </button>
+                        <div className="register-link">
+                            <p>
+                                Don't have an account?
+                                <a href="#" onClick={changeToRegisterForm}>
+                                    회원가입 하기
+                                </a>
+                            </p>
+                        </div>
+                        <button
+                            className="guest"
+                            type="button"
+                            onClick={onGuestLoginBtnClicked}
+                        >
+                            게스트 접속하기
+                        </button>
+                    </form>
+                </div>
 
-            <div className="form-box register">
-                <form>
-                    <h1>Registration</h1>
-                    <div className="input-box">
-                        <input
-                            type="text"
-                            placeholder="Username"
-                            id="register-username"
-                            onChange={(e) => setRegistUsername(e.target.value)}
-                            required
-                        />
-                        <FaUser className="icon" />
-                    </div>
-                    <div className="input-box">
-                        <input
-                            type="password"
-                            placeholder="Password"
-                            id="register-password"
-                            onChange={(e) => setRegistPassword(e.target.value)}
-                            required
-                        />
-                        <FaLock className="icon" />
-                    </div>
+                <div className="form-box register">
+                    <form>
+                        <h1>Registration</h1>
+                        <div className="input-box">
+                            <input
+                                type="text"
+                                placeholder="Username"
+                                id="register-username"
+                                onChange={(e) =>
+                                    setRegistUsername(e.target.value)
+                                }
+                                required
+                            />
+                            <FaUser className="icon" />
+                        </div>
+                        <div className="input-box">
+                            <input
+                                type="password"
+                                placeholder="Password"
+                                id="register-password"
+                                onChange={(e) =>
+                                    setRegistPassword(e.target.value)
+                                }
+                                required
+                            />
+                            <FaLock className="icon" />
+                        </div>
 
-                    <button
-                        type="submit"
-                        onClick={(e) =>
-                            doLoginAndMoveToLobby(
-                                e,
-                                registUsername,
-                                registPassword
-                            )
-                        }
-                    >
-                        REGISTER
-                    </button>
-                    <div className="register-link">
-                        <p>
-                            Already have an account?
-                            <a href="#" onClick={changeToLoginForm}>
-                                Login
-                            </a>
-                        </p>
-                    </div>
+                        <button
+                            type="submit"
+                            onClick={(e) =>
+                                doLoginAndMoveToLobby(
+                                    e,
+                                    registUsername,
+                                    registPassword
+                                )
+                            }
+                        >
+                            REGISTER
+                        </button>
+                        <div className="register-link">
+                            <p>
+                                Already have an account?
+                                <a href="#" onClick={changeToLoginForm}>
+                                    Login
+                                </a>
+                            </p>
+                        </div>
 
-                    <button
-                        className="guest"
-                        type="button"
-                        onClick={onGuestLoginBtnClicked}
-                    >
-                        게스트 접속하기
-                    </button>
-                </form>
+                        <button
+                            className="guest"
+                            type="button"
+                            onClick={onGuestLoginBtnClicked}
+                        >
+                            게스트 접속하기
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     );

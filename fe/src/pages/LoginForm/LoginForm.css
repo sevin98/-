@@ -1,41 +1,58 @@
+#container {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    padding: 0 5%;
+    background-image: url("image/title-background.png");
+    background-size: 100% 100%;
+}
+
+#logo-area {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+#logo-img {
+    width: 30%;
+}
+
 .wrapper {
-    position: relative;
-    width: 420px;
-    height:520px; 
-    display:flex;
-    overflow:hidden;
-    align-items: center;
+    display: flex;
+    width: 25%;
+    overflow: hidden;
+    margin: 0 auto;
 }
 
 .wrapper .form-box {
     position: absolute;
     left: 0;
     width: 100%;
-    height: 100%;
     padding: 30px 40px;
     background: rgba(103, 119, 78, 0.332);
     box-sizing: border-box;
     transition: transform 0.3s ease;
 }
 
-.wrapper .form-box.login{
+.wrapper .form-box.login {
     transform: translateX(0);
 }
 
-.wrapper.active .form-box.login{
+.wrapper.active .form-box.login {
     transform: translateX(-100%);
 }
 .wrapper .form-box.register {
     transform: translateX(100%);
 }
 
-.wrapper.active .form-box.register{
+.wrapper.active .form-box.register {
     transform: translateX(0);
-
 }
 
 .form-box h1 {
-    color:#fff;
+    color: #fff;
     font-size: 36px;
     text-align: center;
 }
@@ -75,7 +92,7 @@ form .input-box .icon {
     font-size: 16px;
     color: #333;
     font-weight: 700;
-    cursor:pointer;
+    cursor: pointer;
 }
 
 form .guest {
@@ -89,7 +106,6 @@ form .guest {
 form .register-link {
     font-size: 14.5px;
     text-align: center;
-    
 }
 
 .register-link p a {
