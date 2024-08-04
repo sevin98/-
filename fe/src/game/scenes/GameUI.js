@@ -1,5 +1,4 @@
 import Phaser from 'phaser'
-import {sceneEvents} from '../../events/EventsCenter'
 export default class GameUI extends Phaser.Scene{
     health = Phaser.GameObjects.Group
 
@@ -30,13 +29,6 @@ export default class GameUI extends Phaser.Scene{
             quantity : 3
         })
         
-        /* 아래는 event 발생(이벤트 키, 이벤트 발생시 동작하는 함수, 반영 대상)과
-        없애는 
-        sceneEvents.on('player-health-changed', this.handlePlayerHealthChanged , this)
-        this.events.on(Phaser.Scenes.Events.SHUTDOWN,()=>{
-            sceneEvents.off('player-health-changed', this.handlePlayerHealthChanged , this);
-        })
-            */
 
         this.movingTeam= this.add.group({
             classType : Phaser.GameObjects.Image
@@ -51,13 +43,5 @@ export default class GameUI extends Phaser.Scene{
             quantity : 1
         })
     }
-    handlePlayerHealthChanged(){
-        //UI 그룹 내 객체들 돌면서 진행
-        this.hearts.children.each( (go, idx)=>{
-                if(idx===0){
-                    go.setTexture("uitemp");
-                }
-            }
-        )
-    }
+
 }
