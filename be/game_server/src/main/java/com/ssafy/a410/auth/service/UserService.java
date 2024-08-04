@@ -1,7 +1,7 @@
 package com.ssafy.a410.auth.service;
 
 import com.ssafy.a410.auth.domain.UserProfile;
-import com.ssafy.a410.auth.model.entity.AuthInfoEntity;
+import com.ssafy.a410.auth.model.entity.UserProfileEntity;
 
 public interface UserService {
 
@@ -9,15 +9,16 @@ public interface UserService {
 
     UserProfile getUserProfileByLoginId(String loginId);
 
+    UserProfileEntity getUserProfileEntityByUuid(String uuid);
+
     UserProfile createGuestUserProfile();
 
     String generateUniqueRandomNickname();
 
     boolean isExistUserProfile(String uuid);
 
-    UserProfile updateUserProfile(UserProfile userProfile);
+    void updateUserProfile(UserProfile userProfile);
 
-    AuthInfoEntity getAuthInfoByPlayerId(String playerId);
+    void updateUserProfileEntity(UserProfileEntity userProfileEntity);
 
-    void updateAuthInfo(AuthInfoEntity authInfo);
 }
