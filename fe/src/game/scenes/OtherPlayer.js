@@ -35,9 +35,12 @@ export default class OtherPlayer extends Phaser.Physics.Arcade.Sprite {
         // this.isHidingTeam = this.otherPlayer.isHidingTeam();
         // this.isRacoon = this.otherPlayer.isRacoonTeam();
 
-        this.isHidingTeam = this.otherPlayer.isHidingTeam();
-        this.isRacoon = this.otherPlayer.isRacoonTeam();
+        // this.isHidingTeam = this.otherPlayer.isHidingTeam();
+        // this.isRacoon = this.otherPlayer.isRacoonTeam();
 
+        // 이후 진짜 값 들어오면 삭제
+        this.isHidingTeam= true;
+        this.isRacoon  = true; 
         this.setupAnimations();
     }
 
