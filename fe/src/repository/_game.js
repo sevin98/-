@@ -56,7 +56,6 @@ export default class GameRepository {
                 })
                 .catch((e) => {});
         }, 100);
-        
     }
 
     startSubscribeGame(gameSubscriptionInfo) {
@@ -230,4 +229,29 @@ export default class GameRepository {
     getAllPlayers() {
         return this.#racoonTeam.getPlayers().concat(this.#foxTeam.getPlayers());
     }
+
+    // 숨기 가능여부 확인
+    requestHideAction(hideInfo) {
+        const { objectId, requestId } = hideInfo;
+        this.#stompClient.publish({
+            destination: `/ws/rooms/${this.#roomNumber}/game/hide`,
+            body: JSON.stringify({
+                objectId,
+                requestId,
+            }),
+        });
+    }
+    // 찾기 가능여부 확인
+    requestFindAction(seekInfo) {
+        const { objectId, requestId } = seekInfo;
+        this.#stompClient.publish({
+            destination: `/ws/rooms/${this.#roomNumber}/game/seek`,
+            body: JSON.stringify({
+                objectId,
+                requestId,
+            }),
+        });
+    }
+
+
 }

@@ -223,16 +223,19 @@ export class game extends Phaser.Scene {
         }
 
         // this.input.keyboard.enabled = false;
-        // 숨는팀, 상호작용 표시 있음, space 키 이벤트
+        // 숨는팀, 상호작용 표시 있음
         if (
             this.localPlayer.IsHidingTeam &&
-            this.interactionEffect &&
-            this.m_cursorKeys.space.isDown
-        ) {
-            //publish
-            // console.log(closest.getData("id")); // key:ObjectId
-            // key:playerID value: uuid
+            this.interactionEffect) {
+            const hideObjectId = closest.getData("id")
 
+            // 리퀘스트 아이디가 추가되었다고 들었습니다. 
+            // 뭔지는 잘 몰라서 일단 생략 
+            const hideInfo = { hideObjectId, requestId };
+
+            // 숨기 요청
+            this.gameRepository.requestHIdeAction(hideInfo);
+            
             //if (성공){
             // if res.type === "INTERACT_HIDE": 키다운
             console.log("정지");
@@ -264,16 +267,16 @@ export class game extends Phaser.Scene {
             // console.log("unfreeze");
         }
 
-        //탐색- 찾는팀,상호작용이펙트,스페이스다운
-        if (
-            !this.localPlayer.IsHidingTeam &&
-            this.interactionEffect &&
-            this.m_cursorKeys.space.isDown
-        ) {
-            //publish: /ws/rooms/{roomId}/game/seek
-            // console.log(closest.getData("id")); // key:ObjectId
-            // subscribe:
-            // if type": "INTERACT_SEEK_SUCCESS",
+        //탐색- 찾는팀,상호작용이펙트있을때
+        if (!this.localPlayer.IsHidingTeam &&
+            this.interactionEffect) {
+            
+            const findObjectId = closest.getData("id")
+            // 리퀘스트 아이디가 추가됨
+            const seekInfo = {findObjectId, requestId}
+            // 찾기 요청
+            this.gameRepository.requestFindAction(seekInfo)
+
             this.text.showTextFind(
                 this,
                 closest.body.x - 20,
