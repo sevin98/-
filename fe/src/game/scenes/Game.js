@@ -2,7 +2,7 @@ import Phaser from "phaser";
 
 import { Scene } from "phaser";
 import Player, { Direction, HandlePlayerMove } from "./Player";
-import otherPlayer from "./OtherPlayer";
+import OtherPlayer from "./OtherPlayer";
 import MapTile from "./MapTile";
 import TextGroup from "./TextGroup";
 import { getRoomRepository } from "../../repository";
@@ -60,11 +60,11 @@ export class game extends Phaser.Scene {
         this.localPlayer.isRacoon = true;
         playercam.startFollow(this.localPlayer);
 
-        const otherplayerGroup = this.gameRepository.getAllPlayers();
-        otherplayerGroup.forEach((player) => {
-            if (player.getPlayerId != me.getPlayerId) {
+        const otherPlayerGroup = this.gameRepository.getAllPlayers();
+        otherPlayerGroup.forEach((player) => {
+            if (player.getPlayerId() != me.getPlayerId()) {
                 const { x, y, direction } = player.getPosition(); // this == player
-                this.otherPlayer[player.getPlayerId()] = new otherPlayer(
+                this.otherPlayer[player.getPlayerId()] = new OtherPlayer(
                     this,
                     x,
                     y,
@@ -139,19 +139,15 @@ export class game extends Phaser.Scene {
 
     update() {
         // 클래스의 메서드로 정의
-        // updatePlayerPosition() {
-        // this.currentPos = this.positions[Math.floor(Math.random() * this.positions.length)];
-        // this.headDir = Math.floor(Math.random() * 4);
-
-        // this.otherPlayer.x = this.currentPos[0];
-        // this.otherPlayer.y = this.currentPos[1];
-        // this.otherPlayer.stopMove(this.headDir);
 
         // 위치 업데이트
-        const otherplayerGroup = this.gameRepository.getAllPlayers();
+        const otherPlayerGroup = this.gameRepository.getAllPlayers()
         const me = this.gameRepository.getMe();
-        otherplayerGroup.forEach((player) => {
-            if (this.otherPlayer[player.getPlayerId()]) {
+
+        otherPlayerGroup.forEach((player) => {
+            if (player.getPlayerId() != me.getPlayerId()) {
+
+                // 화면에 보이는 다른 player들의 위치와 headDir 변경
                 const { x, y, direction } = player.getPosition();
                 this.otherPlayer[player.getPlayerId()].x = x;
                 this.otherPlayer[player.getPlayerId()].y = y;
@@ -162,9 +158,9 @@ export class game extends Phaser.Scene {
                     player.IsHidingTeam() &&
                     player.isRacoonTeam() !== me.isRacoonTeam()
                 ) {
-                    otherPlayer.visible = false;
+                    this.otherPlayer[player.getPlayerId()].visible = false;
                 } else {
-                    otherPlayer.visible = true;
+                    this.otherPlayer[player.getPlayerId()].visible = true;
                 }
             }
         });
