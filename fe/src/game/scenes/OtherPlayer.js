@@ -1,142 +1,25 @@
 import Phaser from "phaser";
-
 import { getRoomRepository } from "../../repository";
 import { Phase } from "../../repository/_game";
 
-// import webSocketClient from '../network/index'
-
-//키인식
-export const Direction = Object.freeze({
-    Up: "Up",
-    Down: "Down",
-    Left: "Left",
-    Right: "Right",
-});
 
 
 
-export class HandlePlayerMove {
-    //player 키조작
-    constructor(cursors, player, headDir, moving) {
-
-        this.m_cursorKeys = cursors;
-        this.localPlayer = player;
-        this.headDir = headDir;
-        this.moving = moving;
-        this.roomRepository = getRoomRepository();
-        this.gameRepository = this.roomRepository.getGameRepository();
-    }
-    freezePlayerMovement() {
-        this.localPlayer.stopMove();
-    }
-    enablePlayerMovement() {
-        this.isMovementEnabled = true;
-    }
-
-    canMove() {
-        const currentPhase = this.gameRepository.getCurrentPhase();
-        return (
-            (this.gameRepository.getMe().isHidingTeam() &&
-                currentPhase === Phase.READY) ||
-            (this.gameRepository.getMe().isSeekingTeam() &&
-                currentPhase === Phase.MAIN)
-        );
-    }
-
-    update() {
-        if (!this.canMove()) {
-            this.freezePlayerMovement();
-            return;
-        }
-        if (
-            this.m_cursorKeys.left.isUp &&
-            this.m_cursorKeys.right.isUp &&
-            this.m_cursorKeys.down.isUp &&
-            this.m_cursorKeys.up.isUp
-        ) {
-            this.moving = 0;
-        }
-        if (this.m_cursorKeys.left.isDown) {
-            if ((this.moving == 1 && this.headDir == 3) || this.moving == 0) {
-                this.localPlayer.move(Direction.Left);
-                this.headDir = 3;
-                this.moving = 1;
-            }
-        }
-        if (this.m_cursorKeys.right.isDown) {
-            if ((this.moving == 1 && this.headDir == 1) || this.moving == 0) {
-                this.localPlayer.move(Direction.Right);
-                this.headDir = 1;
-                this.moving = 1;
-            }
-        }
-        if (this.m_cursorKeys.up.isDown) {
-            if ((this.moving == 1 && this.headDir == 0) || this.moving == 0) {
-                this.localPlayer.move(Direction.Up);
-                this.headDir = 0;
-                this.moving = 1;
-            }
-        }
-        if (this.m_cursorKeys.down.isDown) {
-            if ((this.moving == 1 && this.headDir == 2) || this.moving == 0) {
-                this.localPlayer.move(Direction.Down);
-                this.headDir = 2;
-                this.moving = 1;
-            }
-        }
-        if (
-            this.moving == 0 ||
-            (this.moving == 1 &&
-                this.headDir == 0 &&
-                !this.m_cursorKeys.up.isDown) ||
-            (this.moving == 1 &&
-                this.headDir == 1 &&
-                !this.m_cursorKeys.right.isDown) ||
-            (this.moving == 1 &&
-                this.headDir == 2 &&
-                !this.m_cursorKeys.down.isDown) ||
-            (this.moving == 1 &&
-                this.headDir == 3 &&
-                !this.m_cursorKeys.left.isDown)
-        ) {
-            this.moving = 0;
-            this.localPlayer.stopMove(this.headDir);
-        }
-
-        this.gameRepository.setMyPosition({
-            x: this.localPlayer.x,
-            y: this.localPlayer.y,
-            direction: this.getDirectionOfPlayer(),
-        });
-    }
-    getDirectionOfPlayer() {
-        switch (this.headDir) {
-            case 0:
-                return "UP";
-            case 1:
-                return "RIGHT";
-            case 2:
-                return "DOWN";
-            case 3:
-                return "LEFT";
-        }
-    }
-}
-// gameplayer class
-export default class gamePlayer extends Phaser.Physics.Arcade.Sprite {
+export default class otherPlayer extends Phaser.Physics.Arcade.Sprite {
     static PLAYER_SPEED = 200;
     static moveX = [0, 1, 0, -1];
     static moveY = [-1, 0, 1, 0];
 
-    constructor(scene, x, y, texture) {
-        super(scene, x, y, texture);
+    constructor(scene, x, y, texture,id) {
+        super(scene, x, y, texture,id);
 
+        this.id = id;
         this.scale = 1;
         this.alpha = 1;
+        this.setDepth(10); //화면 제일 앞에 렌더링
 
         scene.add.existing(this);
         scene.physics.add.existing(this);
-        //   this.body.setSize(this.width * 0.1, this.height * 0.1);
 
         // 스프라이트의 표시 크기를 1px * 1px로 설정
         this.setDisplaySize(16, 16);
@@ -145,8 +28,13 @@ export default class gamePlayer extends Phaser.Physics.Arcade.Sprite {
 
         this.roomRepository = getRoomRepository();
         this.gameRepository = this.roomRepository.getGameRepository();
-        this.isRacoon = this.gameRepository.getMe().isRacoonTeam();
+        this.isRacoon = this.gameRepository.getPlayerWithId(id).isRacoonTeam();
 
+        this.setupAnimations();
+    }
+
+    //애니메이션
+    setupAnimations() {
         //racoon animation
         if (this.isRacoon) {
             this.anims.create({
@@ -244,8 +132,7 @@ export default class gamePlayer extends Phaser.Physics.Arcade.Sprite {
             });
 
             this.anims.play("racoon-idle-down");
-        }
-        if (!this.isRacoon) {
+        } else if (!this.isRacoon) {
             this.anims.create({
                 key: "fox-idle-down",
                 frames: this.anims.generateFrameNames("fox", {
@@ -343,23 +230,10 @@ export default class gamePlayer extends Phaser.Physics.Arcade.Sprite {
             this.anims.play("fox-idle-down");
         }
     }
-    IsHidingTeam(){
-        return this.IsHidingTeam;
-    }
-    setIsHidingTeam() {
-        this.IsHidingTeam = !this.IsHidingTeam; // ?? 키이벤트 한번만 적용되게 할수있나?
-    }
-    setDead() {
-        // dead상태 변환
-        this.IsDead = true;
-    }
-    setIsHiding() {
-        this.IsHiding = !this.IsHiding;
-    }
-
-    reflectFromWall(direction) {
-        this.x -= gamePlayer.moveX[direction] * gamePlayer.PLAYER_SPEED;
-        this.y -= gamePlayer.moveY[direction] * gamePlayer.PLAYER_SPEED;
+    //벽부딫힐때 움직임
+    reflectFromWall(headDir) {
+        this.x -= otherPlayer.moveX[headDir] * otherPlayer.PLAYER_SPEED;
+        this.y -= otherPlayer.moveY[headDir] * otherPlayer.PLAYER_SPEED;
     }
 
     stopMove(headDir) {
@@ -405,74 +279,47 @@ export default class gamePlayer extends Phaser.Physics.Arcade.Sprite {
             }
         }
     }
-    move(direction) {
-        switch (direction) {
-            case Direction.Up:
-                //this.setVelocityX(-30);
-                this.setVelocityY(-1 * gamePlayer.PLAYER_SPEED);
-                this.setVelocityX(0);
-                //this.y -= gamePlayer.PLAYER_SPEED;
+    move(headDir) {
+        this.setVelocityX(
+            otherPlayer.moveX[headDir] * otherPlayer.PLAYER_SPEED
+        );
+        this.setVelocityY(
+            otherPlayer.moveY[headDir] * otherPlayer.PLAYER_SPEED
+        );
+        if(this.isRacoon){
+            // 애니메이션 업데이트
+            if (headDir === 0) {
+                // Up
+                this.anims.play("racoon-run-up");
+            } else if (headDir === 1) {
+                // Right
+                this.anims.play("racoon-run-right");
+            } else if (headDir === 2) {
+                // Down
+                this.anims.play("racoon-run-down");
+            } else if (headDir === 3) {
+                // Left
+                this.anims.play("racoon-run-left");
+            }
+        } else{
+            if (headDir === 0) {
+                // Up
+                this.anims.play("fox-run-up");
+            } else if (headDir === 1) {
+                // Right
+                this.anims.play("fox-run-right");
+            } else if (headDir === 2) {
+                // Down
+                this.anims.play("fox-run-down");
+            } else if (headDir === 3) {
+                // Left
+                this.anims.play("fox-run-left");
+            }
 
-                if (
-                    this.isRacoon &&
-                    this.anims.currentAnim.key != "racoon-run-up"
-                )
-                    this.anims.play("racoon-run-up");
-                if (
-                    !this.isRacoon &&
-                    this.anims.currentAnim.key != "fox-run-up"
-                )
-                    this.anims.play("fox-run-up");
-
-                break;
-            case Direction.Down:
-                this.setVelocityY(gamePlayer.PLAYER_SPEED);
-                this.setVelocityX(0);
-                //this.y += Player.PLAYER_SPEED;
-                if (
-                    this.isRacoon &&
-                    this.anims.currentAnim.key != "racoon-run-down"
-                )
-                    this.anims.play("racoon-run-down");
-                if (
-                    !this.isRacoon &&
-                    this.anims.currentAnim.key != "fox-run-down"
-                )
-                    this.anims.play("fox-run-down");
-
-                break;
-            case Direction.Right:
-                this.setVelocityX(gamePlayer.PLAYER_SPEED);
-                this.setVelocityY(0);
-                //this.x += Player.PLAYER_SPEED;
-                if (
-                    this.isRacoon &&
-                    this.anims.currentAnim.key != "racoon-run-right"
-                )
-                    this.anims.play("racoon-run-right");
-                if (
-                    !this.isRacoon &&
-                    this.anims.currentAnim.key != "fox-run-right"
-                )
-                    this.anims.play("fox-run-right");
-                break;
-            case Direction.Left:
-                this.setVelocityX(-1 * gamePlayer.PLAYER_SPEED);
-                this.setVelocityY(0);
-                //this.x -= Player.PLAYER_SPEED;
-                if (
-                    this.isRacoon &&
-                    this.anims.currentAnim.key != "racoon-run-left"
-                )
-                    this.anims.play("racoon-run-left");
-                if (
-                    !this.isRacoon &&
-                    this.anims.currentAnim.key != "fox-run-left"
-                )
-                    this.anims.play("fox-run-left");
-
-                break;
         }
-    }
-}
 
+
+    }
+
+
+}

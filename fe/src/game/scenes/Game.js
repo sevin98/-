@@ -1,13 +1,11 @@
 import Phaser from "phaser";
+
 import { Scene } from "phaser";
 import Player, { Direction, HandlePlayerMove } from "./Player";
+import OtherPlayer from "./OtherPlayer";
 import MapTile from "./MapTile";
 import TextGroup from "./TextGroup";
 import { getRoomRepository } from "../../repository";
-
-// import webSocketClient from "../network";
-// import gameStatus from '../../game_status/index'
-import { sceneEvents } from "../../events/EventsCenter";
 
 export class game extends Phaser.Scene {
     //cursor = this.cursor.c
@@ -15,6 +13,17 @@ export class game extends Phaser.Scene {
     //fauna = Phaser.Physics.Arcade.Sprite;
     constructor() {
         super("game");
+        ///
+        this.positions = [
+            [500, 400],
+            [500, 390],
+            [500, 380],
+            [500, 370],
+        ];
+        this.currentPos = this.positions[0];
+        ///
+
+        // super("game");
         this.MapTile = null;
         this.objects = null;
         this.lastSentTime = Date.now();
@@ -24,12 +33,14 @@ export class game extends Phaser.Scene {
     }
 
     preload() {
+        this.load.image("racoon", "assets/character/image.png");
         this.cursors = this.input.keyboard.createCursorKeys();
         this.headDir = 2; //under direction
         this.moving = 0;
     }
+
     create() {
-        this.text = new TextGroup(this);
+        this.text = new TextGroup(this); // 팝업텍스트 객체
 
         this.graphics = this.add.graphics().setDepth(1000); //선만들기 위한 그래픽
         // MapTile.js에서 만들어놓은 함수로 map 호출해주기
@@ -46,23 +57,41 @@ export class game extends Phaser.Scene {
         const me = this.gameRepository.getMe();
         const { x, y, direction } = me.getPosition();
         this.localPlayer = new Player(this, x, y, "fauna-idle-down", true);
-        this.localPlayer.IsRacoon = true;
+        this.localPlayer.isRacoon = true;
         playercam.startFollow(this.localPlayer);
+
+        const otherPlayerGroup = this.gameRepository.getAllPlayers();
+        otherPlayerGroup.forEach((player) => {
+            if (player.getPlayerId() != me.getPlayerId()) {
+                const { x, y, direction } = player.getPosition(); // this == player
+                this.otherPlayer[player.getPlayerId()] = new OtherPlayer(
+                    this,
+                    x,
+                    y,
+                    "fauna-idle-down",
+                    true,
+                    player.getPlayerId()
+                );
+            }
+            // 숨는팀이고 다른팀일때만 화면에서 안보여야함(같은팀일떄는 보여도됨)
+            if (
+                this.otherPlayer[player.getPlayerId()].IsHidingTeam &&
+                this.otherPlayer[player.getPlayerId()].isRacoon !=
+                    this.localPlayer.isRacoon
+            ) {
+                this.otherPlayer[player.getPlayerId()].visible = false;
+            }
+        });
+        // this.cameras.main.startFollow(this.otherPlayer);
 
         //로컬플레이어와 layer의 충돌설정
         this.physics.add.collider(
             this.localPlayer,
-            this.maptile.getLayers().BackGround,
-            () => {
-                console.log("Background!!");
-            }
+            this.maptile.getLayers().BackGround
         );
         this.physics.add.collider(
             this.localPlayer,
-            this.maptile.getLayers().Walls,
-            () => {
-                console.log("WAll!!");
-            }
+            this.maptile.getLayers().Walls
         );
         this.physics.add.collider(
             this.localPlayer,
@@ -93,6 +122,8 @@ export class game extends Phaser.Scene {
             console.log("숨을수있음");
         });
 
+        // 다른 플레이어 화면 구현
+
         //game-ui 씬
         this.scene.run("game-ui");
         //24.07.25 phase check timer
@@ -107,6 +138,33 @@ export class game extends Phaser.Scene {
     }
 
     update() {
+        // 클래스의 메서드로 정의
+
+        // 위치 업데이트
+        const otherPlayerGroup = this.gameRepository.getAllPlayers()
+        const me = this.gameRepository.getMe();
+
+        otherPlayerGroup.forEach((player) => {
+            if (player.getPlayerId() != me.getPlayerId()) {
+
+                // 화면에 보이는 다른 player들의 위치와 headDir 변경
+                const { x, y, direction } = player.getPosition();
+                this.otherPlayer[player.getPlayerId()].x = x;
+                this.otherPlayer[player.getPlayerId()].y = y;
+                this.otherPlayer[player.getPlayerId()].move(direction);
+
+                //가시성 업데이트
+                if (
+                    player.IsHidingTeam() &&
+                    player.isRacoonTeam() !== me.isRacoonTeam()
+                ) {
+                    this.otherPlayer[player.getPlayerId()].visible = false;
+                } else {
+                    this.otherPlayer[player.getPlayerId()].visible = true;
+                }
+            }
+        });
+
         // player.js 에서 player 키조작이벤트 불러옴
         const playerMoveHandler = new HandlePlayerMove(
             this.cursors,
@@ -163,30 +221,44 @@ export class game extends Phaser.Scene {
                 this.interactionEffect = null;
             }
         }
-        // this.input.keyboard.enabled = false;
-        // 상호작용 표시가 있고, space 키 이벤트 있는 경우
-        if (this.interactionEffect && this.m_cursorKeys.space.isDown) {
-            //publish
-            // console.log(closest.getData("id")); // key:ObjectId
-            // key:playerID value: uuid
 
+        // this.input.keyboard.enabled = false;
+        // 숨는팀, 상호작용 표시 있음
+        let requestId // 임시변수 이후 삭제
+        if (
+            this.localPlayer.IsHidingTeam &&
+            this.interactionEffect) {
+            const hideObjectId = closest.getData("id")
+
+            // 리퀘스트 아이디가 추가되었다고 들었습니다. 
+            // 뭔지는 잘 몰라서 일단 생략 
+            const hideInfo = { hideObjectId, requestId };
+
+            // 숨기 요청
+            this.gameRepository.requestHIdeAction(hideInfo);
+            
             //if (성공){
             // if res.type === "INTERACT_HIDE": 키다운
             console.log("정지");
-            playerMoveHandler.freezePlayerMovement(); //움직임0으로바꿈
+            this.localPlayer.stopMove();
             this.localPlayer.visible = false; // 화면에 사용자 안보임
             this.text.showTextHide(
                 this,
                 closest.body.x - 20,
                 closest.body.y - 20
             );
-            // }
-            // else{}
-        } else if (this.m_cursorKeys.shift.isDown) {
-            //subscribe받은 재시작 좌표로 이동
+            this.localPlayer.setIsHiding(); // IsHIding 상태 바뀜
+            // 숨을수 없을때:
+            // else{this.text.showTextFailHide(this, closest.body.x - 20, closest.body.y - 20);}
+        } else {
+            this.localPlayer.move();
+        }
+
+        //숨는팀phase 재시작 : subscribe
+        if (this.m_cursorKeys.shift.isDown) {
+            //재시작 좌표로 이동
             // this.localPlayer.x = 500;
             // this.localPlayer.y = 400;
-            playerMoveHandler.enablePlayerMovement(); //움직일수있음
             this.localPlayer.visible = true; // 화면에 사용자 보임
             this.text.showTextFailHide(
                 this,
@@ -196,62 +268,47 @@ export class game extends Phaser.Scene {
             // console.log("unfreeze");
         }
 
-        // if current time - last sent time is greater than 100ms
+        //탐색- 찾는팀,상호작용이펙트있을때
+        if (!this.localPlayer.IsHidingTeam &&
+            this.interactionEffect) {
+            
+            const findObjectId = closest.getData("id")
+            // 리퀘스트 아이디가 추가됨
+            const seekInfo = {findObjectId, requestId}
+            // 찾기 요청
+            this.gameRepository.requestFindAction(seekInfo)
+
+            this.text.showTextFind(
+                this,
+                closest.body.x - 20,
+                closest.body.y - 20
+            );
+
+            // else if type": "INTERACT_SEEK_FAIL :숨은 사람이 없음
+            this.text.showTextFailFind(
+                this,
+                closest.body.x - 20,
+                closest.body.y - 20
+            );
+            // els if type: 더이상 찾을 수 있는 횟수가 없음
+            this.text.showTextNoAvaiblableCount(
+                this,
+                closest.body.x - 20,
+                closest.body.y - 20
+            );
+        }
+
+        //상우 코드
         if (Date.now() - this.lastSentTime > 100) {
+            // if current time - last sent time is greater than 100ms
             this.lastSentTime = Date.now();
             // this.sharePlayerPosition();
             this.input.keyboard.enabled = true;
         }
-
-        sceneEvents.emit("player-health-changed", this.localPlayer.mhealth);
     }
 
     // 맵타일단위를 pix로 변환
     tileToPixel(tileCoord) {
         return tileCoord;
     }
-
-    initPhase() {
-        this.readyPhaseEvent = "YET";
-        this.mainPhaseEvent = "YET";
-        this.endPhaseEvent = "YET";
-        this.resultPhaseEvent = "YET";
-    }
-    readyPhaseStart() {
-        this.initPhase();
-        this.readyPhaseEvent = "DURING";
-        if (this.hideTeam === "RACOON" && this.localPlayer.IsRacoon) {
-        } else if (this.hideTeam === "FOX" && !this.localPlayer.IsRacoon) {
-        } else {
-        }
-    }
-    readyPhaseEnd() {
-        this.readyPhaseEvent = "YET";
-    }
-    mainPhaseStart() {
-        this.initPhase();
-        this.mainPhaseEvent = "DURING";
-        if (this.hideTeam === "RACOON" && this.localPlayer.IsRacoon) {
-        } else if (this.hideTeam === "FOX" && !this.localPlayer.IsRacoon) {
-        } else {
-        }
-    }
-
-    // sharePlayerPosition() {
-    //   if (webSocketClient.active) {
-    //     webSocketClient.publish({
-    //       destination: `/ws/rooms/${gameStatus.room.id}/players/position`,
-    //       body: JSON.stringify({
-    //           requestId: null,
-    //           data: {
-    //               playerId: gameStatus.player.id,
-    //               x: this.localPlayer.x,
-    //               y: this.localPlayer.y,
-    //               direction: this.getDirectionOfPlayer()
-    //           }
-    //       })
-    //     })
-    //   }
-    // }
 }
-
