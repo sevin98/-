@@ -40,6 +40,7 @@ public class InteractSeekReq extends InteractReq {
                     roomId,
                     requestedPlayer.getId(),
                     objectId,
+                    requestedPlayer.getSeekCount(),
                     this.getRequestId()
             );
             broadcastService.unicastTo(requestedPlayer, message);
@@ -66,6 +67,7 @@ public class InteractSeekReq extends InteractReq {
                 requestedPlayer.getId(),
                 objectId,
                 foundPlayer.getId(),
+                requestedPlayer.getSeekCount(),
                 this.getRequestId()
         );
         broadcastService.broadcastTo(game, message);
@@ -82,6 +84,7 @@ public class InteractSeekReq extends InteractReq {
                 roomId,
                 requestedPlayer.getId(),
                 objectId,
+                requestedPlayer.getSeekCount(),
                 this.getRequestId()
         );
         broadcastService.broadcastTo(game, message);
