@@ -1,6 +1,6 @@
 package com.ssafy.a410.game.domain.game.message.control.interact;
 
-public record InteractSeekInfo(String roomId, String playerId, String objectId, String foundPlayerId) {
+public record InteractSeekInfo(String roomId, String playerId, String objectId, int catchCount, String foundPlayerId) {
 
     public InteractSeekInfo {
         if(foundPlayerId == null){

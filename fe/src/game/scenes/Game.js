@@ -1,11 +1,13 @@
 import Phaser from "phaser";
 
-import { Scene } from "phaser";
-import Player, { Direction, HandlePlayerMove } from "./Player";
-import OtherPlayer from "./OtherPlayer"
+import Player, { HandlePlayerMove } from "./Player";
+import OtherPlayer from "./OtherPlayer";
 import MapTile from "./MapTile";
 import TextGroup from "./TextGroup";
+
+import { isFirstPress } from "../../util/keyStroke";
 import { getRoomRepository } from "../../repository";
+import { Phase } from "../../repository/_game";
 
 export class game extends Phaser.Scene {
     //cursor = this.cursor.c
@@ -57,8 +59,8 @@ export class game extends Phaser.Scene {
         const me = this.gameRepository.getMe();
         const { x, y, direction } = me.getPosition();
         this.localPlayer = new Player(this, x, y, "fauna-idle-down", true);
-        
-        // 잠깐 주석처리하고 카메라가 otherplayer를 따라가도록 바꿔놓음 
+
+        // 잠깐 주석처리하고 카메라가 otherplayer를 따라가도록 바꿔놓음
         // playercam.startFollow(this.localPlayer);
 
         //로컬플레이어와 layer의 충돌설정
@@ -126,7 +128,7 @@ export class game extends Phaser.Scene {
     update() {
         // 로컬플레이어 포지션 트래킹 , 이후 위치는 x,y,headDir로 접근
         const me = this.gameRepository.getMe();
-        const { x,y, headDir} = me.getPosition();
+        const { x, y, headDir } = me.getPosition();
 
         // player.js 에서 player 키조작이벤트 불러옴
         const playerMoveHandler = new HandlePlayerMove(
@@ -147,7 +149,7 @@ export class game extends Phaser.Scene {
             closest.body.center.x,
             closest.body.center.y,
             x, //this.localPlayer.x,
-            y, //this.localPlayer.y
+            y //this.localPlayer.y
         );
 
         // 시각적으로 가까운 오브젝트와의 선 표시, 나중에 지우면되는코드
@@ -181,38 +183,71 @@ export class game extends Phaser.Scene {
                 this.interactionEffect = null;
             }
         }
-
-        // 숨기&찾기가 phase에 따라서,
-        // 본인 팀(localPlayer의 isHiding)에 따라서도 구분되어야함
-        // 숨는팀, 상호작용 표시 있음, space 키 이벤트
+        // this.input.keyboard.enabled = false;
+        // 상호작용 표시가 있고, space 키 이벤트 있는 경우
         if (
-            this.gameRepository.getMe().isHidingTeam() &&
             this.interactionEffect &&
-            this.m_cursorKeys.space.isDown
+            isFirstPress(
+                this.m_cursorKeys.space.keyCode,
+                this.m_cursorKeys.space.isDown
+            )
         ) {
-            //숨기 성공시
-            console.log("정지");
-            this.localPlayer.stopMove();
-            this.localPlayer.visible = false; // 화면에 사용자 안보임
-            this.text.showTextHide(
-                this,
-                closest.body.x - 20,
-                closest.body.y - 20
-            );
-            //숨었을때 로컬플레이어 숨음으로 상태 변경
-            this.getGameRepository.getMe().setIsHiding();
+            //publish
+            // console.log(closest.getData("id")); // key:ObjectId
+            // key:playerID value: uuid
+            const objectId = closest.getData("id");
 
-        // 숨을수 없을때:
-        // else{this.text.showTextFailHide(this, closest.body.x - 20, closest.body.y - 20);}
-        } else {
-            //숨기 실패
-            // headDir 변수는 udpate내부에서 setPosition으로 갱신되는 중임
-            this.localPlayer.move(headDir);
-        }
-
-        //숨는팀phase 재시작 
-        if (this.m_cursorKeys.shift.isDown) {
-            //재시작 좌표로 이동
+            // 숨을 차례이면 숨기 요청
+            if (this.gameRepository.getMe().isHidingTeam()) {
+                // 단, 레디 페이즈에만 숨을 수 있음
+                if (this.gameRepository.getCurrentPhase() !== Phase.READY) {
+                    console.log("READY 페이즈만 숨을 수 있습니다.");
+                } else {
+                    this.gameRepository
+                        .requestHide(objectId)
+                        .then(({ isSucceeded }) => {
+                            if (isSucceeded) {
+                                console.log("숨기 성공");
+                                this.localPlayer.stopMove();
+                                this.localPlayer.visible = false; // 화면에 사용자 안보임
+                                this.text.showTextHide(
+                                    this,
+                                    closest.body.x - 20,
+                                    closest.body.y - 20
+                                );
+                                //숨었을때 로컬플레이어 숨음으로 상태 변경
+                                // this.getGameRepository.getMe().setIsHiding();
+                            }
+                        });
+                }
+            }
+            // 찾을 차례면 탐색 요청
+            else {
+                // 단, 메인 페이즈에만 탐색할 수 있음
+                if (this.gameRepository.getCurrentPhase() !== Phase.MAIN) {
+                    console.log("MAIN 페이즈에만 탐색할 수 있습니다.");
+                }
+                // 찾을 수 있는 횟수가 남아 있어야 함
+                else if (!this.gameRepository.getMe().canSeek()) {
+                    console.log("탐색 횟수가 부족합니다.");
+                } else {
+                    this.gameRepository
+                        .requestSeek(objectId)
+                        .then(({ isSucceeded }) => {
+                            if (isSucceeded) {
+                                console.log("탐색 성공");
+                            } else {
+                                console.log("탐색 실패");
+                            }
+                        });
+                }
+            }
+        } else if (
+            isFirstPress(
+                this.m_cursorKeys.shift.keyCode,
+                this.m_cursorKeys.shift.isDown
+            )
+        ) {
             // this.localPlayer.x = 500;
             // this.localPlayer.y = 400;
             this.localPlayer.visible = true; // 화면에 사용자 보임
@@ -249,7 +284,6 @@ export class game extends Phaser.Scene {
                 closest.body.y - 20
             );
         }
-
     }
 
     // 맵타일단위를 pix로 변환
@@ -258,8 +292,9 @@ export class game extends Phaser.Scene {
     }
 
     //constructor에 있는 임의의 position 배열에서 좌표 꺼내는 랜덤함수
-    mockingPosition(){
-        this.currentPos = this.positions[Math.floor(Math.random() * this.positions.length)];
+    mockingPosition() {
+        this.currentPos =
+            this.positions[Math.floor(Math.random() * this.positions.length)];
         //headDir보이기
         this.headDir = Math.floor(Math.random() * 4);
         // otherPlayer의 포지션 변경
@@ -267,5 +302,4 @@ export class game extends Phaser.Scene {
         this.otherPlayer.y = this.currentPos[1];
         this.otherPlayer.move(this.headDir);
     }
-
 }

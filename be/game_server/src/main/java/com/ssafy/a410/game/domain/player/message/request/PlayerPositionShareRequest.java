@@ -12,7 +12,7 @@ import static com.ssafy.a410.game.domain.player.message.request.GamePlayerReques
 
 public class PlayerPositionShareRequest extends GamePlayerRequest {
     public PlayerPositionShareRequest(String playerId, PlayerPosition position) {
-        super(playerId, MOVEMENT_SHARE, position);
+        super(playerId, MOVEMENT_SHARE, position, null);
     }
 
     @Override
