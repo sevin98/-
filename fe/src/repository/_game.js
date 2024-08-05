@@ -3,6 +3,7 @@ import { v4 as uuid } from "uuid";
 import { getStompClient } from "../network/StompClient";
 import { Team, Player } from "./interface";
 import asyncResponses from "./_asyncResponses";
+import { Mutex } from "async-mutex";
 
 // 게임 시작 이벤트
 const GAME_START = "GAME_START";
@@ -32,6 +33,9 @@ const FREEZE = "FREEZE";
 // 플레이어 조작 불가 해제 명령 이벤트
 const UNFREEZE = "UNFREEZE";
 
+// 게임 상태의 초기화를 보장하기 위한 뮤텍스
+const gameInitializationMutex = new Mutex();
+
 export class Phase {
     // 게임을 초기화 하고 있는 상태
     static INITIALIZING = "INITIALIZING";
@@ -56,6 +60,8 @@ export default class GameRepository {
     #racoonTeam;
     #me;
 
+    #isInitialized = false;
+
     constructor(roomNumber, gameSubscriptionInfo, startsAfterMilliSec) {
         this.#roomNumber = roomNumber;
 
@@ -68,7 +74,6 @@ export default class GameRepository {
                 })
                 .catch((e) => {});
         }, 100);
-        
     }
 
     startSubscribeGame(gameSubscriptionInfo) {
@@ -81,11 +86,18 @@ export default class GameRepository {
         );
     }
 
-    #handleGameMessage(message) {
+    async #handleGameMessage(message) {
         const { type, data } = message;
+
+        if (!this.#isInitialized && type !== GAME_INFO) {
+            await gameInitializationMutex.acquire();
+        }
+
         switch (type) {
             case GAME_START:
                 this.#handleGameStartEvent(data);
+                this.#isInitialized = true;
+                gameInitializationMutex.release();
                 break;
             case GAME_INFO:
                 this.#handleGameInfoEvent(data);
