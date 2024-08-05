@@ -68,6 +68,7 @@ export default class GameRepository {
                 })
                 .catch((e) => {});
         }, 100);
+        
     }
 
     startSubscribeGame(gameSubscriptionInfo) {
