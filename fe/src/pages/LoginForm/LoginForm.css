@@ -95,3 +95,8 @@ form .register-link {
     display: flex;
     justify-content: space-around;
 }
+
+.button-box .guest{
+    /* background-color: white; */
+    width: 303px;
+}
