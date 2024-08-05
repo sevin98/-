@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaUser, FaLock } from "react-icons/fa";
+import { RiChatSmile3Fill } from "react-icons/ri";
 
 import axios, { updateAxiosAccessToken } from "../../network/AxiosClient";
 import { getStompClient } from "../../network/StompClient";
 import { userRepository } from "../../repository";
 
-import { PHASER_GAME_ROUTE_PATH } from "../../game/PhaserGame";
 import { LOBBY_ROUTE_PATH } from "../Lobby/Lobby";
 
 import "./LoginForm.css";
@@ -20,6 +20,10 @@ export default function LoginForm() {
     const [password, setPassword] = useState(""); // 로그인 비밀번호
     const [registUsername, setRegistUsername] = useState(""); // 회원가입 사용자명
     const [registPassword, setRegistPassword] = useState(""); // 회원가입 비밀번호
+    const [nickname, setNickname] = useState(""); //회원가입 닉네임
+    const [loginErrorMessage, setLoginErrormessage] =
+        useState("");
+    const [registerErrorMessage, setRegisterErrormessage] = useState("");
 
     const changeToRegisterForm = (e) => {
         e.preventDefault();
@@ -29,10 +33,6 @@ export default function LoginForm() {
     const changeToLoginForm = (e) => {
         e.preventDefault();
         setAction("");
-    };
-
-    const onStartGameBtnClicked = () => {
-        navigate(PHASER_GAME_ROUTE_PATH);
     };
 
     const onGuestLoginBtnClicked = async () => {
@@ -59,12 +59,67 @@ export default function LoginForm() {
 
     const doLoginAndMoveToLobby = async (e, username, password) => {
         e.preventDefault();
-        try {
-            // TODO : Access token, User Profile 갱신, STOMP Client 초기화 및 /Lobby로 이동
-            console.log("로그인 시도...");
-        } catch (err) {
-            console.log(err);
-        }
+        axios
+            .post(`api/auth/login`, {
+                loginId: username,
+                password: password,
+            })
+            .then((resp) => {
+                const { accessToken, userProfile, webSocketConnectionToken } =
+                    resp.data;
+                // 인증 및 사용자 정보 초기화
+                updateAxiosAccessToken(accessToken);
+                userRepository.setUserProfile(userProfile);
+
+                // STOMP Client 초기화
+                getStompClient(webSocketConnectionToken);
+
+                // 로비로 이동
+                navigate(LOBBY_ROUTE_PATH);
+            })
+            .catch((error) => {
+                const data = error.data;
+                if (data.detailCode === "E401002") {
+                    setLoginErrormessage("※존재하지 않는 아이디입니다.");
+                } else if (data.detailCode === "E401003") {
+                    setLoginErrormessage("※존재하지 않는 비밀번호입니다.");
+                }
+            });
+    };
+
+    //회원가입
+    const doRegister = async (e, username, password, nickname) => {
+        e.preventDefault();
+        axios
+            .post(`api/auth/sign-up`, {
+                loginId: username,
+                password: password,
+                nickname: nickname,
+            })
+            .then((resp) => {
+                const userProfile = resp.data;
+                userRepository.setUserProfile(userProfile);
+            })
+            .catch((error) => {
+                const data = error.data;
+                if (data.detailCode === "E409007") {
+                    setRegisterErrormessage("※사용중인 아이디 입니다");
+                } else if (data.nickname) {
+                    setRegisterErrormessage("※별명은 최대 8자까지 가능합니다.");
+                } else if (data.loginId) {
+                    setRegisterErrormessage(
+                        "※ID는 알파벳과 숫자여야 최대 20자 까지 가능합니다."
+                    );
+                } else if (data.password) {
+                    setRegisterErrormessage(
+                        "※비밀번호는 최소 하나의 대문자,소문자, 숫자, 특수 문자를 담고 있어야 합니다."
+                    );
+                } else {
+                    setRegisterErrormessage(
+                        "※회원 가입 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요"
+                    );
+                }
+            });
     };
 
     return (
@@ -80,7 +135,7 @@ export default function LoginForm() {
                             <FaUser className="icon" />
                             <input
                                 type="text"
-                                placeholder="Username"
+                                placeholder="ID"
                                 id="username"
                                 onChange={(e) => setUsername(e.target.value)}
                             />
@@ -94,6 +149,7 @@ export default function LoginForm() {
                                 onChange={(e) => setPassword(e.target.value)}
                             />
                         </div>
+                        <p id="errorMessage"> {loginErrorMessage} </p>
                         <div className="button-box rpgui-content">
                             <div className="button-box-top">
                                 <button
@@ -130,11 +186,20 @@ export default function LoginForm() {
                 <div className="form-box register rpgui-container framed">
                     <form className="input-form">
                         <h1>Registration</h1>
+                        <div className="input-box ">
+                            <RiChatSmile3Fill className="icon" />
+                            <input
+                                type="text"
+                                placeholder="별명"
+                                id="nickname"
+                                onChange={(e) => setNickname(e.target.value)}
+                            />
+                        </div>
                         <div className="input-box">
                             <FaUser className="icon" />
                             <input
                                 type="text"
-                                placeholder="Username"
+                                placeholder="ID"
                                 id="register-username"
                                 onChange={(e) =>
                                     setRegistUsername(e.target.value)
@@ -152,15 +217,16 @@ export default function LoginForm() {
                                 }
                             />
                         </div>
-
+                        <p id="errorMessage">{registerErrorMessage}</p>
                         <div className="register-link rpgui-content">
                             <button
                                 className="rpgui-button"
                                 onClick={(e) =>
-                                    doLoginAndMoveToLobby(
+                                    doRegister(
                                         e,
                                         registUsername,
-                                        registPassword
+                                        registPassword,
+                                        nickname
                                     )
                                 }
                             >
