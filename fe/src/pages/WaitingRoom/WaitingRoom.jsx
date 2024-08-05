@@ -147,27 +147,32 @@ export default function WaitingRoom() {
     };
 
     return (
-        <div className="waiting-room">
-            {/* 왼쪽 위: 뒤로가기 버튼 */}
-            <BackToLobbyButton
-                onClick={onBackToLobbyBtnClicked}
-                isDisabled={isPlayerReady}
-            />
+        <div id="container" className="rpgui-cursor-default">
+            <div className="waiting-room">
+                {/* 왼쪽 위: 뒤로가기 버튼 */}
+                <BackToLobbyButton
+                    onClick={onBackToLobbyBtnClicked}
+                    isDisabled={isPlayerReady}
+                />
 
-            {/* 오른쪽 위: 방 코드 공유 버튼 */}
-            <ShareRoomCodeButton />
+                {/* 오른쪽 위: 방 코드 공유 버튼 */}
+                <ShareRoomCodeButton />
 
-            {/* 플레이어 슬롯 (가운데) */}
-            <PlayerGrid players={joinedPlayers} />
+                {/* 플레이어 슬롯 (가운데) */}
+                <PlayerGrid players={joinedPlayers} />
 
-            {/* 왼쪽 아래: 레디 버튼 */}
-            <ReadyButton onClick={onReadyBtnClicked} isReady={isPlayerReady} />
+                {/* 왼쪽 아래: 레디 버튼 */}
+                <ReadyButton
+                    onClick={onReadyBtnClicked}
+                    isReady={isPlayerReady}
+                />
 
-            {/* 오른쪽 아래: 채팅창 */}
-            <ChatBox
-                leftSecondsToStart={leftSecondsToStart}
-                countdownMessage={countdownMessage}
-            />
+                {/* 오른쪽 아래: 채팅창 */}
+                <ChatBox
+                    leftSecondsToStart={leftSecondsToStart}
+                    countdownMessage={countdownMessage}
+                />
+            </div>
         </div>
     );
 }

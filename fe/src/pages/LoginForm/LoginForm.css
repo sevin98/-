@@ -57,6 +57,7 @@
 }
 
 .form-box h1 {
+    margin: 10px;
     color: white;
     text-align: center;
     font-family: "MoveSans-Bold";
@@ -66,15 +67,31 @@
     position: relative;
     width: calc(100% - 25px); /* 25px 왼쪽 패딩 + 24px 테두리 */
     height: 3rem;
-    margin: 0;
     display: flex;
     justify-content: center;
 }
 
 .form-box .input-box input {
     height: 2rem;
+    margin-left: 0.5rem;
+}
+
+.form-box .input-box ::placeholder {
+    color:rgba(0, 0, 0, 0.134);
+    height: 2rem;
+    margin-left: 0.5rem;
 }
 
 form .register-link {
+    position: relative;
     text-align: center;
+}
+
+.wrapper .button-box {
+    position: relative;
+    align-items: center;
+}
+.wrapper .button-box-top {
+    display: flex;
+    justify-content: space-around;
 }

@@ -7,65 +7,78 @@
     align-items: center;
     background-color: aliceblue;
     justify-content: center;
+    align-items: center;
 }
 
 form {
-    display: flex;
-    justify-content: space-evenly;
     flex-direction: column;
 }
 
-h1 {
+/*방 내부에 한국어들은 궁서체 안나오게 h2태그로 쓰는중임  */
+.rpgui-content h2 {
+    font-size: 1.7em !important;
+    font-family: "MoveSans-Bold";
+    display: flex;
+    flex-direction: column;
     margin: 10px;
-    color: #333;
 }
 
-button {
-    cursor: pointer;
-    margin: 3px;
-    border: none;
-    background: #374d220e;
-    font-size: 16px;
-    color: #333;
-    font-weight: 700;
-    border-radius: 10px;
+/* RoomCreate의 placeholder 텍스트 */
+.rpgui-container ::placeholder {
+    color: rgba(255, 255, 255, 0.692);
+    font-family: "MoveSans-Bold";
+    font-size: 1em;
+    text-align: center;
+}
+
+/* lobyy와 roomcreate의 내부콘텐츠 */
+.wrapper .main-frame {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 25px;
+}
+/* roomJoin에서는 main-frame 내부 form 있음 */
+.wrapper .main-frame form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.wrapper content {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
 }
 
 .wrapper .input-box {
     display: flex;
-    margin: 25px;
     justify-content: space-evenly;
     align-items: center;
 }
 
-.wrapper .input-box input::placeholder {
-    color: rgba(0, 0, 0, 0.377);
-}
-
 .wrapper .input-box input {
-    margin-left: 10px;
-    padding-left: 10px;
     position: relative;
-    width: 70%;
+    /* margin-left: 10px; */
+    /* padding-left: 10px; */
+    /* width: 70%; */
     height: 25px;
     border: none;
     border-radius: 10px;
 }
 
-.icon {
-    cursor: pointer;
-    border: white;
-}
-
-.wrapper .navigation-room {
+.button-box-lobby {
     display: flex;
-    padding: 10px;
 }
-
-#player-nickname-label {
+.button-box-lobby button {
+    display: flex;
+    background: transparent;
+    border: none;
     color: black;
+    align-items: center;
 }
 
-#password-info-message {
-    color: red;
+button {
+    align-items: center;
 }
