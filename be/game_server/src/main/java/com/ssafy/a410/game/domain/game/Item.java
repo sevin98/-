@@ -34,7 +34,7 @@ public enum Item {
             case RED_PEPPER:
                 return Duration.ofSeconds(10);
             case LEAF:
-                return Duration.ofSeconds(60 * 10); // 예시: 10분
+                return Duration.ofSeconds(60);
             case BANANA:
                 return Duration.ofSeconds(5);
             case BEEHIVE:
