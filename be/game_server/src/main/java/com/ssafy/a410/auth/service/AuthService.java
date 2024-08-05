@@ -10,4 +10,6 @@ public interface AuthService {
     void signup(UserProfile userProfile, String loginId, String rawPassword);
     boolean verifyPassword(String rawPassword, String salt, String hashedPassword);
     boolean login(String loginId, String rawPassword);
+
+    boolean isDuplicateId(String loginId);
 }

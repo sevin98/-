@@ -1,5 +1,7 @@
 package com.ssafy.a410.game.domain.game;
 
+import com.ssafy.a410.auth.model.entity.UserProfileEntity;
+import com.ssafy.a410.auth.service.UserService;
 import com.ssafy.a410.common.exception.ResponseException;
 import com.ssafy.a410.common.exception.UnhandledException;
 import com.ssafy.a410.game.domain.Pos;
@@ -39,10 +41,10 @@ public class Game extends Subscribable implements Runnable {
     private final Team seekingTeam;
     private final Queue<GamePlayerRequest> seekingTeamRequests;
     private final MessageBroadcastService broadcastService;
+    private final UserService userService;
     // 현재 게임이 머물러 있는 상태(단계)
     private Phase currentPhase;
-
-    public Game(Room room, MessageBroadcastService broadcastService) {
+    public Game(Room room, MessageBroadcastService broadcastService, UserService userService) {
         this.room = room;
         try {
             this.gameMap = new GameMap("map-2024-07-29");
@@ -54,6 +56,7 @@ public class Game extends Subscribable implements Runnable {
         this.seekingTeam = new Team(Team.Character.FOX, this);
         this.seekingTeamRequests = new ConcurrentLinkedDeque<>();
         this.broadcastService = broadcastService;
+        this.userService = userService;
         initialize();
     }
 
@@ -420,19 +423,56 @@ public class Game extends Subscribable implements Runnable {
     }
 
     public void checkForVictory() {
-        if (hidingTeam.getPlayers().isEmpty()) {
+        if (hidingTeam.getPlayers().isEmpty() || isTeamEliminated(hidingTeam)) {
             // 찾는 팀의 승리
             endGame(seekingTeam);
-        } else if (seekingTeam.getPlayers().isEmpty()) {
+        } else if (seekingTeam.getPlayers().isEmpty() ||  isTeamEliminated(hidingTeam)) {
             // 숨는 팀의 승리
             endGame(hidingTeam);
         }
+    }
+
+    // 팀원이 전부 Eliminated되었는지 확인
+    private boolean isTeamEliminated(Team team) {
+        for (Player player : team.getPlayers().values()) {
+            if (!player.isEliminated()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void endGame(Team winningTeam) {
         // 승리 팀을 알리고, 게임을 종료하고, 결과를 저장하는 등
         GameInfo gameInfo = new GameInfo(this);
         broadcastService.broadcastTo(this, gameInfo);
+
+        // 승패팀을 찾아서 전적을 업데이트 시켜준다.
+        Team losingTeam = (winningTeam == hidingTeam) ? seekingTeam : hidingTeam;
+        updatePlayerStats(winningTeam, losingTeam);
+
         room.endGame();
+    }
+
+    private void updatePlayerStats(Team winningTeam, Team losingTeam) {
+        for (Player player : winningTeam.getPlayers().values()) {
+            if (!player.isBot())
+                updateUserProfile(player, true);
+        }
+        for (Player player : losingTeam.getPlayers().values()) {
+            if (!player.isBot())
+                updateUserProfile(player, false);
+        }
+    }
+
+    private void updateUserProfile(Player player, boolean isWinner) {
+        UserProfileEntity userProfile = userService.getUserProfileEntityByUuid(player.getId());
+        userProfile.addCatchCount(player.getCatchCount());
+        userProfile.addSurvivalTimeInSeconds(player.getSurvivalTimeInSeconds());
+        if (isWinner)
+            userProfile.addwins();
+        else
+            userProfile.addLosses();
+        userService.updateUserProfileEntity(userProfile);
     }
 }
