@@ -14,7 +14,7 @@ instance.interceptors.response.use(
             "Error has occurred in Axios response interceptor: ",
             error
         );
-        return Promise.reject(new Error(error));
+        return Promise.reject(error);
     }
 );
 

@@ -80,26 +80,6 @@ public class RoomController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    // 개발완료되면 삭제할 메소드
-    @GetMapping("/api/rooms/{roomId}/players")
-    public ResponseEntity<Set<String>> getRoomPlayers(@PathVariable String roomId) {
-        Room room = roomService.findRoomById(roomId).orElseThrow(() -> new RuntimeException("Room not found"));
-        Set<String> playerIds = room.getPlayers().keySet();
-        return ResponseEntity.ok(playerIds);
-    }
-
-    // 개발완료되면 삭제할 메소드
-    @MessageMapping("/check/{roomId}")
-    @SendTo("/topic/check/{roomId}")
-    public String checkPlayerInRoom(@DestinationVariable String roomId, Message message) {
-        Room room = roomService.findRoomById(roomId).orElseThrow(() -> new RuntimeException("Room not found"));
-        if (room.getPlayers().containsKey(message.getSender())) {
-            return "Player " + message.getSender() + " is in room " + roomId;
-        } else {
-            return "Player " + message.getSender() + " is not in room " + roomId;
-        }
-    }
-
     // 해당 방에 현재 접속해 있을 때, 레디 상태로 전환된다.
     @MessageMapping("/rooms/{roomId}/ready")
     public void setPlayerReady(@DestinationVariable String roomId, Principal principal) {
