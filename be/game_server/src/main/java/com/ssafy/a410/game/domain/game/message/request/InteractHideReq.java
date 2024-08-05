@@ -18,7 +18,6 @@ import java.util.Objects;
 import static com.ssafy.a410.game.domain.player.message.request.GamePlayerRequestType.INTERACT_HIDE;
 
 public class InteractHideReq extends InteractReq {
-
     private final String objectId;
 
     @Getter
@@ -49,7 +48,7 @@ public class InteractHideReq extends InteractReq {
         }
 
         // 오브젝트가 이미 점유된 경우 실패 메시지
-        if (!Objects.requireNonNull(hpObject).isEmpty()){
+        if (!hpObject.isEmpty()){
             Item item = hpObject.getAppliedItem();
             InteractHideFailMessage failMessage = new InteractHideFailMessage(roomId, playerId, objectId, item, getRequestId());
             broadcastService.broadcastTo(game, failMessage);

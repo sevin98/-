@@ -1,5 +1,8 @@
+import { v4 as uuid } from "uuid";
+
 import { getStompClient } from "../network/StompClient";
 import { Team, Player } from "./interface";
+import asyncResponses from "./_asyncResponses";
 
 // 게임 시작 이벤트
 const GAME_START = "GAME_START";
@@ -9,6 +12,15 @@ const GAME_INFO = "GAME_INFO";
 const ROUND_CHANGE = "ROUND_CHANGE";
 // 페이즈 전환 이벤트
 const PHASE_CHANGE = "PHASE_CHANGE";
+// 숨기 성공 이벤트
+const INTERACT_HIDE_SUCCESS = "INTERACT_HIDE_SUCCESS";
+// 숨기 실패 이벤트
+const INTERACT_HIDE_FAIL = "INTERACT_HIDE_FAIL";
+// 찾기 성공 이벤트
+const INTERACT_SEEK_SUCCESS = "INTERACT_SEEK_SUCCESS";
+// 찾기 실패 이벤트
+const INTERACT_SEEK_FAIL = "INTERACT_SEEK_FAIL";
+
 // 화면 가리기 명령 이벤트
 const COVER_SCREEN = "COVER_SCREEN";
 // 화면 가리기 해제 명령 이벤트
@@ -56,6 +68,7 @@ export default class GameRepository {
                 })
                 .catch((e) => {});
         }, 100);
+        
     }
 
     startSubscribeGame(gameSubscriptionInfo) {
@@ -82,6 +95,18 @@ export default class GameRepository {
                 break;
             case PHASE_CHANGE:
                 this.#handlePhaseChangeEvent(data);
+                break;
+            case INTERACT_HIDE_SUCCESS:
+                this.#handleInteractHideSuccessEvent(data);
+                break;
+            case INTERACT_HIDE_FAIL:
+                this.#handleInteractHideFailEvent(data);
+                break;
+            case INTERACT_SEEK_SUCCESS:
+                this.#handleInteractSeekSuccessEvent(data);
+                break;
+            case INTERACT_SEEK_FAIL:
+                this.#handleInteractSeekFailEvent(data);
                 break;
             default:
                 throw new Error(
@@ -114,10 +139,53 @@ export default class GameRepository {
 
         // 한 라운드가 끝나면 역할 반전
         this.#currentPhase = data.phase;
-        if (this.#currentPhase === Phase.END) {
+        if (this.#currentPhase === Phase.READY) {
+            console.log(
+                `당신의 팀이 ${
+                    this.getMe().isHidingTeam() ? "숨을" : "찾을"
+                } 차례입니다.`
+            );
+        } else if (this.#currentPhase === Phase.END) {
+            // 역할 전환
             this.#racoonTeam.setIsHidingTeam(!this.#racoonTeam.isHidingTeam());
             this.#foxTeam.setIsHidingTeam(!this.#foxTeam.isHidingTeam());
         }
+    }
+
+    #handleInteractHideSuccessEvent(data) {
+        const { playerId, objectId } = data;
+        // 나의 결과는 무시 (플레이어 채널로 받음)
+        if (playerId === this.#me.getPlayerId()) {
+            return;
+        }
+        console.log(`플레이어 ${playerId}가 ${objectId}에 숨기 성공`);
+    }
+
+    #handleInteractHideFailEvent(data) {
+        const { playerId, objectId, item } = data;
+        // 나의 결과는 무시 (플레이어 채널로 받음)
+        if (playerId === this.#me.getPlayerId()) {
+            return;
+        }
+        console.log(`플레이어 ${playerId}가 ${objectId}에 숨기 실패`);
+    }
+
+    #handleInteractSeekSuccessEvent(data) {
+        const { playerId, objectId } = data;
+        // 나의 결과는 무시 (플레이어 채널로 받음)
+        if (playerId === this.#me.getPlayerId()) {
+            return;
+        }
+        console.log(`플레이어 ${playerId}가 ${objectId}를 찾기 성공`);
+    }
+
+    #handleInteractSeekFailEvent(data) {
+        const { playerId, objectId } = data;
+        // 나의 결과는 무시 (플레이어 채널로 받음)
+        if (playerId === this.#me.getPlayerId()) {
+            return;
+        }
+        console.log(`플레이어 ${playerId}가 ${objectId}를 찾기 실패`);
     }
 
     initializePlayer(data) {
@@ -228,5 +296,84 @@ export default class GameRepository {
 
     getAllPlayers() {
         return this.#racoonTeam.getPlayers().concat(this.#foxTeam.getPlayers());
+    }
+
+    // HP =====================================================================
+    // 숨기 요청
+    async requestHide(objectId) {
+        const requestId = uuid();
+        this.#stompClient.publish({
+            destination: `/ws/rooms/${this.#roomNumber}/game/hide`,
+            body: JSON.stringify({
+                requestId,
+                data: {
+                    objectId,
+                },
+            }),
+        });
+
+        const hideResult = await asyncResponses.get(requestId);
+        return Promise.resolve({
+            isSucceeded: hideResult.type === INTERACT_HIDE_SUCCESS,
+        });
+    }
+
+    // 탐색 요청
+    async requestSeek(objectId) {
+        const requestId = uuid();
+        this.#stompClient.publish({
+            destination: `/ws/rooms/${this.#roomNumber}/game/seek`,
+            body: JSON.stringify({
+                requestId,
+                data: {
+                    objectId,
+                },
+            }),
+        });
+
+        const { status, data } = await asyncResponses.get(requestId);
+        if (status === INTERACT_SEEK_SUCCESS) {
+            this.#handleSeekSuccessResult(data);
+        } else {
+            this.#handleSeekFailResult(data);
+        }
+
+        // TODO: 아이템 처리 필요
+        return Promise.resolve({
+            isSucceeded: status === INTERACT_SEEK_SUCCESS,
+        });
+    }
+
+    // 찾기 성공 결과 반영
+    #handleSeekSuccessResult(data) {
+        const { foundPlayerId, objectId } = data;
+        const restCatchCount = Player.MAX_SEEK_COUNT - data.catchCount;
+        const requestedPlayerId = data.playerId;
+
+        const foundPlayer = this.getPlayerWithId(foundPlayerId);
+        const requestedPlayer = this.getPlayerWithId(requestedPlayerId);
+
+        // 찾은 플레이어를 죽은 상태로 변경
+        foundPlayer.setDead();
+        // 남은 시도 횟수 갱신
+        requestedPlayer.setRestSeekCount(restCatchCount);
+        // 찾은 횟수 갱신
+        requestedPlayer.increaseCatchCount();
+
+        // TODO : HP에 뭔 짓을 해줘야 함?
+    }
+
+    // 찾기 실패 결과 반영
+    #handleSeekFailResult(data) {
+        const { objectId } = data;
+        const restCatchCount = Player.MAX_SEEK_COUNT - data.catchCount;
+        const requestedPlayerId = data.playerId;
+
+        const requestedPlayer = this.getPlayerWithId(requestedPlayerId);
+        // 남은 시도 횟수 갱신
+        requestedPlayer.setRestSeekCount(restCatchCount);
+
+        // TODO : HP에 뭔 짓을 해줘야 함?
+        // TODO : 아이템 처리 필요
     }
 }

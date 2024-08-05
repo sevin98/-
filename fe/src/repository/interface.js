@@ -3,17 +3,23 @@ export class Player {
     #playerNickname;
     #isReady;
     #isDead;
+    #restSeekCount; // 남은 찾기 횟수
+    #catchCount; // 잡은 횟수
     #character;
     #x;
     #y;
     #direction;
     #team;
 
+    static MAX_SEEK_COUNT = 5;
+
     constructor({ playerId, playerNickname, isReady }) {
         this.#playerId = playerId;
         this.#playerNickname = playerNickname;
         this.#isReady = isReady;
         this.#isDead = false;
+        this.#restSeekCount = 5;
+        this.#catchCount = 0;
     }
 
     getPlayerId() {
@@ -80,6 +86,26 @@ export class Player {
 
     isSeekingTeam() {
         return this.#team.isSeekingTeam();
+    }
+
+    getRestSeekCount() {
+        return this.#restSeekCount;
+    }
+
+    setRestSeekCount(restSeekCount) {
+        this.#restSeekCount = restSeekCount;
+    }
+
+    getCatchCount() {
+        return this.#catchCount;
+    }
+
+    increaseCatchCount() {
+        this.#catchCount++;
+    }
+
+    canSeek() {
+        return this.#restSeekCount > 0;
     }
 }
 

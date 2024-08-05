@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { GiFastForwardButton } from "react-icons/gi";
 
 import { userRepository } from "../../repository";
 import { ROOM_CREATE_ROUTE_PATH } from "./RoomCreate";
@@ -58,30 +59,38 @@ export default function Lobby() {
     };
 
     return (
-        <div className="wrapper">
-            <h1>Title Logo</h1>
-            <form action="">
-                <div className="input-box">
-                    <h6 id="player-nickname-label">이름:</h6>
-                    <input
-                        type="text"
-                        value={currentNickname}
-                        id="nickname"
-                        onChange={(e) => setNickname(e.target.value)}
-                        disabled
-                    />
-                    <ImPencil2
-                        id="nickname-update-icon"
-                        className="icon"
-                        type="button"
-                        onClick={onNicknameChangeBtnClicked}
-                    />
+        <div id="container" className="rpgui-cursor-default">
+            <div className="wrapper rpgui-content">
+                <div>
+                    <div className="rpgui-container framed main-frame">
+                        <h1> Hi !! </h1>
+                        <h2>{currentNickname} </h2>
+                        <h1>Enjoy your game by</h1>
+                    </div>
+                    <div className="button-box-lobby">
+                        <button onClick={onCreateRoomBtnClicked}>
+                            click! 
+                            <GiFastForwardButton />
+                            <h2>새로운 방으로 시작하기</h2>
+                        </button>
+                    </div>
+                    <hr className="grey"></hr>
+                    <div className="button-box-lobby">
+                        <button onClick={onExistRoomJoinBtnClicked}>
+                            click!
+                            <GiFastForwardButton />
+                            <h2>초대 받은 방으로 이동</h2>
+                        </button>
+                    </div>
+                    <hr className="grey"></hr>
+                    <div className="button-box-lobby">
+                        <button onClick={onRandomRoomJoinBtnClicked}>
+                            click!
+                            <GiFastForwardButton />
+                            <h2>즉시 게임 시작하기!</h2>
+                        </button>
+                    </div>
                 </div>
-            </form>
-            <div className="navigation-room">
-                <button onClick={onCreateRoomBtnClicked}>방 생성</button>
-                <button onClick={onExistRoomJoinBtnClicked}>방 참여</button>
-                <button onClick={onRandomRoomJoinBtnClicked}>랜덤 매칭</button>
             </div>
         </div>
     );
