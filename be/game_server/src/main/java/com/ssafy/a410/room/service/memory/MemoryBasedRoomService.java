@@ -4,7 +4,6 @@ import com.ssafy.a410.auth.domain.UserProfile;
 import com.ssafy.a410.auth.service.UserService;
 import com.ssafy.a410.common.exception.ResponseException;
 import com.ssafy.a410.common.exception.UnhandledException;
-import com.ssafy.a410.common.exception.handler.GameException;
 import com.ssafy.a410.game.domain.player.Player;
 import com.ssafy.a410.game.service.socket.WebSocketMessageBroadcastService;
 import com.ssafy.a410.room.controller.dto.JoinRoomResp;
@@ -79,6 +78,8 @@ public class MemoryBasedRoomService implements RoomService {
         if (!room.canJoin(userProfile)) {
             throw new ResponseException(CANNOT_JOIN_ROOM);
         }
+        if(room.getRoomNumber().isEmpty()) throw new ResponseException(ROOM_NOT_FOUND);
+
         return room.join(userProfile);
     }
 
@@ -169,7 +170,7 @@ public class MemoryBasedRoomService implements RoomService {
 
     @Override
     public Room getRoomById(String roomId) {
-        return findRoomById(roomId).orElseThrow(() -> new GameException("Room not found"));
+        return findRoomById(roomId).orElseThrow(() -> new ResponseException(ROOM_NOT_FOUND));
     }
 
     @Override
