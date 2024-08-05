@@ -9,6 +9,6 @@ import lombok.Getter;
 @Getter
 public class GameControlMessage extends ControlMessage {
     public GameControlMessage(GameControlType type, Object data) {
-        super(type.name(), data);
+        super(type.name(), data, null);
     }
 }

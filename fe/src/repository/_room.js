@@ -1,4 +1,8 @@
+import { v4 as uuid } from "uuid";
+import { Mutex } from "async-mutex";
+
 import axios from "../network/AxiosClient";
+import asyncResponses from "../repository/_asyncResponses";
 
 import { getStompClient } from "../network/StompClient";
 import GameRepository from "./_game";
@@ -13,6 +17,17 @@ const SUBSCRIBE_GAME = "SUBSCRIBE_GAME";
 
 // 플레이어의 게임 시작 위치 수신
 const INITIALIZE_PLAYER = "INITIALIZE_PLAYER";
+// 플레이어의 탐색 요청 성공
+const INTERACT_SEEK_SUCCESS = "INTERACT_SEEK_SUCCESS";
+// 플레이어의 탐색 요청 실패
+const INTERACT_SEEK_FAIL = "INTERACT_SEEK_FAIL";
+// 플레이어의 숨기 요청 성공
+const INTERACT_HIDE_SUCCESS = "INTERACT_HIDE_SUCCESS";
+// 플레이어의 숨기 요청 실패
+const INTERACT_HIDE_FAIL = "INTERACT_HIDE_FAIL";
+
+// 게임 상태의 초기화를 보장하기 위한 뮤텍스
+const gameInitializationMutex = new Mutex();
 
 // 사용자가 현재 참여하고 있는 방에 대한 정보를 담는 레포지토리
 export default class RoomRepository {
@@ -24,6 +39,8 @@ export default class RoomRepository {
     #gameStartsAt;
 
     #joinedPlayerIntervalId;
+
+    #isInitialized = false;
 
     constructor(roomNumber, roomPassword) {
         this.#roomNumber = roomNumber;
@@ -96,11 +113,34 @@ export default class RoomRepository {
         }
     }
 
-    #handlePlayerMessage(message) {
-        const { type, data } = message;
+    async #handlePlayerMessage(message) {
+        const { type, data, requestId } = message;
+        const result = { type, data };
+
+        // 초기화 이벤트가 아닌 경우, 초기화가 완료될 때까지 대기
+        if (!this.#isInitialized && type !== INITIALIZE_PLAYER) {
+            await gameInitializationMutex.acquire();
+        }
+
         switch (type) {
+            // 초기화 수행 후
             case INITIALIZE_PLAYER:
-                this.#handleInitializePlayerEvent(data);
+                this.#handleInitializePlayerEvent(requestId, result);
+                // 락 해제
+                this.#isInitialized = true;
+                gameInitializationMutex.release();
+                break;
+            case INTERACT_HIDE_SUCCESS:
+                this.#handleHideRequestSuccessEvent(requestId, result);
+                break;
+            case INTERACT_HIDE_FAIL:
+                this.#handleHideRequestFailedEvent(requestId, result);
+                break;
+            case INTERACT_SEEK_SUCCESS:
+                this.#handleSeekRequestSuccessEvent(requestId, result);
+                break;
+            case INTERACT_SEEK_FAIL:
+                this.#handleSeekRequestFailedEvent(requestId, result);
                 break;
         }
     }
@@ -151,8 +191,29 @@ export default class RoomRepository {
         this.#setGameStartsAt(startsAfterMilliSec);
     }
 
-    #handleInitializePlayerEvent(data) {
-        this.#gameRepository.initializePlayer(data);
+    #handleInitializePlayerEvent(requestId, result) {
+        this.#gameRepository.initializePlayer(result.data);
+        asyncResponses.set(requestId, result);
+    }
+
+    #handleHideRequestSuccessEvent(requestId, result) {
+        console.log("숨기 성공:", result);
+        asyncResponses.set(requestId, result);
+    }
+
+    #handleHideRequestFailedEvent(requestId, result) {
+        console.log("숨기 실패:", result);
+        asyncResponses.set(requestId, result);
+    }
+
+    #handleSeekRequestSuccessEvent(requestId, result) {
+        console.log("찾기 성공:", result);
+        asyncResponses.set(requestId, result);
+    }
+
+    #handleSeekRequestFailedEvent(requestId, result) {
+        console.log("찾기 실패:", result);
+        asyncResponses.set(requestId, result);
     }
 
     // 방 번호 반환
@@ -187,4 +248,3 @@ export default class RoomRepository {
         this.#gameStartsAt = Date.now() + startsAfterMilliSec;
     }
 }
-

@@ -1,11 +1,11 @@
 package com.ssafy.a410.game.domain.game.message.request;
 
-import com.ssafy.a410.common.exception.ResponseException;
 import com.ssafy.a410.game.domain.game.Game;
 import com.ssafy.a410.game.domain.game.GameMap;
 import com.ssafy.a410.game.domain.game.HPObject;
-import com.ssafy.a410.game.domain.game.message.control.interact.InteractHideMessage;
-import com.ssafy.a410.game.domain.game.message.control.interact.InteractType;
+import com.ssafy.a410.game.domain.game.Item;
+import com.ssafy.a410.game.domain.game.message.control.interact.InteractHideFailMessage;
+import com.ssafy.a410.game.domain.game.message.control.interact.InteractHideSuccessMessage;
 import com.ssafy.a410.game.domain.player.Player;
 import com.ssafy.a410.game.domain.team.Team;
 import com.ssafy.a410.game.service.MessageBroadcastService;
@@ -13,13 +13,11 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Map;
+import java.util.Objects;
 
-import static com.ssafy.a410.common.exception.ErrorDetail.HP_OBJECT_ALREADY_OCCUPIED;
-import static com.ssafy.a410.common.exception.ErrorDetail.HP_OBJECT_NOT_FOUND;
 import static com.ssafy.a410.game.domain.player.message.request.GamePlayerRequestType.INTERACT_HIDE;
 
 public class InteractHideReq extends InteractReq {
-
     private final String objectId;
 
     @Getter
@@ -30,8 +28,8 @@ public class InteractHideReq extends InteractReq {
     @Setter
     private String playerId;
 
-    public InteractHideReq(String playerId, String objectId) {
-        super(playerId, INTERACT_HIDE, null);
+    public InteractHideReq(String playerId, String objectId, String requestId) {
+        super(playerId, INTERACT_HIDE, null, requestId);
         this.objectId = objectId;
     }
 
@@ -41,16 +39,26 @@ public class InteractHideReq extends InteractReq {
         Map<String, HPObject> hpObjects = gameMap.getHpObjects();
         HPObject hpObject = hpObjects.get(objectId);
 
-        // 유효하지 않은 오브젝트 ID인 경우 예외 발생
-        if (hpObject == null)
-            throw new ResponseException(HP_OBJECT_NOT_FOUND);
+        // 유효하지 않은 오브젝트 ID인 경우 실패 메시지
+        if (hpObject == null){
+            InteractHideFailMessage failMessage = new InteractHideFailMessage(roomId, playerId, objectId, null, this.getRequestId());
+            broadcastService.broadcastTo(game, failMessage);
+            broadcastService.unicastTo(requestedPlayer, failMessage);
+            return;
+        }
 
-        // 오브젝트가 이미 점유된 경우 예외 발생
-        if (!hpObject.isEmpty())
-            throw new ResponseException(HP_OBJECT_ALREADY_OCCUPIED);
+        // 오브젝트가 이미 점유된 경우 실패 메시지
+        if (!hpObject.isEmpty()){
+            Item item = hpObject.getAppliedItem();
+            InteractHideFailMessage failMessage = new InteractHideFailMessage(roomId, playerId, objectId, item, getRequestId());
+            broadcastService.broadcastTo(game, failMessage);
+            broadcastService.unicastTo(requestedPlayer, failMessage);
+            return;
+        }
+
         hpObject.hidePlayer(requestedPlayer);
-
-        InteractHideMessage message = new InteractHideMessage(InteractType.INTERACT_HIDE, null);
-        broadcastService.broadcastTo(game, message);
+        InteractHideSuccessMessage successMessage = new InteractHideSuccessMessage(roomId, playerId, objectId, this.getRequestId());
+        broadcastService.broadcastTo(game, successMessage);
+        broadcastService.unicastTo(requestedPlayer, successMessage);
     }
 }
