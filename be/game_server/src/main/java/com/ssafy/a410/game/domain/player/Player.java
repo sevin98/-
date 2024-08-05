@@ -188,6 +188,7 @@ public class Player extends Subscribable {
             case RED_PEPPER -> this.speed = 300;
             case BANANA -> this.speed = 100;
             case BEEHIVE -> this.speed = 0;
+            case MUSHROOM -> applyMushroomEffect();
         }
         scheduleItemRemoval(duration);
     }
@@ -231,5 +232,9 @@ public class Player extends Subscribable {
         if (directionX < 0 && directionY < 0) return DirectionArrow.DOWN_LEFT;
 
         throw new ResponseException(ErrorDetail.UNDEFINED_DIRECTION);
+    }
+
+    public void applyMushroomEffect(){
+        room.getPlayingGame().applyMushroomEffect(this);
     }
 }
