@@ -20,6 +20,7 @@ public enum ErrorDetail {
     UNKNOWN_ITEM(HttpStatus.NOT_FOUND, "E404003", "Unknown item"),
     ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "E404004", "Room not found"),
     UNKNOWN_ITEM_OR_PLAYER_NOT_FOUND(HttpStatus.NOT_FOUND, "E404005", "Unknown item or player not found"),
+    UNDEFINED_DIRECTION(HttpStatus.NOT_FOUND, "E404006", "Undefined direction"),
     // 409 Conflict
     CONFLICT(HttpStatus.CONFLICT, "E409000", "Conflict"),
     TEAM_IS_FULL(HttpStatus.CONFLICT, "E409001", "Team is full"),
