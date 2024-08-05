@@ -72,7 +72,6 @@ public class Game extends Subscribable implements Runnable {
     }
 
     private void initializeGameMap() {
-        // 예제: gameMap이 HPObject를 포함하는 경우
         gameMap.getHpObjects().values().forEach(hpObject -> hpObject.setGame(this));
     }
 
