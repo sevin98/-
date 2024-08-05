@@ -88,6 +88,13 @@ public class JPAUserService implements UserService {
         return userProfileRepository.existsByUuid(uuid);
     }
 
+    @Override
+    public UserProfile updateUserProfile(UserProfile userProfile) {
+        UserProfileEntity entity = UserProfile.toEntity(userProfile);
+        UserProfileEntity savedEntity = userProfileRepository.save(entity);
+        return UserProfile.fromEntity(savedEntity);
+    }
+
     // 랜덤 닉네임을 생성
     public String generateRandomNickname() {
         String prefix = randomNicknamePrefixes.get(random.nextInt(randomNicknamePrefixes.size()));
