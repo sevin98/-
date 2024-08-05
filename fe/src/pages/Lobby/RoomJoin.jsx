@@ -26,7 +26,6 @@ export default function RoomJoin() {
                 );
             }
         } catch (error) {
-            console.error('Error:', error);
             if (error.response) {
                 if (error.response.status === 404) {
                     toast.error("해당하는 방이 없습니다.");
@@ -37,10 +36,6 @@ export default function RoomJoin() {
                 } else {
                     toast.error("방 참가 중 오류가 발생했습니다.");
                 }
-            } else if (error.request) {
-                toast.error("서버로부터 응답을 받지 못했습니다.");
-            } else {
-                toast.error("요청을 보내는 중 오류가 발생했습니다.");
             }
         }
     };
