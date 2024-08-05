@@ -1,6 +1,7 @@
 package com.ssafy.a410.game.domain.player;
 
 import com.ssafy.a410.auth.domain.UserProfile;
+import com.ssafy.a410.common.exception.ErrorDetail;
 import com.ssafy.a410.common.exception.ResponseException;
 import com.ssafy.a410.game.domain.Pos;
 import com.ssafy.a410.game.domain.game.Item;
@@ -211,5 +212,24 @@ public class Player extends Subscribable {
             clearItem();
             room.getPlayingGame().notifyItemCleared(this);
         }, duration.toMillis(), TimeUnit.MILLISECONDS);
+    }
+
+    public DirectionArrow getDirectionTo(Player target) {
+        double directionX = target.getPos().getX() - this.pos.getX();
+        double directionY = target.getPos().getY() - this.pos.getY();
+
+        // ArithmeticException 방지위한 오차설정
+        final double TOLERANCE = 0.01;
+
+        if (Math.abs(directionX) < TOLERANCE && directionY > 0) return DirectionArrow.UP;
+        if (Math.abs(directionX) < TOLERANCE && directionY < 0) return DirectionArrow.DOWN;
+        if (directionX > 0 && Math.abs(directionY) < TOLERANCE) return DirectionArrow.RIGHT;
+        if (directionX < 0 && Math.abs(directionY) < TOLERANCE) return DirectionArrow.LEFT;
+        if (directionX > 0 && directionY > 0) return DirectionArrow.UP_RIGHT;
+        if (directionX > 0 && directionY < 0) return DirectionArrow.DOWN_RIGHT;
+        if (directionX < 0 && directionY > 0) return DirectionArrow.UP_LEFT;
+        if (directionX < 0 && directionY < 0) return DirectionArrow.DOWN_LEFT;
+
+        throw new ResponseException(ErrorDetail.UNDEFINED_DIRECTION);
     }
 }
