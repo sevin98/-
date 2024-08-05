@@ -50,6 +50,7 @@ export default function WaitingRoom() {
     let isCountdownStarted = false;
 
     const roomRepository = getRoomRepository(roomNumber, roomPassword);
+
     useEffect(() => {
         axios
             .post(`/api/rooms/${roomNumber}/join`, { password: roomPassword })
@@ -61,10 +62,25 @@ export default function WaitingRoom() {
                 roomRepository.startSubscribePlayer(playerSubscriptionInfo);
             });
 
-        // 컴포넌트가 사라지면 주기적으로 방 관련 데이터를 업데이트하는 작업을 중지
+        // 페이지를 떠날 때 방 나가기 처리
+        const handleBeforeUnload = (event) => {
+            axios.post(`/api/rooms/${roomNumber}/leave`).catch((err) => {
+                console.error("Failed to leave room:", err);
+            });
+        };
+
+        // 브라우저를 닫을 때 leave API 호출
+        window.addEventListener("beforeunload", handleBeforeUnload);
+        // 컴포넌트가 언마운트될 때 클린업 함수 실행
         return () => {
             clearInterval(updateDataIntervalId);
             roomRepository.endSubscribe();
+            window.removeEventListener("beforeunload", handleBeforeUnload);
+
+            // 방 나가기 요청
+            axios.post(`/api/rooms/${roomNumber}/leave`).catch((err) => {
+                console.error("Failed to leave room:", err);
+            });
         };
     }, []);
 
@@ -157,4 +173,3 @@ export default function WaitingRoom() {
 }
 
 export const WAITING_ROOM_ROUTE_PATH = "/WaitingRoom";
-
