@@ -23,7 +23,6 @@ export class HandlePlayerMove {
 
         this.roomRepository = getRoomRepository();
         this.gameRepository = this.roomRepository.getGameRepository();
-        // const { x, y, direction } = this.gameRepository.getPosition();
     }
 
     freezePlayerMovement() {

@@ -44,6 +44,7 @@ public class Game extends Subscribable implements Runnable {
     private final UserService userService;
     // 현재 게임이 머물러 있는 상태(단계)
     private Phase currentPhase;
+
     public Game(Room room, MessageBroadcastService broadcastService, UserService userService) {
         this.room = room;
         try {
@@ -92,14 +93,14 @@ public class Game extends Subscribable implements Runnable {
         }
 
         // 각팀에 모자란 인원 만큼 봇으로 채워넣기
-        for(int i = 0 ; i < 4 - hidingTeam.getPlayers().size(); i ++){
-            Player bot = createBot();
-            hidingTeam.addPlayer(bot);
+        for (int i = 0; i < 4 - hidingTeam.getPlayers().size(); i++) {
+//            Player bot = createBot();
+//            hidingTeam.addPlayer(bot);
         }
 
-        for(int i = 0 ; i < 4 - seekingTeam.getPlayers().size(); i ++){
-            Player bot = createBot();
-            seekingTeam.addPlayer(bot);
+        for (int i = 0; i < 4 - seekingTeam.getPlayers().size(); i++) {
+//            Player bot = createBot();
+//            seekingTeam.addPlayer(bot);
         }
     }
 
@@ -189,14 +190,11 @@ public class Game extends Subscribable implements Runnable {
             Team playerTeam = hidingTeam.has(player) ? hidingTeam : seekingTeam;
             PlayerInitializeMessage message = new PlayerInitializeMessage(info, playerTeam);
             broadcastService.unicastTo(player, message);
-        }
 
-        // 같은 팀 플레이어들의 초기 위치를 전송
-        for (Player player : hidingTeam.getPlayers().values()) {
-            broadcastService.broadcastTo(hidingTeam, new PlayerPositionMessage(new PlayerPosition(player)));
-        }
-        for (Player player : seekingTeam.getPlayers().values()) {
-            broadcastService.broadcastTo(seekingTeam, new PlayerPositionMessage(new PlayerPosition(player)));
+            // 양 팀에 소속된 플레이어들에게 최초 위치는 송신
+            PlayerPositionMessage positionMessage = new PlayerPositionMessage(info);
+            broadcastService.broadcastTo(hidingTeam, positionMessage);
+            broadcastService.broadcastTo(seekingTeam, positionMessage);
         }
     }
 
@@ -228,6 +226,18 @@ public class Game extends Subscribable implements Runnable {
                 Player player = hidingTeam.getPlayerWithId(request.getPlayerId());
                 request.handle(player, hidingTeam, this, broadcastService);
             }
+
+            // 봇 플레이어들의 위치 전송
+            for (Player player : hidingTeam.getPlayers().values()) {
+                if (player.isBot()) {
+                    // 현재 위치를 기준으로 랜덤하게 옆으로 위치 옮겨주기
+//                    player.setX(player.getPos().getX() + 0.0001);
+//                    player.setY(player.getPos().getY() + 0.0001);
+//                    // 방향 랜덤 지정
+                    player.setDirection(PlayerDirection.values()[(int) (Math.random() * 4)]);
+                    broadcastService.broadcastTo(hidingTeam, new PlayerPositionMessage(new PlayerPosition(player)));
+                }
+            }
         }
     }
 
@@ -235,17 +245,17 @@ public class Game extends Subscribable implements Runnable {
     private void hideBotPlayers() {
         // 숨기 역할 팀의 봇 플레이어를 가져옴
         List<Player> botPlayers = new ArrayList<>();
-        for(Player player : hidingTeam.getPlayers().values()) {
-            if(player.isBot()) botPlayers.add(player);
+        for (Player player : hidingTeam.getPlayers().values()) {
+            if (player.isBot()) botPlayers.add(player);
         }
 
         // 현재 숨을 수 있는 HPObject만 가져옴
         List<HPObject> hpObjects = getEmptyHPObjects();
 
         // 봇 플레이어들에게 비어있는 가장 가까운 HPObject를 찾아서 숨게 한다.
-        for(Player bot : botPlayers) {
+        for (Player bot : botPlayers) {
             HPObject closestHPObject = findClosestHPObject(bot, hpObjects);
-            if(closestHPObject != null) {
+            if (closestHPObject != null) {
                 closestHPObject.hidePlayer(bot);
                 hpObjects.remove(closestHPObject);
             } else {
@@ -257,7 +267,7 @@ public class Game extends Subscribable implements Runnable {
 
     // 현재 비어있는 HPObject만 리스트로 가져옴
     // TODO : 자기장(?)이 생길 경우 그로 인해 숨을 수 없는 곳인지 체크 추가 해야함
-    private List<HPObject> getEmptyHPObjects(){
+    private List<HPObject> getEmptyHPObjects() {
         return gameMap.getHpObjects().values()
                 .stream()
                 .filter(HPObject::isEmpty)
@@ -265,12 +275,12 @@ public class Game extends Subscribable implements Runnable {
     }
 
     // 가장 가까운 HPObject 찾기
-    private HPObject findClosestHPObject(Player bot, List<HPObject> hpObjects){
+    private HPObject findClosestHPObject(Player bot, List<HPObject> hpObjects) {
         Pos playerPos = bot.getPos();
         return hpObjects.stream()
                 .min(Comparator.comparingDouble(hpObject ->
                         Math.abs(playerPos.getY() - hpObject.getPos().getY()) +
-                        Math.abs(playerPos.getX() - hpObject.getPos().getX())))
+                                Math.abs(playerPos.getX() - hpObject.getPos().getX())))
                 .orElse(null);
     }
 
@@ -293,7 +303,6 @@ public class Game extends Subscribable implements Runnable {
             }
         }
     }
-
 
 
     private void runMainPhase() {
@@ -323,6 +332,19 @@ public class Game extends Subscribable implements Runnable {
                 Player player = seekingTeam.getPlayerWithId(request.getPlayerId());
                 request.handle(player, seekingTeam, this, broadcastService);
             }
+
+            // 봇 플레이어들의 위치 전송
+            for (Player player : seekingTeam.getPlayers().values()) {
+                if (player.isBot()) {
+                    // 현재 위치를 기준으로 랜덤하게 옆으로 위치 옮겨주기
+//                    player.setX(player.getPos().getX() + 0.0001);
+//                    player.setY(player.getPos().getY() + 0.0001);
+                    player.setDirection(PlayerDirection.values()[(int) (Math.random() * 4)]);
+                    PlayerPositionMessage message = new PlayerPositionMessage(new PlayerPosition(player));
+                    broadcastService.broadcastTo(seekingTeam, message);
+                    broadcastService.broadcastTo(hidingTeam, message);
+                }
+            }
         }
     }
 
@@ -334,7 +356,7 @@ public class Game extends Subscribable implements Runnable {
     // TODO: 후에 맵의 둘레 부분이 줄어들 경우, 위치를 계산하여 숨은 팀 플레이어들에게 송신
     // 현재는 플레이어가 숨기 전 마지막 위치를 반환한다.
     private void exitPlayers() {
-        for(Player player : hidingTeam.getPlayers().values()) {
+        for (Player player : hidingTeam.getPlayers().values()) {
             broadcastService.unicastTo(player, new PlayerPositionMessage(new PlayerPosition(player)));
         }
     }
@@ -416,8 +438,8 @@ public class Game extends Subscribable implements Runnable {
     }
 
     // 라운드가 끝날 때 탐색 카운트 초기화
-    private void resetSeekCount(){
-        for(Player player : hidingTeam.getPlayers().values()){
+    private void resetSeekCount() {
+        for (Player player : hidingTeam.getPlayers().values()) {
             player.initSeekCount();
         }
     }
@@ -426,7 +448,7 @@ public class Game extends Subscribable implements Runnable {
         if (hidingTeam.getPlayers().isEmpty() || isTeamEliminated(hidingTeam)) {
             // 찾는 팀의 승리
             endGame(seekingTeam);
-        } else if (seekingTeam.getPlayers().isEmpty() ||  isTeamEliminated(hidingTeam)) {
+        } else if (seekingTeam.getPlayers().isEmpty() || isTeamEliminated(hidingTeam)) {
             // 숨는 팀의 승리
             endGame(hidingTeam);
         }

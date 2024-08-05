@@ -52,6 +52,7 @@ export class Phase {
 }
 
 export default class GameRepository {
+    #room;
     #roomNumber;
     #stompClient;
     #startedAt;
@@ -62,7 +63,8 @@ export default class GameRepository {
 
     #isInitialized = false;
 
-    constructor(roomNumber, gameSubscriptionInfo, startsAfterMilliSec) {
+    constructor(room, roomNumber, gameSubscriptionInfo, startsAfterMilliSec) {
+        this.#room = room;
         this.#roomNumber = roomNumber;
 
         const initializationTrial = setInterval(() => {
@@ -96,11 +98,11 @@ export default class GameRepository {
         switch (type) {
             case GAME_START:
                 this.#handleGameStartEvent(data);
-                this.#isInitialized = true;
-                gameInitializationMutex.release();
                 break;
             case GAME_INFO:
                 this.#handleGameInfoEvent(data);
+                this.#isInitialized = true;
+                gameInitializationMutex.release();
                 break;
             case ROUND_CHANGE:
                 this.#handleRoundChangeEvent(data);
@@ -210,10 +212,9 @@ export default class GameRepository {
             playerNickname: "me",
             isReady: true,
         });
-        this.#me.setCharacter(teamCharacter.toLowerCase());
         this.#me.setPosition(playerPositionInfo);
 
-        if (this.#me.isFoxTeam()) {
+        if (teamCharacter.toLowerCase() === "fox") {
             this.#me.setTeam(this.#foxTeam);
         } else {
             this.#me.setTeam(this.#racoonTeam);
@@ -279,9 +280,8 @@ export default class GameRepository {
 
     // 해당 id를 가지는 플레이어를 찾아 반환
     getPlayerWithId(playerId) {
-        return (
-            this.#racoonTeam.getPlayerWithId(playerId) ??
-            this.#foxTeam.getPlayerWithId(playerId)
+        return this.getAllPlayers().find(
+            (player) => player.getPlayerId() === playerId
         );
     }
 
@@ -307,7 +307,7 @@ export default class GameRepository {
     }
 
     getAllPlayers() {
-        return this.#racoonTeam.getPlayers().concat(this.#foxTeam.getPlayers());
+        return this.#room.getJoinedPlayers();
     }
 
     // HP =====================================================================
