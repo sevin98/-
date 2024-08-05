@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import axios from "../../network/AxiosClient";
 
 import "./Lobby.css";
 import { WAITING_ROOM_ROUTE_PATH } from "../WaitingRoom/WaitingRoom";
@@ -15,19 +16,26 @@ export default function RoomJoin() {
         e.preventDefault();
 
         try {
-            // 상태를 navigate 호출 시 전달
-            navigate(
-                `${WAITING_ROOM_ROUTE_PATH}?room-number=${roomNumber}&room-password=${roomPassword}`
-            );
+            const res = await axios.post(`/api/rooms/${roomNumber}/join`, {
+                password: roomPassword,
+            });
+
+            if (res.status === 200) {
+                navigate(
+                    `${WAITING_ROOM_ROUTE_PATH}?room-number=${roomNumber}&room-password=${roomPassword}`
+                );
+            }
         } catch (error) {
-            if (error.response && error.response.status === 404) {
-                toast.error("해당하는 방이 없습니다.");
-            } else if (error.response && error.response.status === 401) {
-                toast.error("비밀번호가 틀립니다.");
-            } else if (error.response && error.response.status === 403) {
-                toast.error("방에 자리가 없습니다.");
-            } else {
-                toast.error("방 참가 중 오류가 발생했습니다.");
+            if (error.response) {
+                if (error.response.status === 404) {
+                    toast.error("해당하는 방이 없습니다.");
+                } else if (error.response.status === 401) {
+                    toast.error("비밀번호가 틀립니다.");
+                } else if (error.response.status === 409) {
+                    toast.error("이미 8명이 참가한 방입니다.");
+                } else {
+                    toast.error("방 참가 중 오류가 발생했습니다.");
+                }
             }
         }
     };
