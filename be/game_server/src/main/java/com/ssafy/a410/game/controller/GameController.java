@@ -1,15 +1,10 @@
 package com.ssafy.a410.game.controller;
 
 import com.ssafy.a410.game.controller.dto.BlockingReq;
-import com.ssafy.a410.game.domain.game.Game;
 import com.ssafy.a410.game.domain.game.item.ItemUseReq;
-import com.ssafy.a410.game.domain.game.item.ItemUseRequestDto;
-import com.ssafy.a410.game.domain.player.message.response.PlayerRequestType;
-import com.ssafy.a410.game.domain.player.message.response.RequestResultMessage;
 import com.ssafy.a410.game.controller.dto.PlayerPositionReq;
 import com.ssafy.a410.game.domain.game.message.request.InteractSeekReq;
 import com.ssafy.a410.game.domain.game.message.request.InteractHideReq;
-import com.ssafy.a410.game.domain.player.Player;
 import com.ssafy.a410.game.service.GameService;
 import com.ssafy.a410.game.service.InteractService;
 import lombok.RequiredArgsConstructor;
