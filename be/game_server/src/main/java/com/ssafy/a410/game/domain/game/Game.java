@@ -587,16 +587,32 @@ public class Game extends Subscribable implements Runnable {
         }
     }
 
-    public void sendDirectionHints(){
-        for(Player seeker : seekingTeam.getPlayers().values()){
-            List<DirectionArrow> directions = new ArrayList<>();
-            for(Player hider : hidingTeam.getPlayers().values()){
-                if(!hider.isEliminated()){
-                    DirectionArrow direction = seeker.getDirectionTo(hider);
-                    if(direction != null) directions.add(direction);
+
+    // Hider들의 방향을 계산해주는 메소드
+    public List<DirectionArrow> getDirectionsOfHiders(Player seeker) {
+        List<DirectionArrow> directions = new ArrayList<>();
+        for (Player hider : hidingTeam.getPlayers().values()) {
+            if (!hider.isEliminated()) {
+                DirectionArrow direction = seeker.getDirectionTo(hider);
+                if (direction != null) {
+                    directions.add(direction);
                 }
             }
+        }
+        return directions;
+    }
+
+    // 계산된 hider들의 방향을 seeker에게 전송해주는 메소드
+    public void sendDirectionHints(){
+        for(Player seeker : seekingTeam.getPlayers().values()){
+            List<DirectionArrow> directions = getDirectionsOfHiders(seeker);
             broadcastService.unicastTo(seeker, new DirectionHintMessage(seeker.getId(), directions));
         }
+    }
+
+    // MUSHROOM 아이템 적용 메소드
+    public void applyMushroomEffect(Player player) {
+        List<DirectionArrow> directions = getDirectionsOfHiders(player);
+        broadcastService.unicastTo(player, new DirectionHintMessage(player.getId(), directions));
     }
 }
