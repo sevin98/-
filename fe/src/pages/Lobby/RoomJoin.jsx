@@ -33,23 +33,30 @@ export default function RoomJoin() {
     };
 
     return (
-        <div className="wrapper">
-            <form onSubmit={handleJoinRoom}>
-                <input
-                    type="text"
-                    value={roomNumber}
-                    onChange={(e) => setRoomNumber(e.target.value)}
-                    placeholder="방 번호"
-                    required
-                />
-                <input
-                    type="password"
-                    value={roomPassword}
-                    onChange={(e) => setRoomPassword(e.target.value)}
-                    placeholder="비밀번호"
-                />
-                <button type="submit">방 참가</button>
-            </form>
+        <div id="container" className="rpgui-cursor-default">
+            <div className="wrapper rpgui-content">
+                <div className="rpgui-container framed main-frame">
+                    <h2>초대받은 방의 번호와 비밀번호를 입력하세요</h2>
+                    <form onSubmit={handleJoinRoom}>
+                        <input
+                            type="text"
+                            value={roomNumber}
+                            onChange={(e) => setRoomNumber(e.target.value)}
+                            placeholder="방 번호"
+                            required
+                        />
+                        <input
+                            type="password"
+                            value={roomPassword}
+                            onChange={(e) => setRoomPassword(e.target.value)}
+                            placeholder="비밀번호"
+                        />
+                        <button className="rpgui-button" type="submit">
+                            <p>Start!</p>
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
     );
 }
