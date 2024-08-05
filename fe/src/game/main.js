@@ -3,9 +3,9 @@ import {MainMenu}  from './scenes/MainMenu'
 import {Preloader} from './scenes/Preloader'
 import {game} from './scenes/Game'
 import GameUI from './scenes/GameUI'
+import { useEffect } from 'react'
 
-// Find out more information about the Game Config at:
-// https://newdocs.phaser.io/docs/3.70.0/Phaser.Types.Core.GameConfig
+
 const config = {
     type: Phaser.AUTO,
     width: 400,
