@@ -1,4 +1,7 @@
+import { v4 as uuid } from "uuid";
+
 import axios from "../network/AxiosClient";
+import asyncResponses from "../repository/_asyncResponses";
 
 import { getStompClient } from "../network/StompClient";
 import GameRepository from "./_game";
@@ -13,6 +16,14 @@ const SUBSCRIBE_GAME = "SUBSCRIBE_GAME";
 
 // 플레이어의 게임 시작 위치 수신
 const INITIALIZE_PLAYER = "INITIALIZE_PLAYER";
+// 플레이어의 탐색 요청 성공
+const INTERACT_SEEK_SUCCESS = "INTERACT_SEEK_SUCCESS";
+// 플레이어의 탐색 요청 실패
+const INTERACT_SEEK_FAIL = "INTERACT_SEEK_FAIL";
+// 플레이어의 숨기 요청 성공
+const INTERACT_HIDE_SUCCESS = "INTERACT_HIDE_SUCCESS";
+// 플레이어의 숨기 요청 실패
+const INTERACT_HIDE_FAIL = "INTERACT_HIDE_FAIL";
 
 // 사용자가 현재 참여하고 있는 방에 대한 정보를 담는 레포지토리
 export default class RoomRepository {
@@ -37,6 +48,24 @@ export default class RoomRepository {
                     clearInterval(initializationTrial);
                     this.#stompClient = client;
                     this.#startPlayerListInterval();
+
+                    setInterval(async () => {
+                        const requestId = uuid();
+                        this.#stompClient.publish({
+                            destination: `/ws/rooms/${
+                                this.#roomNumber
+                            }/game/foo`,
+                            body: JSON.stringify({
+                                requestId,
+                                data: {
+                                    message: "foo",
+                                },
+                            }),
+                        });
+
+                        const gotResult = await asyncResponses.get(requestId);
+                        console.log("gotResult:", gotResult);
+                    }, 1000);
                 })
                 .catch((e) => {});
         }, 100);
@@ -97,10 +126,17 @@ export default class RoomRepository {
     }
 
     #handlePlayerMessage(message) {
-        const { type, data } = message;
+        const { type, data, requestId } = message;
+
         switch (type) {
             case INITIALIZE_PLAYER:
-                this.#handleInitializePlayerEvent(data);
+                this.#handleInitializePlayerEvent(data, requestId);
+                break;
+            case INTERACT_SEEK_SUCCESS:
+            case INTERACT_SEEK_FAIL:
+            case INTERACT_HIDE_SUCCESS:
+            case INTERACT_HIDE_FAIL:
+                asyncResponses.set(requestId, data);
                 break;
         }
     }
@@ -151,8 +187,14 @@ export default class RoomRepository {
         this.#setGameStartsAt(startsAfterMilliSec);
     }
 
-    #handleInitializePlayerEvent(data) {
+    #handleInitializePlayerEvent(data, requestId) {
         this.#gameRepository.initializePlayer(data);
+
+        console.log(data, requestId);
+
+        if (requestId) {
+            asyncResponses.set(requestId, data);
+        }
     }
 
     // 방 번호 반환
@@ -187,4 +229,3 @@ export default class RoomRepository {
         this.#gameStartsAt = Date.now() + startsAfterMilliSec;
     }
 }
-

@@ -56,6 +56,10 @@ public class JPAAuthService implements AuthService {
 
     @Override
     public void signup(UserProfile userProfile, String loginId, String rawPassword) {
+        if(isDuplicateId(loginId))
+            throw new ResponseException(ErrorDetail.DUPLICATE_ID);
+
+
         UserProfileEntity userProfileEntity = UserProfileEntity.builder()
                 .uuid(UUID.randomUUID().toString())  // UUID 자동 생성
                 .nickname(userProfile.getNickname())
@@ -94,5 +98,10 @@ public class JPAAuthService implements AuthService {
         String hashedPassword = authInfoEntity.getHashedPassword();
 
         return verifyPassword(rawPassword, salt, hashedPassword);
+    }
+
+    @Override
+    public boolean isDuplicateId(String loginId) {
+        return authInfoRepository.findByLoginId(loginId).isPresent();
     }
 }

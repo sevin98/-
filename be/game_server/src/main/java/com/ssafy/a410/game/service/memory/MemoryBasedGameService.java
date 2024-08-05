@@ -3,6 +3,7 @@ package com.ssafy.a410.game.service.memory;
 import com.ssafy.a410.game.controller.dto.PlayerPositionReq;
 import com.ssafy.a410.game.domain.game.Game;
 import com.ssafy.a410.game.domain.game.message.control.GameInfo;
+import com.ssafy.a410.game.domain.game.message.control.GameInfoMessage;
 import com.ssafy.a410.game.domain.player.Player;
 import com.ssafy.a410.game.domain.player.PlayerPosition;
 import com.ssafy.a410.game.domain.player.message.request.PlayerPositionShareRequest;
@@ -31,14 +32,14 @@ public class MemoryBasedGameService implements GameService {
     }
 
     @Override
-    public void sendGameInfoToPlayer(String roomId, String userProfileUuid) {
+    public void sendGameInfoToPlayer(String roomId, String playerId, String requestId) {
         // 해당 방에 플레이어가 있는지 먼저 확인하고
         Room targetRoom = roomService.getRoomById(roomId);
-        Player player = targetRoom.getPlayerWith(userProfileUuid);
+        Player player = targetRoom.getPlayerWith(playerId);
 
         // 게임의 정보를 해당 플레이어의 채널로 전송
-        GameInfo gameInfo = new GameInfo(targetRoom.playingGame);
-        messageBroadcastService.unicastTo(player, gameInfo);
+        GameInfo gameInfo = new GameInfo(targetRoom.playingGame, requestId);
+        messageBroadcastService.unicastTo(player, new GameInfoMessage(gameInfo));
     }
 
     @Override

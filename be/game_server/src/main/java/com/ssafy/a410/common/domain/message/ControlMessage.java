@@ -11,4 +11,5 @@ import lombok.RequiredArgsConstructor;
 public class ControlMessage {
     private final String type;
     private final Object data;
+    private final String requestId;
 }

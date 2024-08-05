@@ -54,6 +54,11 @@ public class JPAUserService implements UserService {
     }
 
     @Override
+    public UserProfileEntity getUserProfileEntityByUuid(String uuid) {
+        return userProfileRepository.findByUuid(uuid).orElseThrow(() -> new ResponseException(ErrorDetail.PLAYER_NOT_FOUND));
+    }
+
+    @Override
     public UserProfile createGuestUserProfile() {
         // 랜덤하게 닉네임을 만들어서
         UserProfileEntity requestEntity = getGuestProfileRequestEntity();
@@ -86,6 +91,18 @@ public class JPAUserService implements UserService {
     @Override
     public boolean isExistUserProfile(String uuid) {
         return userProfileRepository.existsByUuid(uuid);
+    }
+
+    @Override
+    public void updateUserProfile(UserProfile userProfile) {
+        UserProfileEntity entity = UserProfile.toEntity(userProfile);
+        UserProfileEntity savedEntity = userProfileRepository.save(entity);
+        UserProfile.fromEntity(savedEntity);
+    }
+
+    @Override
+    public void updateUserProfileEntity(UserProfileEntity userProfileEntity) {
+        userProfileRepository.save(userProfileEntity);
     }
 
     // 랜덤 닉네임을 생성

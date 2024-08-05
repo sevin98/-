@@ -47,7 +47,7 @@ public class MemoryBasedRoomService implements RoomService {
         assertUserProfileExists(userProfileUuid);
 
         // 다음 번호로 방을 만들고, 방 목록에 추가한 다음
-        Room room = new Room(Integer.toString(getNextRoomNumber()), password, broadcastService);
+        Room room = new Room(Integer.toString(getNextRoomNumber()), password, broadcastService, userService);
         rooms.put(room.getRoomNumber(), room);
 
         // 생성된 방을 반환

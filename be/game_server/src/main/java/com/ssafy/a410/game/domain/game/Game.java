@@ -1,5 +1,7 @@
 package com.ssafy.a410.game.domain.game;
 
+import com.ssafy.a410.auth.model.entity.UserProfileEntity;
+import com.ssafy.a410.auth.service.UserService;
 import com.ssafy.a410.common.exception.ResponseException;
 import com.ssafy.a410.common.exception.UnhandledException;
 import com.ssafy.a410.game.domain.Pos;
@@ -20,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.stream.Collectors;
 
 import static com.ssafy.a410.common.exception.ErrorDetail.PLAYER_NOT_IN_ROOM;
 
@@ -38,10 +41,10 @@ public class Game extends Subscribable implements Runnable {
     private final Team seekingTeam;
     private final Queue<GamePlayerRequest> seekingTeamRequests;
     private final MessageBroadcastService broadcastService;
+    private final UserService userService;
     // 현재 게임이 머물러 있는 상태(단계)
     private Phase currentPhase;
-
-    public Game(Room room, MessageBroadcastService broadcastService) {
+    public Game(Room room, MessageBroadcastService broadcastService, UserService userService) {
         this.room = room;
         try {
             this.gameMap = new GameMap("map-2024-07-29");
@@ -53,6 +56,7 @@ public class Game extends Subscribable implements Runnable {
         this.seekingTeam = new Team(Team.Character.FOX, this);
         this.seekingTeamRequests = new ConcurrentLinkedDeque<>();
         this.broadcastService = broadcastService;
+        this.userService = userService;
         initialize();
     }
 
@@ -86,6 +90,21 @@ public class Game extends Subscribable implements Runnable {
                 seekingTeam.addPlayer(player);
             }
         }
+
+        // 각팀에 모자란 인원 만큼 봇으로 채워넣기
+        for(int i = 0 ; i < 4 - hidingTeam.getPlayers().size(); i ++){
+            Player bot = createBot();
+            hidingTeam.addPlayer(bot);
+        }
+
+        for(int i = 0 ; i < 4 - seekingTeam.getPlayers().size(); i ++){
+            Player bot = createBot();
+            seekingTeam.addPlayer(bot);
+        }
+    }
+
+    private Player createBot() {
+        return new Player(room, true);
     }
 
     // 해당 팀에 속해 있는 플레이어들의 초기 위치를 겹치지 않게 지정
@@ -129,6 +148,7 @@ public class Game extends Subscribable implements Runnable {
 
             log.debug("Room {} READY Phase start ------------------------------------", room.getRoomNumber());
             runReadyPhase();
+            hideBotPlayers();
             eliminateUnhidePlayers();
 
             log.debug("Room {} MAIN Phase start -------------------------------------", room.getRoomNumber());
@@ -211,6 +231,49 @@ public class Game extends Subscribable implements Runnable {
         }
     }
 
+    // Bot 들을 현재 위치 기반으로 가장 가까운 숨을 수 있는 HPObjects에 숨김
+    private void hideBotPlayers() {
+        // 숨기 역할 팀의 봇 플레이어를 가져옴
+        List<Player> botPlayers = new ArrayList<>();
+        for(Player player : hidingTeam.getPlayers().values()) {
+            if(player.isBot()) botPlayers.add(player);
+        }
+
+        // 현재 숨을 수 있는 HPObject만 가져옴
+        List<HPObject> hpObjects = getEmptyHPObjects();
+
+        // 봇 플레이어들에게 비어있는 가장 가까운 HPObject를 찾아서 숨게 한다.
+        for(Player bot : botPlayers) {
+            HPObject closestHPObject = findClosestHPObject(bot, hpObjects);
+            if(closestHPObject != null) {
+                closestHPObject.hidePlayer(bot);
+                hpObjects.remove(closestHPObject);
+            } else {
+                // 봇 하나라도 숨을 수 없는 경우, 나머지 봇도 숨을 수 없음
+                break;
+            }
+        }
+    }
+
+    // 현재 비어있는 HPObject만 리스트로 가져옴
+    // TODO : 자기장(?)이 생길 경우 그로 인해 숨을 수 없는 곳인지 체크 추가 해야함
+    private List<HPObject> getEmptyHPObjects(){
+        return gameMap.getHpObjects().values()
+                .stream()
+                .filter(HPObject::isEmpty)
+                .collect(Collectors.toList());
+    }
+
+    // 가장 가까운 HPObject 찾기
+    private HPObject findClosestHPObject(Player bot, List<HPObject> hpObjects){
+        Pos playerPos = bot.getPos();
+        return hpObjects.stream()
+                .min(Comparator.comparingDouble(hpObject ->
+                        Math.abs(playerPos.getY() - hpObject.getPos().getY()) +
+                        Math.abs(playerPos.getX() - hpObject.getPos().getX())))
+                .orElse(null);
+    }
+
     // 준비 페이즈 동안 안 숨은 플레이어들을 찾아서 탈락 처리한다.
     private void eliminateUnhidePlayers() {
         Map<String, Player> hidingTeamPlayers = hidingTeam.getPlayers();
@@ -226,7 +289,7 @@ public class Game extends Subscribable implements Runnable {
             // 만약 플레이어는 숨지 않았을 경우
             if (!hpObjectKeys.contains(playerId)) {
                 // 플레이어 탈락 처리
-                player.setEliminated(true);
+                player.eliminate();
             }
         }
     }
@@ -360,19 +423,56 @@ public class Game extends Subscribable implements Runnable {
     }
 
     public void checkForVictory() {
-        if (hidingTeam.getPlayers().isEmpty()) {
+        if (hidingTeam.getPlayers().isEmpty() || isTeamEliminated(hidingTeam)) {
             // 찾는 팀의 승리
             endGame(seekingTeam);
-        } else if (seekingTeam.getPlayers().isEmpty()) {
+        } else if (seekingTeam.getPlayers().isEmpty() ||  isTeamEliminated(hidingTeam)) {
             // 숨는 팀의 승리
             endGame(hidingTeam);
         }
+    }
+
+    // 팀원이 전부 Eliminated되었는지 확인
+    private boolean isTeamEliminated(Team team) {
+        for (Player player : team.getPlayers().values()) {
+            if (!player.isEliminated()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void endGame(Team winningTeam) {
         // 승리 팀을 알리고, 게임을 종료하고, 결과를 저장하는 등
         GameInfo gameInfo = new GameInfo(this);
         broadcastService.broadcastTo(this, gameInfo);
+
+        // 승패팀을 찾아서 전적을 업데이트 시켜준다.
+        Team losingTeam = (winningTeam == hidingTeam) ? seekingTeam : hidingTeam;
+        updatePlayerStats(winningTeam, losingTeam);
+
         room.endGame();
+    }
+
+    private void updatePlayerStats(Team winningTeam, Team losingTeam) {
+        for (Player player : winningTeam.getPlayers().values()) {
+            if (!player.isBot())
+                updateUserProfile(player, true);
+        }
+        for (Player player : losingTeam.getPlayers().values()) {
+            if (!player.isBot())
+                updateUserProfile(player, false);
+        }
+    }
+
+    private void updateUserProfile(Player player, boolean isWinner) {
+        UserProfileEntity userProfile = userService.getUserProfileEntityByUuid(player.getId());
+        userProfile.addCatchCount(player.getCatchCount());
+        userProfile.addSurvivalTimeInSeconds(player.getSurvivalTimeInSeconds());
+        if (isWinner)
+            userProfile.addwins();
+        else
+            userProfile.addLosses();
+        userService.updateUserProfileEntity(userProfile);
     }
 }

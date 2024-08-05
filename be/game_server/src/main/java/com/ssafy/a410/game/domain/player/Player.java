@@ -1,6 +1,8 @@
 package com.ssafy.a410.game.domain.player;
 
 import com.ssafy.a410.auth.domain.UserProfile;
+import com.ssafy.a410.auth.service.UserService;
+import com.ssafy.a410.auth.service.jpa.JPAUserService;
 import com.ssafy.a410.common.exception.ResponseException;
 import com.ssafy.a410.game.domain.Pos;
 import com.ssafy.a410.room.domain.Room;
@@ -10,6 +12,7 @@ import lombok.Setter;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import static com.ssafy.a410.common.exception.ErrorDetail.PLAYER_ALREADY_READY;
 
@@ -42,6 +45,8 @@ public class Player extends Subscribable {
     private LocalDateTime eliminationTime;
     // 해당 플레이어의 플레이타임
     private Duration playTime;
+    // 봇 여부
+    private boolean isBot;
 
     public Player(UserProfile userProfile, Room room) {
         this(userProfile.getUuid(), userProfile.getNickname(), room);
@@ -55,6 +60,21 @@ public class Player extends Subscribable {
         this.pos = new Pos(0, 0);
         this.seekCount = 0;
         this.catchCount = 0;
+        this.isBot = false;
+    }
+
+    // 봇 생성자
+    // TODO : id / nickname의 경우 수정할 경우 auth 통해서 받아오는 걸로
+    public Player(Room room, boolean isBot){
+        // 나중에 uuid로 봇을 구분해서 움직이는 등의 게임 진행을 해야할 일이 있을까..?
+        this.id = UUID.randomUUID().toString();
+        // 랜덤 닉네임을 배정해줘야 하는가?
+        this.nickname = "bot";
+        this.room = room;
+        this.pos = new Pos(0, 0);
+        this.seekCount = 0;
+        this.catchCount = 0;
+        this.isBot = isBot;
     }
 
     public void setInitialPosition(double x, double y, PlayerDirection direction) {
@@ -112,11 +132,10 @@ public class Player extends Subscribable {
     }
 
     // 생존 시간 구하기
-    public void getSurvivalTimeInSeconds(){
-
-        // 탈락되었다면, 탈락된 시간, 게임이 종료될 때 까지 살아남았다면 DateTimeNow 가 endTime
+    public long getSurvivalTimeInSeconds(){
         LocalDateTime endTime = this.isEliminated ? this.eliminationTime : LocalDateTime.now();
         this.playTime = Duration.between(startTime, endTime);
+        return playTime.getSeconds();
     }
 
     // 탐색 카운트 증가
