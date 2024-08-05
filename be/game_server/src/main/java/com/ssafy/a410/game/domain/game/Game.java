@@ -7,11 +7,13 @@ import com.ssafy.a410.common.exception.ResponseException;
 import com.ssafy.a410.common.exception.UnhandledException;
 import com.ssafy.a410.game.domain.Pos;
 import com.ssafy.a410.game.domain.game.item.ItemUseReq;
+import com.ssafy.a410.game.domain.game.message.DirectionHintMessage;
 import com.ssafy.a410.game.domain.game.message.control.*;
 import com.ssafy.a410.game.domain.game.message.control.item.ItemApplicationFailedMessage;
 import com.ssafy.a410.game.domain.game.message.control.item.ItemAppliedMessage;
 import com.ssafy.a410.game.domain.game.message.control.item.ItemAppliedToHPObjectMessage;
 import com.ssafy.a410.game.domain.game.message.control.item.ItemClearedMessage;
+import com.ssafy.a410.game.domain.player.DirectionArrow;
 import com.ssafy.a410.game.domain.player.Player;
 import com.ssafy.a410.game.domain.player.PlayerDirection;
 import com.ssafy.a410.game.domain.player.PlayerPosition;
@@ -324,6 +326,9 @@ public class Game extends Subscribable implements Runnable {
         broadcastService.broadcastTo(seekingTeam, new PlayerUncoverScreenMessage());
         seekingTeam.unfreezePlayers();
 
+        // 찾는 팀에게 방향 힌트 제공
+        sendDirectionHints();
+
         // 요청 처리 큐 초기화
         seekingTeamRequests.clear();
 
@@ -580,6 +585,18 @@ public class Game extends Subscribable implements Runnable {
         for (HPObject hpObject : gameMap.getHpObjects().values()) {
             hpObject.clearItem();
         }
+    }
 
+    public void sendDirectionHints(){
+        for(Player seeker : seekingTeam.getPlayers().values()){
+            List<DirectionArrow> directions = new ArrayList<>();
+            for(Player hider : hidingTeam.getPlayers().values()){
+                if(!hider.isEliminated()){
+                    DirectionArrow direction = seeker.getDirectionTo(hider);
+                    if(direction != null) directions.add(direction);
+                }
+            }
+            broadcastService.unicastTo(seeker, new DirectionHintMessage(seeker.getId(), directions));
+        }
     }
 }
