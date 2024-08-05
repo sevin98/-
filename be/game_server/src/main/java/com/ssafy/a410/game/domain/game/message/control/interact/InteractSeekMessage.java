@@ -19,6 +19,6 @@ public class InteractSeekMessage extends InteractControlMessage {
 
     // 찾기 실패 했을때 등장할 메시지
     public static InteractSeekMessage failureMessage(String roomId, String playerId, String objectId, int seekCount, String requestId) {
-        return new InteractSeekMessage(InteractType.INTERACT_SEEK_FAIL, playerId, roomId, objectId, "NONE", seekCount, requestId);
+        return new InteractSeekMessage(InteractType.INTERACT_SEEK_FAIL, roomId, playerId, objectId, "NONE", seekCount, requestId);
     }
 }

@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.Map;
 import java.util.UUID;
 
@@ -60,5 +61,17 @@ public class AuthController {
             String accessToken = authService.getAccessTokenOf(userProfile);
             String webSocketConnectionToken = jwtService.generateToken(JWTType.WEBSOCKET_CONNECTION, Map.of("userProfileUuid", userProfile.getUuid()), 10L * MilliSecOf.HOURS);
             return new LoginResp(accessToken, new UserProfileResp(userProfile), webSocketConnectionToken);
+    }
+
+    /**
+     * 닉네임 수정
+     */
+    @PutMapping("/update/nick-name")
+    public UserProfileResp updateNickName(@Valid @RequestBody UpdateNickNameReq updateNickNameReq, Principal principal) {
+        String userId = principal.getName();
+        UserProfile userProfile = userService.getUserProfileByUuid(userId);
+        userProfile.setNickname(updateNickNameReq.nickname());
+        userService.updateUserProfile(userProfile);
+        return new UserProfileResp(userProfile);
     }
 }
