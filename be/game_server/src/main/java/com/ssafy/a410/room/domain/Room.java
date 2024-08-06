@@ -1,6 +1,7 @@
 package com.ssafy.a410.room.domain;
 
 import com.ssafy.a410.auth.domain.UserProfile;
+import com.ssafy.a410.auth.service.UserService;
 import com.ssafy.a410.common.constant.MilliSecOf;
 import com.ssafy.a410.common.exception.ResponseException;
 import com.ssafy.a410.common.exception.UnhandledException;
@@ -37,14 +38,16 @@ public class Room extends Subscribable {
     private final String password;
     private final MessageBroadcastService broadcastService;
     private final Map<String, Player> players;
+    private final UserService userService;
     @Setter
     public Game playingGame;
     private Thread gameThread = null;
 
-    public Room(String roomNumber, String password, MessageBroadcastService broadcastService) {
+    public Room(String roomNumber, String password, MessageBroadcastService broadcastService, UserService userService) {
         this.roomNumber = roomNumber;
         this.password = password;
         this.broadcastService = broadcastService;
+        this.userService = userService;
         players = new ConcurrentHashMap<>();
     }
 
@@ -145,7 +148,7 @@ public class Room extends Subscribable {
             return;
         }
 
-        playingGame = new Game(this, broadcastService);
+        playingGame = new Game(this, broadcastService, userService);
 
         // 게임 메시지 구독 명령
         final long STARTS_AFTER = 2L * MilliSecOf.SECONDS;

@@ -2,6 +2,7 @@ package com.ssafy.a410.room.service;
 
 import com.ssafy.a410.auth.domain.UserProfile;
 import com.ssafy.a410.game.domain.player.Player;
+import com.ssafy.a410.room.controller.dto.JoinRandomRoomResp;
 import com.ssafy.a410.room.controller.dto.JoinRoomResp;
 import com.ssafy.a410.room.domain.Room;
 
@@ -27,6 +28,8 @@ public interface RoomService {
     Room getRoomById(String roomId);
 
     JoinRoomResp getJoinRoomSubscriptionTokens(String roomId, String playerId);
+
+    JoinRandomRoomResp getJoinRandomRoomSubscriptionTokens(String roomId, String playerId);
 
     Optional<Room> findRoomByPlayerId(String playerId);
 
