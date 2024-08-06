@@ -1,9 +1,9 @@
 /* 전체 대기실 스타일 */
 .waiting-room {
     width: 100%;
-    max-width: 800px;
+    max-width: 50rem;
     margin: 0 auto;
-    padding: 20px;
+    padding: 1rem;
     text-align: center;
 }
 
@@ -11,30 +11,30 @@
 .player-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-    margin: 20px 0;
+    gap: 1rem;
+    margin: 1rem 0;
 }
 
 /* 플레이어 슬롯 */
 .player-slot {
-    border: 1px solid #000;
-    padding: 10px;
+    border: 0.5rem solid #000;
+    padding: 0.5rem;
 }
 
 /* 채팅창 */
 .chat-box {
-    border: 1px solid #000;
-    height: 200px;
+    border: 0.5rem solid #000;
+    height: 12rem;
     overflow-y: auto;
-    margin: 20px 0;
-    padding: 10px;
+    margin: 1rem 0;
+    padding: 0.5rem;
     text-align: left;
 }
 
 /* 버튼 스타일 */
 .button {
-    padding: 10px 20px;
-    margin: 5px;
+    padding: 0.5rem 1rem;
+    margin: 0.3rem;
     background-color: #f0f0f0;
     border: none;
     cursor: pointer;
@@ -44,5 +44,5 @@
 .countdown-display,
 .countdown-message {
     font-weight: bold;
-    margin: 10px 0;
+    margin: 0.5rem 0;
 }
