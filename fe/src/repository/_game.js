@@ -13,6 +13,8 @@ const GAME_INFO = "GAME_INFO";
 const ROUND_CHANGE = "ROUND_CHANGE";
 // 페이즈 전환 이벤트
 const PHASE_CHANGE = "PHASE_CHANGE";
+// 게임 종료 이벤트
+const GAME_END = "GAME_END";
 // 숨기 성공 이벤트
 const INTERACT_HIDE_SUCCESS = "INTERACT_HIDE_SUCCESS";
 // 숨기 실패 이벤트
@@ -25,6 +27,8 @@ const INTERACT_SEEK_FAIL = "INTERACT_SEEK_FAIL";
 const ELIMINATION = "ELIMINATION";
 // 플레이어 게임 이탈 이벤트
 const PLAYER_DISCONNECTED = "PLAYER_DISCONNECTED";
+// 안전 구역 업데이트 이벤트
+const SAFE_ZONE_UPDATE = "SAFE_ZONE_UPDATE";
 
 // 화면 가리기 명령 이벤트
 const COVER_SCREEN = "COVER_SCREEN";
@@ -114,6 +118,9 @@ export default class GameRepository {
             case PHASE_CHANGE:
                 this.#handlePhaseChangeEvent(data);
                 break;
+            case GAME_END:
+                console.log(`게임 종료`);
+                break;
             case INTERACT_HIDE_SUCCESS:
                 this.#handleInteractHideSuccessEvent(data);
                 break;
@@ -132,7 +139,11 @@ export default class GameRepository {
             case PLAYER_DISCONNECTED:
                 console.log(`플레이어 ${data.playerId}님이 이탈하셨습니다.`);
                 break;
+            case SAFE_ZONE_UPDATE:
+                console.log(`안전 지역이 변경되었습니다.`);
+                break;
             default:
+                console.error("Received unknown message:", message);
                 throw new Error(
                     "Unknown message type in GameRepository:" + type
                 );
