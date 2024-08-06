@@ -1,23 +1,25 @@
 package com.ssafy.a410.game.controller;
 
 import com.ssafy.a410.game.controller.dto.BlockingReq;
+import com.ssafy.a410.game.domain.game.Game;
 import com.ssafy.a410.game.domain.game.item.ItemUseReq;
 import com.ssafy.a410.game.controller.dto.PlayerPositionReq;
 import com.ssafy.a410.game.domain.game.message.request.InteractSeekReq;
 import com.ssafy.a410.game.domain.game.message.request.InteractHideReq;
+import com.ssafy.a410.game.domain.player.PlayerStatsResp;
 import com.ssafy.a410.game.service.GameService;
 import com.ssafy.a410.game.service.InteractService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.List;
+import java.util.Map;
 
 
 @Slf4j
@@ -66,5 +68,12 @@ public class GameController {
         requestDto.setPlayerId(playerId);
         requestDto.setRoomId(roomId);
         interactService.useItem(requestDto);
+    }
+
+    @GetMapping("rooms/{roomId}/game/result")
+    public ResponseEntity<Map<String, List<PlayerStatsResp>>> getEndGameStats(@PathVariable String roomId) {
+        Game game = gameService.getGameByRoomId(roomId);
+        Map<String, List<PlayerStatsResp>> stats = game.getEndGameStats();
+        return ResponseEntity.ok(stats);
     }
 }
