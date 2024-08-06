@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import { GiFastForwardButton } from "react-icons/gi";
+import axios from "../../network/AxiosClient";
 
 import { userRepository } from "../../repository";
 import { ROOM_CREATE_ROUTE_PATH } from "./RoomCreate";
@@ -8,6 +10,7 @@ import { ROOM_JOIN_ROUTE_PATH } from "./RoomJoin";
 
 import "./Lobby.css";
 import { ImPencil2 } from "react-icons/im";
+import { WAITING_ROOM_ROUTE_PATH } from "../WaitingRoom/WaitingRoom";
 
 export default function Lobby() {
     const navigate = useNavigate();
@@ -50,13 +53,33 @@ export default function Lobby() {
         console.log("기존 방에 참여");
     };
 
-    // 현재는 대기실로 이동하게 해둠
-    const onRandomRoomJoinBtnClicked = (e) => {
-        e.preventDefault();
-        // TODO : 랜덤하게 들어갈 수 있는 방의 구독 정보를 받아와서 WAITING_ROOM_ROUTE_PATH에 state로 넘겨주어야 함
-        // navigate(WAITING_ROOM_ROUTE_PATH);
-        console.error("랜덤 방에 들어가기 : 미구현");
-    };
+        const onRandomRoomJoinBtnClicked = async (e) => {
+            e.preventDefault();
+            try {
+                const res = await axios.post(`/api/rooms/join`);
+                if (res.status === 200) {
+                    navigate(
+                        `${WAITING_ROOM_ROUTE_PATH}?room-number=${res.data.roomId}&room-password=`
+                    );
+                }
+            } catch (error) {
+                if (error.response) {
+                    if (error.response.status === 404) {
+                        toast.error("해당하는 방이 없습니다.");
+                    } else if (error.response.status === 401) {
+                        toast.error("비밀번호가 틀립니다.");
+                    } else if (error.response.status === 409) {
+                        toast.error("이미 8명이 참가한 방입니다.");
+                    } else {
+                        toast.error("방 참가 중 오류가 발생했습니다.");
+                    }
+                } else if (error.request) {
+                    toast.error("서버로부터 응답을 받지 못했습니다.");
+                } else {
+                    toast.error("요청을 보내는 중 오류가 발생했습니다.");
+                }
+            }
+        };
 
     return (
         <div id="container" className="rpgui-cursor-default">
