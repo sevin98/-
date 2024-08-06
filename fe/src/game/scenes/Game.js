@@ -34,6 +34,17 @@ export class game extends Phaser.Scene {
     }
 
     preload() {
+        //블록 이미지 로드
+        this.load.image("mapWallGolden", "rpgui/img/border-image-golden.png");
+        this.load.image(
+            "mapWallGoldenBorder",
+            "rpgui/img/border-image-golden2.png"
+        );
+        this.load.image(
+            "mapWallBorder",
+            "rpgui/img/border-image.png"
+        );
+        //
         this.load.image("racoon", "assets/character/image.png");
         this.cursors = this.input.keyboard.createCursorKeys();
         this.headDir = 2; //under direction
@@ -56,12 +67,12 @@ export class game extends Phaser.Scene {
         // playercam.zoomTo(1.2,300)
 
         // 로컬플레이어 객체 생성, 카메라 follow
-        const me = this.gameRepository.getMe();
-        const { x, y, direction } = me.getPosition();
-        this.localPlayer = new Player(this, x, y, "fauna-idle-down", true);
+        // const me = this.gameRepository.getMe();
+        // const { x, y, direction } = me.getPosition();
+        this.localPlayer = new Player(this, 400, 400, "fauna-idle-down", true);
 
         // 잠깐 주석처리하고 카메라가 otherplayer를 따라가도록 바꿔놓음
-        // playercam.startFollow(this.localPlayer);
+        playercam.startFollow(this.localPlayer);
 
         //로컬플레이어와 layer의 충돌설정
         this.physics.add.collider(
@@ -118,17 +129,29 @@ export class game extends Phaser.Scene {
             loop: true, // 여러번 실행
         });
         // camera가 otherplayer 따라가게만듦
-        this.cameras.main.startFollow(this.otherPlayer);
+        // this.cameras.main.startFollow(this.otherPlayer);
 
         //game-ui 씬
         this.scene.run("game-ui");
         this.m_cursorKeys = this.input.keyboard.createCursorKeys();
+
+        //작아지는 맵은 제일 위에 위치해야함!!
+        // 좌측 상단좌표, 우측 하단좌표 //
+        const start = { x: 380, y: 380 };
+        const end = { x: 500, y: 500 };
+        this.mapWalls = this.physics.add.staticGroup();
+        this.createMapWall(start, end); // 380,380 - 500,500 벽 생성
+        //(충돌설정은 로컬플레이어 생성 후 실행)
+        // 플레이어와 경계 충돌 처리
+        this.physics.add.collider(this.localPlayer, this.mapWalls, () => {
+            console.log("작아지는 벽과 충돌");
+        });
     }
 
     update() {
         // 로컬플레이어 포지션 트래킹 , 이후 위치는 x,y,headDir로 접근
-        const me = this.gameRepository.getMe();
-        const { x, y, headDir } = me.getPosition();
+        // const me = this.gameRepository.getMe();
+        // const { x, y, headDir } = me.getPosition();
 
         // player.js 에서 player 키조작이벤트 불러옴
         const playerMoveHandler = new HandlePlayerMove(
@@ -148,17 +171,20 @@ export class game extends Phaser.Scene {
         const minDistance = Phaser.Math.Distance.Between(
             closest.body.center.x,
             closest.body.center.y,
-            x, //this.localPlayer.x,
-            y //this.localPlayer.y
+            this.localPlayer.x,
+            this.localPlayer.y
         );
 
         // 시각적으로 가까운 오브젝트와의 선 표시, 나중에 지우면되는코드
-        this.graphics.clear().lineStyle(1, 0xff3300).lineBetween(
-            closest.body.center.x,
-            closest.body.center.y,
-            x, //this.localPlayer.x,
-            y //this.localPlayer.y
-        );
+        this.graphics
+            .clear()
+            .lineStyle(1, 0xff3300)
+            .lineBetween(
+                closest.body.center.x,
+                closest.body.center.y,
+                this.localPlayer.x,
+                this.localPlayer.y
+            );
 
         // 30px 이하로 가까이 있을때 상호작용 표시 로직
         if (minDistance < 30) {
@@ -302,4 +328,31 @@ export class game extends Phaser.Scene {
         this.otherPlayer.y = this.currentPos[1];
         this.otherPlayer.move(this.headDir);
     }
+ // 벽 만드는 함수: 시작점과 끝점 받아서 직사각형 모양으로 타일 깔기
+    createMapWall(start, end) {
+        const tileSize = 17.1;
+        // 위쪽 벽
+        for (let x = start.x; x <= end.x; x += tileSize) {
+            this.createWallTile(x, start.y);
+        }
+        // 아래쪽 벽
+        for (let x = start.x; x <= end.x; x += tileSize) {
+            this.createWallTile(x, end.y);
+        }
+        // 왼쪽 벽
+        for (let y = start.y + tileSize; y < end.y; y += tileSize) {
+            this.createWallTile(start.x, y);
+        }
+        // 오른쪽 벽
+        for (let y = start.y + tileSize; y < end.y; y += tileSize) {
+            this.createWallTile(end.x, y);
+        }
+    }
+    // 개별 벽 타일 생성 함수
+    createWallTile(x, y) {
+        this.mapWalls.create(x, y, "mapWallBorder")
+            .setSize(16, 16)
+            .setDisplaySize(18, 18);
+    }
+
 }
