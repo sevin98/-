@@ -6,6 +6,7 @@ import com.ssafy.a410.common.exception.ResponseException;
 import com.ssafy.a410.common.exception.UnhandledException;
 import com.ssafy.a410.game.domain.player.Player;
 import com.ssafy.a410.game.service.socket.WebSocketMessageBroadcastService;
+import com.ssafy.a410.room.controller.dto.JoinRandomRoomResp;
 import com.ssafy.a410.room.controller.dto.JoinRoomResp;
 import com.ssafy.a410.room.domain.Room;
 import com.ssafy.a410.room.domain.message.control.RoomControlMessage;
@@ -159,7 +160,7 @@ public class MemoryBasedRoomService implements RoomService {
 
         for(Room room : rooms.values()) {
             // 방이 가득 차 있지 않고 게임이 시작하지 않은 경우 리스트에 추가
-            if(!room.isFull() && !room.hasPlayingGame()){
+            if(!room.isFull() && !room.hasPlayingGame() && room.getPassword() == null){
                 roomsWithLessThanEightPlayers.add(room);
             }
         }
@@ -183,4 +184,16 @@ public class MemoryBasedRoomService implements RoomService {
                 new SubscriptionInfoResp(player)
         );
     }
+
+    @Override
+    public JoinRandomRoomResp getJoinRandomRoomSubscriptionTokens(String roomId, String playerId) {
+        Room room = getRoomById(roomId);
+        Player player = room.getPlayerWith(playerId);
+        return new JoinRandomRoomResp(
+                roomId,
+                new SubscriptionInfoResp(room),
+                new SubscriptionInfoResp(player)
+        );
+    }
+
 }
