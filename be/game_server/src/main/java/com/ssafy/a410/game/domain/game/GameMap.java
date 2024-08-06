@@ -5,11 +5,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.ssafy.a410.game.domain.Pos;
+import com.ssafy.a410.game.domain.player.Player;
 import com.ssafy.a410.game.domain.team.Team;
 import lombok.Getter;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.FileCopyUtils;
 
+import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -38,6 +40,8 @@ public class GameMap {
     private final List<Pos> racoonStartPos = new ArrayList<>();
     // 여우 팀이 시작할 수 있는 초기 위치 정보
     private final List<Pos> foxStartPos = new ArrayList<>();
+    // 안전구역
+    private final Rectangle safeZone;
     // 읽어서 파싱해 놓은 원본 JSON 객체
     private JsonObject rawJsonObject;
 
@@ -45,6 +49,7 @@ public class GameMap {
         this.mapFileName = mapFileName;
         setRawJsonObject();
         setFromLayers();
+        this.safeZone = new Rectangle(0, 0, 1600, 1600);
     }
 
     // 정적 파일로부터 맵 정보를 읽어와서 파싱
@@ -128,7 +133,34 @@ public class GameMap {
     public List<Pos> getStartPosBy(Team team) {
         return team.getCharacter() == Team.Character.RACOON ? racoonStartPos : foxStartPos;
     }
+
     public void setGameToHpObjects(Game game) {
         hpObjects.values().forEach(hpObject -> hpObject.setGame(game));
+    }
+
+    // 안전구역 축소 메서드
+    public void reduceSafeArea(int reductionAmount) {
+        int newWidth = Math.max(safeZone.width - reductionAmount, 0);
+        int newHeight = Math.max(safeZone.height - reductionAmount, 0);
+        int newX = safeZone.x + (safeZone.width - newWidth) / 2;
+        int newY = safeZone.y + (safeZone.height - newHeight) / 2;
+
+        // 메소드가 호출될 때마다 절대위치 변경
+        safeZone.setBounds(newX, newY, newWidth, newHeight);
+    }
+
+    // 안전구역의 네 꼭짓점 구하기
+    public List<Point> getSafeZoneCorners() {
+        return List.of(
+                new Point(safeZone.x, safeZone.y), // 왼쪽 위
+                new Point(safeZone.x + safeZone.width, safeZone.y), // 오른쪽 위
+                new Point(safeZone.x, safeZone.y + safeZone.height), // 왼쪽 아래
+                new Point(safeZone.x + safeZone.width, safeZone.y + safeZone.height) // 오른쪽 아래
+        );
+    }
+
+    // 안전구역 안에 플레이어가 있는지 계산
+    public boolean isInSafeZone(Player player) {
+        return safeZone.contains(player.getPos().getX(), player.getPos().getY());
     }
 }
