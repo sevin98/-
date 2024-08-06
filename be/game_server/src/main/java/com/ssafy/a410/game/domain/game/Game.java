@@ -114,15 +114,15 @@ public class Game extends Subscribable implements Runnable {
         }
 
         // 각팀에 모자란 인원 만큼 봇으로 채워넣기
-        for(int i = 0 ; i < 4 - hidingTeam.getPlayers().size(); i ++){
-            Player bot = createBot();
-            hidingTeam.addPlayer(bot);
-        }
-
-        for(int i = 0 ; i < 4 - seekingTeam.getPlayers().size(); i ++){
-            Player bot = createBot();
-            seekingTeam.addPlayer(bot);
-        }
+//        for(int i = 0 ; i < 4 - hidingTeam.getPlayers().size(); i ++){
+//            Player bot = createBot();
+//            hidingTeam.addPlayer(bot);
+//        }
+//
+//        for(int i = 0 ; i < 4 - seekingTeam.getPlayers().size(); i ++){
+//            Player bot = createBot();
+//            seekingTeam.addPlayer(bot);
+//        }
     }
 
     private Player createBot() {
@@ -175,7 +175,7 @@ public class Game extends Subscribable implements Runnable {
 
             log.debug("Room {} READY Phase start ------------------------------------", room.getRoomNumber());
             runReadyPhase();
-            hideBotPlayers();
+//            hideBotPlayers();
             eliminateUnhidePlayers();
 
             log.debug("Room {} MAIN Phase start -------------------------------------", room.getRoomNumber());
@@ -255,16 +255,16 @@ public class Game extends Subscribable implements Runnable {
             }
 
             // 봇 플레이어들의 위치 전송
-            for (Player player : hidingTeam.getPlayers().values()) {
-                if (player.isBot()) {
+//            for (Player player : hidingTeam.getPlayers().values()) {
+//                if (player.isBot()) {
                     // 현재 위치를 기준으로 랜덤하게 옆으로 위치 옮겨주기
 //                    player.setX(player.getPos().getX() + 0.0001);
 //                    player.setY(player.getPos().getY() + 0.0001);
 //                    // 방향 랜덤 지정
-                    player.setDirection(PlayerDirection.values()[(int) (Math.random() * 4)]);
-                    broadcastService.broadcastTo(hidingTeam, new PlayerPositionMessage(new PlayerPosition(player)));
-                }
-            }
+//                    player.setDirection(PlayerDirection.values()[(int) (Math.random() * 4)]);
+//                    broadcastService.broadcastTo(hidingTeam, new PlayerPositionMessage(new PlayerPosition(player)));
+//                }
+//            }
         }
     }
 
@@ -365,17 +365,17 @@ public class Game extends Subscribable implements Runnable {
             }
 
             // 봇 플레이어들의 위치 전송
-            for (Player player : seekingTeam.getPlayers().values()) {
-                if (player.isBot()) {
+//            for (Player player : seekingTeam.getPlayers().values()) {
+//                if (player.isBot()) {
                     // 현재 위치를 기준으로 랜덤하게 옆으로 위치 옮겨주기
 //                    player.setX(player.getPos().getX() + 0.0001);
 //                    player.setY(player.getPos().getY() + 0.0001);
-                    player.setDirection(PlayerDirection.values()[(int) (Math.random() * 4)]);
-                    PlayerPositionMessage message = new PlayerPositionMessage(new PlayerPosition(player));
-                    broadcastService.broadcastTo(seekingTeam, message);
-                    broadcastService.broadcastTo(hidingTeam, message);
-                }
-            }
+//                    player.setDirection(PlayerDirection.values()[(int) (Math.random() * 4)]);
+//                    PlayerPositionMessage message = new PlayerPositionMessage(new PlayerPosition(player));
+//                    broadcastService.broadcastTo(seekingTeam, message);
+//                    broadcastService.broadcastTo(hidingTeam, message);
+//                }
+//            }
         }
     }
 
