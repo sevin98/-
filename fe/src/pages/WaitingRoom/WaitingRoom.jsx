@@ -73,26 +73,7 @@ export default function WaitingRoom() {
                 }
             });
 
-        // 페이지를 떠날 때 방 나가기 처리
-        const handleBeforeUnload = (event) => {
-            // axios.post(`/api/rooms/${roomNumber}/leave`).catch((err) => {
-            //     console.error("Failed to leave room:", err);
-            // });
-        };
-
-        // 브라우저를 닫을 때 leave API 호출
-        window.addEventListener("beforeunload", handleBeforeUnload);
-        // 컴포넌트가 언마운트될 때 클린업 함수 실행
-        return () => {
-            clearInterval(updateDataIntervalId);
-            roomRepository.endSubscribe();
-            window.removeEventListener("beforeunload", handleBeforeUnload);
-
-            // 방 나가기 요청
-            // axios.post(`/api/rooms/${roomNumber}/leave`).catch((err) => {
-            //     console.error("Failed to leave room:", err);
-            // });
-        };
+        
     }, []);
 
     // 방 정보 업데이트 주기 설정
