@@ -79,7 +79,7 @@ public class MemoryBasedRoomService implements RoomService {
         if (!room.canJoin(userProfile)) {
             throw new ResponseException(CANNOT_JOIN_ROOM);
         }
-        if(room.getRoomNumber().isEmpty()) throw new ResponseException(ROOM_NOT_FOUND);
+        if (room.getRoomNumber().isEmpty()) throw new ResponseException(ROOM_NOT_FOUND);
 
         return room.join(userProfile);
     }
@@ -158,9 +158,9 @@ public class MemoryBasedRoomService implements RoomService {
     public List<Room> findAvailableRooms() {
         List<Room> roomsWithLessThanEightPlayers = new ArrayList<>();
 
-        for(Room room : rooms.values()) {
+        for (Room room : rooms.values()) {
             // 방이 가득 차 있지 않고 게임이 시작하지 않은 경우 리스트에 추가
-            if(!room.isFull() && !room.hasPlayingGame() && room.getPassword() == null){
+            if (!room.isFull() && !room.hasPlayingGame() && room.getPassword().isEmpty()) {
                 roomsWithLessThanEightPlayers.add(room);
             }
         }

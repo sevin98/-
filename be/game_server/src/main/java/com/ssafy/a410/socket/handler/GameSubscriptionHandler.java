@@ -1,6 +1,7 @@
 package com.ssafy.a410.socket.handler;
 
-import com.ssafy.a410.common.exception.handler.GameException;
+import com.ssafy.a410.common.exception.ErrorDetail;
+import com.ssafy.a410.common.exception.ResponseException;
 import com.ssafy.a410.game.domain.game.Game;
 import com.ssafy.a410.room.domain.Room;
 import com.ssafy.a410.room.service.RoomService;
@@ -21,7 +22,7 @@ public class GameSubscriptionHandler extends SocketSubscriptionHandler {
     @Override
     protected Subscribable getSubscribableFrom(String destination) {
         String roomId = destination.split("/")[3];
-        Room room = roomService.findRoomById(roomId).orElseThrow(() -> new GameException("Room not found"));
+        Room room = roomService.findRoomById(roomId).orElseThrow(() -> new ResponseException(ErrorDetail.ROOM_NOT_FOUND));
         return room.getPlayingGame();
     }
 
