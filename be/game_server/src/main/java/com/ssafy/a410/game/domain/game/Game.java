@@ -176,6 +176,12 @@ public class Game extends Subscribable implements Runnable {
         }
         room.endGame();
         resetAllItems();
+        runFinishedPhase();
+    }
+
+    private void runFinishedPhase() {
+        this.currentPhase = Phase.FINISHED;
+        broadcastService.broadcastTo(this, new PhaseChangeControlMessage(Phase.FINISHED));
     }
 
     private boolean isTimeToSwitch(long timeToSwitchPhase) {
@@ -599,8 +605,8 @@ public class Game extends Subscribable implements Runnable {
     }
 
     // 계산된 hider들의 방향을 seeker에게 전송해주는 메소드
-    public void sendDirectionHints(){
-        for(Player seeker : seekingTeam.getPlayers().values()){
+    public void sendDirectionHints() {
+        for (Player seeker : seekingTeam.getPlayers().values()) {
             List<DirectionArrow> directions = getDirectionsOfHiders(seeker);
             broadcastService.unicastTo(seeker, new DirectionHintMessage(seeker.getId(), directions));
         }
