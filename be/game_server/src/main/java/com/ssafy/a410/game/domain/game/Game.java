@@ -497,8 +497,7 @@ public class Game extends Subscribable implements Runnable {
 
     private void endGame(Team winningTeam) {
         // 승리 팀을 알리고, 게임을 종료하고, 결과를 저장하는 등
-        GameInfo gameInfo = new GameInfo(this);
-        broadcastService.broadcastTo(this, gameInfo);
+        broadcastService.broadcastTo(this, new GameEndMessage());
 
         // 승패팀을 찾아서 전적을 업데이트 시켜준다.
         Team losingTeam = (winningTeam == hidingTeam) ? seekingTeam : hidingTeam;

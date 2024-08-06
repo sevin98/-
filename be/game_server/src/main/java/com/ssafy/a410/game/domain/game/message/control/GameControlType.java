@@ -8,5 +8,5 @@ public enum GameControlType {
     PLAYER_DISCONNECTED, // 유저 이탈
     SAFE_ZONE_UPDATE, // 안전 구역 업데이트
     ELIMINATION, // 사용자 탈락
-
+    GAME_END, // 게임 종료
 }
