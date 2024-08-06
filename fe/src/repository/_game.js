@@ -149,6 +149,8 @@ export default class GameRepository {
             // 역할 전환
             this.#racoonTeam.setIsHidingTeam(!this.#racoonTeam.isHidingTeam());
             this.#foxTeam.setIsHidingTeam(!this.#foxTeam.isHidingTeam());
+        } else if (this.#currentPhase === Phase.FINISHED) {
+            window.dispatchEvent(new CustomEvent('phaseFinished'))
         }
     }
 
