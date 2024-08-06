@@ -1,5 +1,7 @@
 package com.ssafy.a410.game.service.memory;
 
+import com.ssafy.a410.common.exception.ErrorDetail;
+import com.ssafy.a410.common.exception.ResponseException;
 import com.ssafy.a410.game.controller.dto.PlayerPositionReq;
 import com.ssafy.a410.game.domain.game.Game;
 import com.ssafy.a410.game.domain.game.message.control.GameInfo;
@@ -58,7 +60,8 @@ public class MemoryBasedGameService implements GameService {
     @Override
     public Game getGameByRoomId(String roomId) {
         Room room = roomService.getRoomById(roomId);
+        if (room == null || room.getPlayingGame() == null)
+            throw new ResponseException(ErrorDetail.ROOM_NOT_FOUND);
         return room.getPlayingGame();
-
     }
 }

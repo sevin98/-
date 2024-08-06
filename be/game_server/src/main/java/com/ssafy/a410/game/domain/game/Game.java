@@ -13,10 +13,7 @@ import com.ssafy.a410.game.domain.game.message.control.item.ItemApplicationFaile
 import com.ssafy.a410.game.domain.game.message.control.item.ItemAppliedMessage;
 import com.ssafy.a410.game.domain.game.message.control.item.ItemAppliedToHPObjectMessage;
 import com.ssafy.a410.game.domain.game.message.control.item.ItemClearedMessage;
-import com.ssafy.a410.game.domain.player.DirectionArrow;
-import com.ssafy.a410.game.domain.player.Player;
-import com.ssafy.a410.game.domain.player.PlayerDirection;
-import com.ssafy.a410.game.domain.player.PlayerPosition;
+import com.ssafy.a410.game.domain.player.*;
 import com.ssafy.a410.game.domain.player.message.control.*;
 import com.ssafy.a410.game.domain.player.message.request.GamePlayerRequest;
 import com.ssafy.a410.game.domain.team.Team;
@@ -613,5 +610,33 @@ public class Game extends Subscribable implements Runnable {
     public void applyMushroomEffect(Player player) {
         List<DirectionArrow> directions = getDirectionsOfHiders(player);
         broadcastService.unicastTo(player, new DirectionHintMessage(player.getId(), directions));
+    }
+
+    public Map<String, List<PlayerStatsResp>> getEndGameStats() {
+        List<PlayerStatsResp> racoonTeamStats = new ArrayList<>();
+        List<PlayerStatsResp> foxTeamStats = new ArrayList<>();
+
+        for (Player player : room.getPlayers().values()) {
+            Team playerTeam = hidingTeam.has(player) ? hidingTeam : seekingTeam;
+            PlayerStatsResp playerStats = new PlayerStatsResp(
+                    player.getId(),
+                    player.getNickname(),
+                    player.getCatchCount(),
+                    player.getSurvivalTimeInSeconds(),
+                    playerTeam.getCharacter().toString()
+            );
+
+            if (playerTeam.getCharacter() == Team.Character.RACOON) {
+                racoonTeamStats.add(playerStats);
+            } else {
+                foxTeamStats.add(playerStats);
+            }
+        }
+
+        Map<String, List<PlayerStatsResp>> sortedStats = new LinkedHashMap<>();
+        sortedStats.put("RACOON", racoonTeamStats);
+        sortedStats.put("FOX", foxTeamStats);
+
+        return sortedStats;
     }
 }
