@@ -54,4 +54,11 @@ public class MemoryBasedGameService implements GameService {
         PlayerPositionShareRequest request = new PlayerPositionShareRequest(userProfileUuid, playerPosition);
         game.pushMessage(player, request);
     }
+
+    @Override
+    public Game getGameByRoomId(String roomId) {
+        Room room = roomService.getRoomById(roomId);
+        return room.getPlayingGame();
+
+    }
 }

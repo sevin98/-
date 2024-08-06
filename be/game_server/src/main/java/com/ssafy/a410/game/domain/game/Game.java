@@ -2,10 +2,18 @@ package com.ssafy.a410.game.domain.game;
 
 import com.ssafy.a410.auth.model.entity.UserProfileEntity;
 import com.ssafy.a410.auth.service.UserService;
+import com.ssafy.a410.common.exception.ErrorDetail;
 import com.ssafy.a410.common.exception.ResponseException;
 import com.ssafy.a410.common.exception.UnhandledException;
 import com.ssafy.a410.game.domain.Pos;
+import com.ssafy.a410.game.domain.game.item.ItemUseReq;
+import com.ssafy.a410.game.domain.game.message.DirectionHintMessage;
 import com.ssafy.a410.game.domain.game.message.control.*;
+import com.ssafy.a410.game.domain.game.message.control.item.ItemApplicationFailedMessage;
+import com.ssafy.a410.game.domain.game.message.control.item.ItemAppliedMessage;
+import com.ssafy.a410.game.domain.game.message.control.item.ItemAppliedToHPObjectMessage;
+import com.ssafy.a410.game.domain.game.message.control.item.ItemClearedMessage;
+import com.ssafy.a410.game.domain.player.DirectionArrow;
 import com.ssafy.a410.game.domain.player.Player;
 import com.ssafy.a410.game.domain.player.PlayerDirection;
 import com.ssafy.a410.game.domain.player.PlayerPosition;
@@ -20,6 +28,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.stream.Collectors;
@@ -58,7 +67,12 @@ public class Game extends Subscribable implements Runnable {
         this.seekingTeamRequests = new ConcurrentLinkedDeque<>();
         this.broadcastService = broadcastService;
         this.userService = userService;
+        gameMap.setGameToHpObjects(this);
         initialize();
+    }
+
+    private void initializeGameMap() {
+        gameMap.getHpObjects().values().forEach(hpObject -> hpObject.setGame(this));
     }
 
     private void initialize() {
@@ -72,7 +86,7 @@ public class Game extends Subscribable implements Runnable {
         setInitialPlayerPositions(seekingTeam);
         // 방에 실행 중인 게임으로 연결
         room.setPlayingGame(this);
-
+        initializeGameMap();
         // 게임 시작 준비 완료
         this.currentPhase = Phase.INITIALIZED;
     }
@@ -93,14 +107,14 @@ public class Game extends Subscribable implements Runnable {
         }
 
         // 각팀에 모자란 인원 만큼 봇으로 채워넣기
-        for (int i = 0; i < 4 - hidingTeam.getPlayers().size(); i++) {
-//            Player bot = createBot();
-//            hidingTeam.addPlayer(bot);
+        for(int i = 0 ; i < 4 - hidingTeam.getPlayers().size(); i ++){
+            Player bot = createBot();
+            hidingTeam.addPlayer(bot);
         }
 
-        for (int i = 0; i < 4 - seekingTeam.getPlayers().size(); i++) {
-//            Player bot = createBot();
-//            seekingTeam.addPlayer(bot);
+        for(int i = 0 ; i < 4 - seekingTeam.getPlayers().size(); i ++){
+            Player bot = createBot();
+            seekingTeam.addPlayer(bot);
         }
     }
 
@@ -164,6 +178,7 @@ public class Game extends Subscribable implements Runnable {
             swapTeam();
         }
         room.endGame();
+        resetAllItems();
     }
 
     private boolean isTimeToSwitch(long timeToSwitchPhase) {
@@ -305,6 +320,7 @@ public class Game extends Subscribable implements Runnable {
     }
 
 
+
     private void runMainPhase() {
         this.currentPhase = Phase.MAIN;
         broadcastService.broadcastTo(this, new PhaseChangeControlMessage(Phase.MAIN));
@@ -318,6 +334,9 @@ public class Game extends Subscribable implements Runnable {
         broadcastService.broadcastTo(seekingTeam, new PlayerUnfreezeMessage());
         broadcastService.broadcastTo(seekingTeam, new PlayerUncoverScreenMessage());
         seekingTeam.unfreezePlayers();
+
+        // 찾는 팀에게 방향 힌트 제공
+        sendDirectionHints();
 
         // 요청 처리 큐 초기화
         seekingTeamRequests.clear();
@@ -496,5 +515,126 @@ public class Game extends Subscribable implements Runnable {
         else
             userProfile.addLosses();
         userService.updateUserProfileEntity(userProfile);
+    }
+
+    public void applyItemToPlayer(String playerId, Item item, Duration duration, String appliedById, String requestId) {
+        Player player = getPlayerbyId(playerId);
+        Duration durationOfItem = item.getDuration();
+        player.applyItem(item, durationOfItem, appliedById);
+        broadcastService.broadcastTo(this, new ItemAppliedMessage(
+                room.getRoomNumber(),
+                playerId,
+                item,
+                duration,
+                player.getSpeed(),
+                requestId
+        ));
+    }
+
+    public void applyItemToHPObject(String objectId, Item item, Duration duration, String appliedById, String requestId) {
+        HPObject hpObject = gameMap.getHpObjects().get(objectId);
+        Duration durationOfItem = item.getDuration();
+        if (hpObject != null) {
+            hpObject.applyItem(item, durationOfItem, appliedById);
+            broadcastService.broadcastTo(this, new ItemAppliedToHPObjectMessage(
+                    room.getRoomNumber(),
+                    objectId,
+                    hpObject.getPlayer() != null ? hpObject.getPlayer().getId() : null,
+                    item,
+                    duration,
+                    appliedById,
+                    requestId
+            ));
+        } else {
+            broadcastService.broadcastTo(this, new ItemApplicationFailedMessage(
+                    room.getRoomNumber(),
+                    appliedById,
+                    objectId,
+                    item,
+                    requestId
+            ));
+        }
+    }
+
+    private Player getPlayerbyId(String playerId) {
+        for (Team team : List.of(hidingTeam, seekingTeam)) {
+            Player player = team.getPlayerWithId(playerId);
+            if (player != null) return player;
+        }
+        throw new ResponseException(PLAYER_NOT_IN_ROOM);
+    }
+
+    public void notifyItemCleared(Player player) {
+        broadcastService.broadcastTo(this, new ItemClearedMessage(
+                room.getRoomNumber(),
+                player.getId(),
+                null,
+                Duration.ZERO,
+                null
+        ));
+    }
+
+    public void notifyHPItemCleared(HPObject hpObject) {
+        broadcastService.broadcastTo(this, new ItemClearedMessage(
+                room.getRoomNumber(),
+                null,
+                hpObject.getId(),
+                Duration.ZERO,
+                null
+        ));
+    }
+
+    public void handleItemUseRequest(ItemUseReq itemUseReq) {
+        String playerId = itemUseReq.getPlayerId();
+        String targetId = itemUseReq.getTargetId();
+        Item item = itemUseReq.getItem();
+        String requestId = itemUseReq.getRequestId();
+        String roomId = itemUseReq.getRoomId();
+
+        if (item.isApplicableToPlayer()) {
+            applyItemToPlayer(targetId, item, item.getDuration(), playerId, requestId);
+        } else if (item.isApplicableToHPObject()) {
+            applyItemToHPObject(targetId, item, item.getDuration(), playerId, requestId);
+        } else {
+            throw new ResponseException(ErrorDetail.UNKNOWN_ITEM_OR_PLAYER_NOT_FOUND);
+        }
+    }
+
+    private void resetAllItems() {
+        for (Player player : room.getPlayers().values()) {
+            player.clearItem();
+        }
+        for (HPObject hpObject : gameMap.getHpObjects().values()) {
+            hpObject.clearItem();
+        }
+    }
+
+
+    // Hider들의 방향을 계산해주는 메소드
+    public List<DirectionArrow> getDirectionsOfHiders(Player seeker) {
+        List<DirectionArrow> directions = new ArrayList<>();
+        for (Player hider : hidingTeam.getPlayers().values()) {
+            if (!hider.isEliminated()) {
+                DirectionArrow direction = seeker.getDirectionTo(hider);
+                if (direction != null) {
+                    directions.add(direction);
+                }
+            }
+        }
+        return directions;
+    }
+
+    // 계산된 hider들의 방향을 seeker에게 전송해주는 메소드
+    public void sendDirectionHints(){
+        for(Player seeker : seekingTeam.getPlayers().values()){
+            List<DirectionArrow> directions = getDirectionsOfHiders(seeker);
+            broadcastService.unicastTo(seeker, new DirectionHintMessage(seeker.getId(), directions));
+        }
+    }
+
+    // MUSHROOM 아이템 적용 메소드
+    public void applyMushroomEffect(Player player) {
+        List<DirectionArrow> directions = getDirectionsOfHiders(player);
+        broadcastService.unicastTo(player, new DirectionHintMessage(player.getId(), directions));
     }
 }
