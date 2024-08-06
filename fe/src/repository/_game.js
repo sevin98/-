@@ -21,6 +21,10 @@ const INTERACT_HIDE_FAIL = "INTERACT_HIDE_FAIL";
 const INTERACT_SEEK_SUCCESS = "INTERACT_SEEK_SUCCESS";
 // 찾기 실패 이벤트
 const INTERACT_SEEK_FAIL = "INTERACT_SEEK_FAIL";
+// 플레이어 탈락 이벤트
+const ELIMINATION = "ELIMINATION";
+// 플레이어 게임 이탈 이벤트
+const PLAYER_DISCONNECTED = "PLAYER_DISCONNECTED";
 
 // 화면 가리기 명령 이벤트
 const COVER_SCREEN = "COVER_SCREEN";
@@ -122,6 +126,12 @@ export default class GameRepository {
             case INTERACT_SEEK_FAIL:
                 this.#handleInteractSeekFailEvent(data);
                 break;
+            case ELIMINATION:
+                console.log(`플레이어 ${data.playerId}님이 탈락하셨습니다.`);
+                break;
+            case PLAYER_DISCONNECTED:
+                console.log(`플레이어 ${data.playerId}님이 이탈하셨습니다.`);
+                break;
             default:
                 throw new Error(
                     "Unknown message type in GameRepository:" + type
@@ -206,6 +216,8 @@ export default class GameRepository {
         // 플레이어 초기 정보 설정
         const { playerPositionInfo, teamCharacter, teamSubscriptionInfo } =
             data;
+
+        console.log(`내 정보 초기화: ${playerPositionInfo.playerId}`);
 
         this.#me = new Player({
             playerId: playerPositionInfo.playerId,

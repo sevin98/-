@@ -439,7 +439,7 @@ public class Game extends Subscribable implements Runnable {
     public void notifyDisconnection(Player player) {
         GameControlMessage message = new GameControlMessage(
                 GameControlType.PLAYER_DISCONNECTED,
-                RoomMemberInfo.getAllInfoListFrom(this.getRoom())
+                Map.of("playerId", player.getId())
         );
         broadcastService.broadcastTo(this, message);
     }

@@ -183,9 +183,8 @@ public class Room extends Subscribable {
 
     public void notifyDisconnection(Player player) {
         RoomControlMessage message = new RoomControlMessage(
-
                 RoomControlType.PLAYER_DISCONNECTED,
-                RoomMemberInfo.getAllInfoListFrom(this)
+                Map.of("playerId", player.getId())
         );
         broadcastService.broadcastTo(this, message);
     }
