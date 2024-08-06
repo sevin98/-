@@ -2,6 +2,7 @@ package com.ssafy.a410.game.domain.game;
 
 import com.ssafy.a410.auth.model.entity.UserProfileEntity;
 import com.ssafy.a410.auth.service.UserService;
+import com.ssafy.a410.common.constant.MilliSecOf;
 import com.ssafy.a410.common.exception.ErrorDetail;
 import com.ssafy.a410.common.exception.ResponseException;
 import com.ssafy.a410.common.exception.UnhandledException;
@@ -13,10 +14,7 @@ import com.ssafy.a410.game.domain.game.message.control.item.ItemApplicationFaile
 import com.ssafy.a410.game.domain.game.message.control.item.ItemAppliedMessage;
 import com.ssafy.a410.game.domain.game.message.control.item.ItemAppliedToHPObjectMessage;
 import com.ssafy.a410.game.domain.game.message.control.item.ItemClearedMessage;
-import com.ssafy.a410.game.domain.player.DirectionArrow;
-import com.ssafy.a410.game.domain.player.Player;
-import com.ssafy.a410.game.domain.player.PlayerDirection;
-import com.ssafy.a410.game.domain.player.PlayerPosition;
+import com.ssafy.a410.game.domain.player.*;
 import com.ssafy.a410.game.domain.player.message.control.*;
 import com.ssafy.a410.game.domain.player.message.request.GamePlayerRequest;
 import com.ssafy.a410.game.domain.team.Team;
@@ -27,10 +25,16 @@ import com.ssafy.a410.socket.domain.Subscribable;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.awt.*;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.List;
+import java.util.Queue;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.ssafy.a410.common.exception.ErrorDetail.PLAYER_NOT_IN_ROOM;
@@ -38,6 +42,10 @@ import static com.ssafy.a410.common.exception.ErrorDetail.PLAYER_NOT_IN_ROOM;
 @Getter
 @Slf4j
 public class Game extends Subscribable implements Runnable {
+
+    private static final int SAFE_ZONE_REDUCE_AMOUNT = 100;
+    private static final int SAFE_ZONE_REDUCE_DURATION = 10;
+
     private static final int TOTAL_ROUND = 3;
     // 게임 맵
     private final GameMap gameMap;
@@ -107,15 +115,15 @@ public class Game extends Subscribable implements Runnable {
         }
 
         // 각팀에 모자란 인원 만큼 봇으로 채워넣기
-        for (int i = 0; i < 4 - hidingTeam.getPlayers().size(); i++) {
-            Player bot = createBot();
-            hidingTeam.addPlayer(bot);
-        }
-
-        for (int i = 0; i < 4 - seekingTeam.getPlayers().size(); i++) {
-            Player bot = createBot();
-            seekingTeam.addPlayer(bot);
-        }
+//        for(int i = 0 ; i < 4 - hidingTeam.getPlayers().size(); i ++){
+//            Player bot = createBot();
+//            hidingTeam.addPlayer(bot);
+//        }
+//
+//        for(int i = 0 ; i < 4 - seekingTeam.getPlayers().size(); i ++){
+//            Player bot = createBot();
+//            seekingTeam.addPlayer(bot);
+//        }
     }
 
     private Player createBot() {
@@ -155,15 +163,27 @@ public class Game extends Subscribable implements Runnable {
 
     @Override
     public void run() {
+        log.info("방 {} 게임 초기화", room.getRoomNumber());
         initializeGame();
+        // 클라이언트가 초기화 할 시간 주기
+        try {
+            Thread.sleep(2L * MilliSecOf.SECONDS);
+        } catch (InterruptedException e) {
+            throw new UnhandledException("Game start interrupted");
+        }
+
         for (int round = 1; round <= TOTAL_ROUND && !isGameFinished(); round++) {
+            // 첫 라운드 제외하고 계속 맵 줄이기
+            if (round > 1)
+                reduceSafeZoneWithElimination();
+
             // 라운드 변경 알림
             log.debug("Room {} round {} start =======================================", room.getRoomNumber(), round);
             broadcastService.broadcastTo(this, new RoundChangeControlMessage(round, TOTAL_ROUND));
 
             log.debug("Room {} READY Phase start ------------------------------------", room.getRoomNumber());
             runReadyPhase();
-            hideBotPlayers();
+//            hideBotPlayers();
             eliminateUnhidePlayers();
 
             log.debug("Room {} MAIN Phase start -------------------------------------", room.getRoomNumber());
@@ -205,14 +225,11 @@ public class Game extends Subscribable implements Runnable {
             Team playerTeam = hidingTeam.has(player) ? hidingTeam : seekingTeam;
             PlayerInitializeMessage message = new PlayerInitializeMessage(info, playerTeam);
             broadcastService.unicastTo(player, message);
-        }
 
-        // 같은 팀 플레이어들의 초기 위치를 전송
-        for (Player player : hidingTeam.getPlayers().values()) {
-            broadcastService.broadcastTo(hidingTeam, new PlayerPositionMessage(new PlayerPosition(player)));
-        }
-        for (Player player : seekingTeam.getPlayers().values()) {
-            broadcastService.broadcastTo(seekingTeam, new PlayerPositionMessage(new PlayerPosition(player)));
+            // 양 팀에 소속된 플레이어들에게 최초 위치는 송신
+            PlayerPositionMessage positionMessage = new PlayerPositionMessage(info);
+            broadcastService.broadcastTo(hidingTeam, positionMessage);
+            broadcastService.broadcastTo(seekingTeam, positionMessage);
         }
     }
 
@@ -244,6 +261,18 @@ public class Game extends Subscribable implements Runnable {
                 Player player = hidingTeam.getPlayerWithId(request.getPlayerId());
                 request.handle(player, hidingTeam, this, broadcastService);
             }
+
+            // 봇 플레이어들의 위치 전송
+//            for (Player player : hidingTeam.getPlayers().values()) {
+//                if (player.isBot()) {
+                    // 현재 위치를 기준으로 랜덤하게 옆으로 위치 옮겨주기
+//                    player.setX(player.getPos().getX() + 0.0001);
+//                    player.setY(player.getPos().getY() + 0.0001);
+//                    // 방향 랜덤 지정
+//                    player.setDirection(PlayerDirection.values()[(int) (Math.random() * 4)]);
+//                    broadcastService.broadcastTo(hidingTeam, new PlayerPositionMessage(new PlayerPosition(player)));
+//                }
+//            }
         }
     }
 
@@ -311,6 +340,7 @@ public class Game extends Subscribable implements Runnable {
     }
 
 
+
     private void runMainPhase() {
         this.currentPhase = Phase.MAIN;
         broadcastService.broadcastTo(this, new PhaseChangeControlMessage(Phase.MAIN));
@@ -341,6 +371,19 @@ public class Game extends Subscribable implements Runnable {
                 Player player = seekingTeam.getPlayerWithId(request.getPlayerId());
                 request.handle(player, seekingTeam, this, broadcastService);
             }
+
+            // 봇 플레이어들의 위치 전송
+//            for (Player player : seekingTeam.getPlayers().values()) {
+//                if (player.isBot()) {
+                    // 현재 위치를 기준으로 랜덤하게 옆으로 위치 옮겨주기
+//                    player.setX(player.getPos().getX() + 0.0001);
+//                    player.setY(player.getPos().getY() + 0.0001);
+//                    player.setDirection(PlayerDirection.values()[(int) (Math.random() * 4)]);
+//                    PlayerPositionMessage message = new PlayerPositionMessage(new PlayerPosition(player));
+//                    broadcastService.broadcastTo(seekingTeam, message);
+//                    broadcastService.broadcastTo(hidingTeam, message);
+//                }
+//            }
         }
     }
 
@@ -404,7 +447,7 @@ public class Game extends Subscribable implements Runnable {
     public void notifyDisconnection(Player player) {
         GameControlMessage message = new GameControlMessage(
                 GameControlType.PLAYER_DISCONNECTED,
-                RoomMemberInfo.getAllInfoListFrom(this.getRoom())
+                Map.of("playerId", player.getId())
         );
         broadcastService.broadcastTo(this, message);
     }
@@ -462,8 +505,7 @@ public class Game extends Subscribable implements Runnable {
 
     private void endGame(Team winningTeam) {
         // 승리 팀을 알리고, 게임을 종료하고, 결과를 저장하는 등
-        GameInfo gameInfo = new GameInfo(this);
-        broadcastService.broadcastTo(this, gameInfo);
+        broadcastService.broadcastTo(this, new GameEndMessage());
 
         // 승패팀을 찾아서 전적을 업데이트 시켜준다.
         Team losingTeam = (winningTeam == hidingTeam) ? seekingTeam : hidingTeam;
@@ -602,8 +644,8 @@ public class Game extends Subscribable implements Runnable {
     }
 
     // 계산된 hider들의 방향을 seeker에게 전송해주는 메소드
-    public void sendDirectionHints(){
-        for(Player seeker : seekingTeam.getPlayers().values()){
+    public void sendDirectionHints() {
+        for (Player seeker : seekingTeam.getPlayers().values()) {
             List<DirectionArrow> directions = getDirectionsOfHiders(seeker);
             broadcastService.unicastTo(seeker, new DirectionHintMessage(seeker.getId(), directions));
         }
@@ -613,5 +655,61 @@ public class Game extends Subscribable implements Runnable {
     public void applyMushroomEffect(Player player) {
         List<DirectionArrow> directions = getDirectionsOfHiders(player);
         broadcastService.unicastTo(player, new DirectionHintMessage(player.getId(), directions));
+    }
+
+    public Map<String, List<PlayerStatsResp>> getEndGameStats() {
+        List<PlayerStatsResp> racoonTeamStats = new ArrayList<>();
+        List<PlayerStatsResp> foxTeamStats = new ArrayList<>();
+
+        for (Player player : room.getPlayers().values()) {
+            Team playerTeam = hidingTeam.has(player) ? hidingTeam : seekingTeam;
+            PlayerStatsResp playerStats = new PlayerStatsResp(
+                    player.getId(),
+                    player.getNickname(),
+                    player.getCatchCount(),
+                    player.getSurvivalTimeInSeconds(),
+                    playerTeam.getCharacter().toString()
+            );
+
+            if (playerTeam.getCharacter() == Team.Character.RACOON) {
+                racoonTeamStats.add(playerStats);
+            } else {
+                foxTeamStats.add(playerStats);
+            }
+        }
+
+        Map<String, List<PlayerStatsResp>> sortedStats = new LinkedHashMap<>();
+        sortedStats.put("RACOON", racoonTeamStats);
+        sortedStats.put("FOX", foxTeamStats);
+
+        return sortedStats;
+    }
+
+    private void sendSafeZoneUpdate() {
+        List<Point> corners = gameMap.getSafeZoneCorners();
+        broadcastService.broadcastTo(this, new SafeZoneUpdateMessage(corners));
+    }
+
+    private void reduceSafeZoneWithElimination() {
+
+        // 맵 축소
+        gameMap.reduceSafeArea(SAFE_ZONE_REDUCE_AMOUNT);
+        // 안전구역 알림
+        sendSafeZoneUpdate();
+
+        // 10초 후 안전구역 바깥에 있는 플레이어들 탈락처리 메소드 예약
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+        scheduler.schedule(this::eliminatePlayersOutsideSafeZone, SAFE_ZONE_REDUCE_DURATION, TimeUnit.SECONDS);
+    }
+
+    // 안전구역 바깥에 있는 플레이어들 탈락처리
+    private void eliminatePlayersOutsideSafeZone() {
+        List<Player> allPlayers = new ArrayList<>(room.getPlayers().values());
+
+        for (Player player : allPlayers) {
+            if (!gameMap.isInSafeZone(player)) {
+                player.eliminate();
+            }
+        }
     }
 }
