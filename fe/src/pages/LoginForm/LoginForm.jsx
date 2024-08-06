@@ -107,7 +107,8 @@ export default function LoginForm() {
                 password: password,
             });
             //userProfile 초기화는 로그인단계에서는 생략
-            const { accessToken, profile, webSocketConnectionToken } = loginResp.data;
+            const { accessToken, profile, webSocketConnectionToken } =
+                loginResp.data;
 
             // 인증 및 사용자 정보 초기화
             updateAxiosAccessToken(accessToken);
@@ -117,11 +118,12 @@ export default function LoginForm() {
 
             // 로비로 이동
             navigate(LOBBY_ROUTE_PATH);
-
         } catch (error) {
             const data = error.response?.data;
-            if (data?.detailCode === "E409007") {
-                setRegisterErrormessage("※사용중인 아이디 입니다");
+            if (data?.detailCode === "E409008") {
+                setRegisterErrormessage("※사용 중인 닉네임 입니다");
+            } else if (data?.detailCode === "E409007") {
+                setRegisterErrormessage("※사용 중인 아이디 입니다");
             } else if (data?.nickname) {
                 setRegisterErrormessage("※별명은 최대 8자까지 가능합니다.");
             } else if (data?.loginId) {
@@ -134,12 +136,11 @@ export default function LoginForm() {
                 );
             } else {
                 setRegisterErrormessage(
-                    "※회원 가입 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요"
+                    "※네트워크 오류가 발생했습니다."
                 );
             }
         }
     };
-            
 
     return (
         <div id="container" className="rpgui-cursor-default">
@@ -209,7 +210,7 @@ export default function LoginForm() {
                             <RiChatSmile3Fill className="icon" />
                             <input
                                 type="text"
-                                placeholder="별명"
+                                placeholder="nickname"
                                 id="nickname"
                                 onChange={(e) => setNickname(e.target.value)}
                             />
