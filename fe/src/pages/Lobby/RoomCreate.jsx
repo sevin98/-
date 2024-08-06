@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { GiFastForwardButton } from "react-icons/gi";
 import axios from "../../network/AxiosClient";
 import { userRepository } from "../../repository";
 import { WAITING_ROOM_ROUTE_PATH } from "../WaitingRoom/WaitingRoom";
@@ -36,23 +36,24 @@ export default function RoomCreate() {
     };
 
     return (
-        <div className="wrapper">
-            <h1>방 생성</h1>
-            <form action="">
-                <input
-                    id="room-password"
-                    className="input-box"
-                    type="password"
-                    placeholder="비밀번호를 입력해 주세요."
-                    onChange={(e) => setRoomPassword(e.target.value)}
-                ></input>
-                <p id="password-info-message">
-                    *비밀번호가 없으면 공개 방으로 생성됩니다
-                </p>
-                <button type="submit" onClick={onCreateRoomBtnClicked}>
-                    <p>방 만들기 </p>
-                </button>
-            </form>
+        <div id="container" className="rpgui-cursor-default">
+            <div className="wrapper rpgui-content">
+                <div className="rpgui-container framed main-frame">
+                    <h2>비밀번호 입력 시 새로운 방이 만들어집니다</h2>
+                    <input
+                        className="input-box"
+                        type="password"
+                        placeholder="(생략시 방에 누구나 들어올 수 있음)"
+                        onChange={(e) => setRoomPassword(e.target.value)}
+                    ></input>
+                    <button
+                        className="rpgui-button"
+                        onClick={onCreateRoomBtnClicked}
+                    >
+                        <p>Start!</p>
+                    </button>
+                </div>
+            </div>
         </div>
     );
 }
