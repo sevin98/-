@@ -678,7 +678,7 @@ public class Game extends Subscribable implements Runnable {
 
         for (Player player : allPlayers) {
             if (!gameMap.isInSafeZone(player)) {
-                player.eliminate();
+                player.eliminateOutOfSafeZone();
             }
         }
     }
