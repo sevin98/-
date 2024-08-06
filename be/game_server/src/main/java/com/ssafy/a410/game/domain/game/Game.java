@@ -1,9 +1,19 @@
 package com.ssafy.a410.game.domain.game;
 
+import com.ssafy.a410.auth.model.entity.UserProfileEntity;
+import com.ssafy.a410.auth.service.UserService;
+import com.ssafy.a410.common.exception.ErrorDetail;
 import com.ssafy.a410.common.exception.ResponseException;
 import com.ssafy.a410.common.exception.UnhandledException;
 import com.ssafy.a410.game.domain.Pos;
+import com.ssafy.a410.game.domain.game.item.ItemUseReq;
+import com.ssafy.a410.game.domain.game.message.DirectionHintMessage;
 import com.ssafy.a410.game.domain.game.message.control.*;
+import com.ssafy.a410.game.domain.game.message.control.item.ItemApplicationFailedMessage;
+import com.ssafy.a410.game.domain.game.message.control.item.ItemAppliedMessage;
+import com.ssafy.a410.game.domain.game.message.control.item.ItemAppliedToHPObjectMessage;
+import com.ssafy.a410.game.domain.game.message.control.item.ItemClearedMessage;
+import com.ssafy.a410.game.domain.player.DirectionArrow;
 import com.ssafy.a410.game.domain.player.Player;
 import com.ssafy.a410.game.domain.player.PlayerDirection;
 import com.ssafy.a410.game.domain.player.PlayerPosition;
@@ -18,6 +28,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.stream.Collectors;
@@ -39,10 +50,11 @@ public class Game extends Subscribable implements Runnable {
     private final Team seekingTeam;
     private final Queue<GamePlayerRequest> seekingTeamRequests;
     private final MessageBroadcastService broadcastService;
+    private final UserService userService;
     // 현재 게임이 머물러 있는 상태(단계)
     private Phase currentPhase;
 
-    public Game(Room room, MessageBroadcastService broadcastService) {
+    public Game(Room room, MessageBroadcastService broadcastService, UserService userService) {
         this.room = room;
         try {
             this.gameMap = new GameMap("map-2024-07-29");
@@ -54,7 +66,13 @@ public class Game extends Subscribable implements Runnable {
         this.seekingTeam = new Team(Team.Character.FOX, this);
         this.seekingTeamRequests = new ConcurrentLinkedDeque<>();
         this.broadcastService = broadcastService;
+        this.userService = userService;
+        gameMap.setGameToHpObjects(this);
         initialize();
+    }
+
+    private void initializeGameMap() {
+        gameMap.getHpObjects().values().forEach(hpObject -> hpObject.setGame(this));
     }
 
     private void initialize() {
@@ -68,7 +86,7 @@ public class Game extends Subscribable implements Runnable {
         setInitialPlayerPositions(seekingTeam);
         // 방에 실행 중인 게임으로 연결
         room.setPlayingGame(this);
-
+        initializeGameMap();
         // 게임 시작 준비 완료
         this.currentPhase = Phase.INITIALIZED;
     }
@@ -89,12 +107,12 @@ public class Game extends Subscribable implements Runnable {
         }
 
         // 각팀에 모자란 인원 만큼 봇으로 채워넣기
-        for(int i = 0 ; i < 4 - hidingTeam.getPlayers().size(); i ++){
+        for (int i = 0; i < 4 - hidingTeam.getPlayers().size(); i++) {
             Player bot = createBot();
             hidingTeam.addPlayer(bot);
         }
 
-        for(int i = 0 ; i < 4 - seekingTeam.getPlayers().size(); i ++){
+        for (int i = 0; i < 4 - seekingTeam.getPlayers().size(); i++) {
             Player bot = createBot();
             seekingTeam.addPlayer(bot);
         }
@@ -160,6 +178,7 @@ public class Game extends Subscribable implements Runnable {
             swapTeam();
         }
         room.endGame();
+        resetAllItems();
     }
 
     private boolean isTimeToSwitch(long timeToSwitchPhase) {
@@ -232,17 +251,17 @@ public class Game extends Subscribable implements Runnable {
     private void hideBotPlayers() {
         // 숨기 역할 팀의 봇 플레이어를 가져옴
         List<Player> botPlayers = new ArrayList<>();
-        for(Player player : hidingTeam.getPlayers().values()) {
-            if(player.isBot()) botPlayers.add(player);
+        for (Player player : hidingTeam.getPlayers().values()) {
+            if (player.isBot()) botPlayers.add(player);
         }
 
         // 현재 숨을 수 있는 HPObject만 가져옴
         List<HPObject> hpObjects = getEmptyHPObjects();
 
         // 봇 플레이어들에게 비어있는 가장 가까운 HPObject를 찾아서 숨게 한다.
-        for(Player bot : botPlayers) {
+        for (Player bot : botPlayers) {
             HPObject closestHPObject = findClosestHPObject(bot, hpObjects);
-            if(closestHPObject != null) {
+            if (closestHPObject != null) {
                 closestHPObject.hidePlayer(bot);
                 hpObjects.remove(closestHPObject);
             } else {
@@ -254,7 +273,7 @@ public class Game extends Subscribable implements Runnable {
 
     // 현재 비어있는 HPObject만 리스트로 가져옴
     // TODO : 자기장(?)이 생길 경우 그로 인해 숨을 수 없는 곳인지 체크 추가 해야함
-    private List<HPObject> getEmptyHPObjects(){
+    private List<HPObject> getEmptyHPObjects() {
         return gameMap.getHpObjects().values()
                 .stream()
                 .filter(HPObject::isEmpty)
@@ -262,12 +281,12 @@ public class Game extends Subscribable implements Runnable {
     }
 
     // 가장 가까운 HPObject 찾기
-    private HPObject findClosestHPObject(Player bot, List<HPObject> hpObjects){
+    private HPObject findClosestHPObject(Player bot, List<HPObject> hpObjects) {
         Pos playerPos = bot.getPos();
         return hpObjects.stream()
                 .min(Comparator.comparingDouble(hpObject ->
                         Math.abs(playerPos.getY() - hpObject.getPos().getY()) +
-                        Math.abs(playerPos.getX() - hpObject.getPos().getX())))
+                                Math.abs(playerPos.getX() - hpObject.getPos().getX())))
                 .orElse(null);
     }
 
@@ -292,7 +311,6 @@ public class Game extends Subscribable implements Runnable {
     }
 
 
-
     private void runMainPhase() {
         this.currentPhase = Phase.MAIN;
         broadcastService.broadcastTo(this, new PhaseChangeControlMessage(Phase.MAIN));
@@ -306,6 +324,9 @@ public class Game extends Subscribable implements Runnable {
         broadcastService.broadcastTo(seekingTeam, new PlayerUnfreezeMessage());
         broadcastService.broadcastTo(seekingTeam, new PlayerUncoverScreenMessage());
         seekingTeam.unfreezePlayers();
+
+        // 찾는 팀에게 방향 힌트 제공
+        sendDirectionHints();
 
         // 요청 처리 큐 초기화
         seekingTeamRequests.clear();
@@ -331,7 +352,7 @@ public class Game extends Subscribable implements Runnable {
     // TODO: 후에 맵의 둘레 부분이 줄어들 경우, 위치를 계산하여 숨은 팀 플레이어들에게 송신
     // 현재는 플레이어가 숨기 전 마지막 위치를 반환한다.
     private void exitPlayers() {
-        for(Player player : hidingTeam.getPlayers().values()) {
+        for (Player player : hidingTeam.getPlayers().values()) {
             broadcastService.unicastTo(player, new PlayerPositionMessage(new PlayerPosition(player)));
         }
     }
@@ -413,26 +434,184 @@ public class Game extends Subscribable implements Runnable {
     }
 
     // 라운드가 끝날 때 탐색 카운트 초기화
-    private void resetSeekCount(){
-        for(Player player : hidingTeam.getPlayers().values()){
+    private void resetSeekCount() {
+        for (Player player : hidingTeam.getPlayers().values()) {
             player.initSeekCount();
         }
     }
 
     public void checkForVictory() {
-        if (hidingTeam.getPlayers().isEmpty()) {
+        if (hidingTeam.getPlayers().isEmpty() || isTeamEliminated(hidingTeam)) {
             // 찾는 팀의 승리
             endGame(seekingTeam);
-        } else if (seekingTeam.getPlayers().isEmpty()) {
+        } else if (seekingTeam.getPlayers().isEmpty() || isTeamEliminated(hidingTeam)) {
             // 숨는 팀의 승리
             endGame(hidingTeam);
         }
+    }
+
+    // 팀원이 전부 Eliminated되었는지 확인
+    private boolean isTeamEliminated(Team team) {
+        for (Player player : team.getPlayers().values()) {
+            if (!player.isEliminated()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void endGame(Team winningTeam) {
         // 승리 팀을 알리고, 게임을 종료하고, 결과를 저장하는 등
         GameInfo gameInfo = new GameInfo(this);
         broadcastService.broadcastTo(this, gameInfo);
+
+        // 승패팀을 찾아서 전적을 업데이트 시켜준다.
+        Team losingTeam = (winningTeam == hidingTeam) ? seekingTeam : hidingTeam;
+        updatePlayerStats(winningTeam, losingTeam);
+
         room.endGame();
+    }
+
+    private void updatePlayerStats(Team winningTeam, Team losingTeam) {
+        for (Player player : winningTeam.getPlayers().values()) {
+            if (!player.isBot())
+                updateUserProfile(player, true);
+        }
+        for (Player player : losingTeam.getPlayers().values()) {
+            if (!player.isBot())
+                updateUserProfile(player, false);
+        }
+    }
+
+    private void updateUserProfile(Player player, boolean isWinner) {
+        UserProfileEntity userProfile = userService.getUserProfileEntityByUuid(player.getId());
+        userProfile.addCatchCount(player.getCatchCount());
+        userProfile.addSurvivalTimeInSeconds(player.getSurvivalTimeInSeconds());
+        if (isWinner)
+            userProfile.addwins();
+        else
+            userProfile.addLosses();
+        userService.updateUserProfileEntity(userProfile);
+    }
+
+    public void applyItemToPlayer(String playerId, Item item, Duration duration, String appliedById, String requestId) {
+        Player player = getPlayerbyId(playerId);
+        Duration durationOfItem = item.getDuration();
+        player.applyItem(item, durationOfItem, appliedById);
+        broadcastService.broadcastTo(this, new ItemAppliedMessage(
+                room.getRoomNumber(),
+                playerId,
+                item,
+                duration,
+                player.getSpeed(),
+                requestId
+        ));
+    }
+
+    public void applyItemToHPObject(String objectId, Item item, Duration duration, String appliedById, String requestId) {
+        HPObject hpObject = gameMap.getHpObjects().get(objectId);
+        Duration durationOfItem = item.getDuration();
+        if (hpObject != null) {
+            hpObject.applyItem(item, durationOfItem, appliedById);
+            broadcastService.broadcastTo(this, new ItemAppliedToHPObjectMessage(
+                    room.getRoomNumber(),
+                    objectId,
+                    hpObject.getPlayer() != null ? hpObject.getPlayer().getId() : null,
+                    item,
+                    duration,
+                    appliedById,
+                    requestId
+            ));
+        } else {
+            broadcastService.broadcastTo(this, new ItemApplicationFailedMessage(
+                    room.getRoomNumber(),
+                    appliedById,
+                    objectId,
+                    item,
+                    requestId
+            ));
+        }
+    }
+
+    private Player getPlayerbyId(String playerId) {
+        for (Team team : List.of(hidingTeam, seekingTeam)) {
+            Player player = team.getPlayerWithId(playerId);
+            if (player != null) return player;
+        }
+        throw new ResponseException(PLAYER_NOT_IN_ROOM);
+    }
+
+    public void notifyItemCleared(Player player) {
+        broadcastService.broadcastTo(this, new ItemClearedMessage(
+                room.getRoomNumber(),
+                player.getId(),
+                null,
+                Duration.ZERO,
+                null
+        ));
+    }
+
+    public void notifyHPItemCleared(HPObject hpObject) {
+        broadcastService.broadcastTo(this, new ItemClearedMessage(
+                room.getRoomNumber(),
+                null,
+                hpObject.getId(),
+                Duration.ZERO,
+                null
+        ));
+    }
+
+    public void handleItemUseRequest(ItemUseReq itemUseReq) {
+        String playerId = itemUseReq.getPlayerId();
+        String targetId = itemUseReq.getTargetId();
+        Item item = itemUseReq.getItem();
+        String requestId = itemUseReq.getRequestId();
+        String roomId = itemUseReq.getRoomId();
+
+        if (item.isApplicableToPlayer()) {
+            applyItemToPlayer(targetId, item, item.getDuration(), playerId, requestId);
+        } else if (item.isApplicableToHPObject()) {
+            applyItemToHPObject(targetId, item, item.getDuration(), playerId, requestId);
+        } else {
+            throw new ResponseException(ErrorDetail.UNKNOWN_ITEM_OR_PLAYER_NOT_FOUND);
+        }
+    }
+
+    private void resetAllItems() {
+        for (Player player : room.getPlayers().values()) {
+            player.clearItem();
+        }
+        for (HPObject hpObject : gameMap.getHpObjects().values()) {
+            hpObject.clearItem();
+        }
+    }
+
+
+    // Hider들의 방향을 계산해주는 메소드
+    public List<DirectionArrow> getDirectionsOfHiders(Player seeker) {
+        List<DirectionArrow> directions = new ArrayList<>();
+        for (Player hider : hidingTeam.getPlayers().values()) {
+            if (!hider.isEliminated()) {
+                DirectionArrow direction = seeker.getDirectionTo(hider);
+                if (direction != null) {
+                    directions.add(direction);
+                }
+            }
+        }
+        return directions;
+    }
+
+    // 계산된 hider들의 방향을 seeker에게 전송해주는 메소드
+    public void sendDirectionHints(){
+        for(Player seeker : seekingTeam.getPlayers().values()){
+            List<DirectionArrow> directions = getDirectionsOfHiders(seeker);
+            broadcastService.unicastTo(seeker, new DirectionHintMessage(seeker.getId(), directions));
+        }
+    }
+
+    // MUSHROOM 아이템 적용 메소드
+    public void applyMushroomEffect(Player player) {
+        List<DirectionArrow> directions = getDirectionsOfHiders(player);
+        broadcastService.unicastTo(player, new DirectionHintMessage(player.getId(), directions));
     }
 }

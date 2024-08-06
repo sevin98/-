@@ -55,7 +55,7 @@ public class RoomController {
 
     // 랜덤으로 방에 입장하기 위한 토큰들을 반환하고, 방이 존재하지 않는다면 NO_CONTENT를 반환한다.
     @PostMapping("/api/rooms/join")
-    public ResponseEntity<?> joinRandomRoom(Principal principal){
+    public ResponseEntity<JoinRandomRoomResp> joinRandomRoom(Principal principal){
 
         List<Room> rooms = roomService.findAvailableRooms();
         if(rooms.isEmpty())
@@ -67,7 +67,7 @@ public class RoomController {
 
         Player player = roomService.joinRoomWithPassword(roomId, principal.getName(), null);
 
-        JoinRoomResp tokens = roomService.getJoinRoomSubscriptionTokens(roomId, player.getId());
+        JoinRandomRoomResp tokens = roomService.getJoinRandomRoomSubscriptionTokens(roomId, player.getId());
         return ResponseEntity.ok(tokens);
     }
 
