@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 function BackToLobbyButton({ isDisabled, onClick }) {
     return (
         <button
-            className={`back-to-lobby-button ${isDisabled ? "disabled" : ""}`}
+            className={`rpgui-button ${isDisabled ? "disabled" : ""}`}
             onClick={onClick}
             disabled={isDisabled}
         >
@@ -27,7 +27,7 @@ function ChatBox({ leftSecondsToStart, countdownMessage }) {
             ? ""
             : leftSecondsToStart;
     return (
-        <div className="chat-box">
+        <div className="rpgui-container framed-grey chat-box">
             <div className="countdown-display">
                 {leftSoundsToStartDisplayingText}
             </div>
@@ -46,12 +46,12 @@ ChatBox.propTypes = {
 // PlayerSlot 컴포넌트
 function PlayerSlot({ player, isMe }) {
     if (!player) {
-        return <div className="player-slot empty">빈 슬롯</div>;
+        return <div className="rpgui-container framed-grey player-slot empty">빈 슬롯</div>;
     }
 
     return (
         <div
-            className={`player-slot ${player.getIsReady() ? "ready" : ""} ${
+            className={`rpgui-container framed-grey player-slot ${player.getIsReady() ? "ready" : ""} ${
                 isMe ? "me" : ""
             }`}
         >
@@ -91,9 +91,9 @@ PlayerGrid.propTypes = {
 
 // ReadyButton 컴포넌트
 function ReadyButton({ isReady, onClick }) {
-    return (
+    return ( 
         <button
-            className={`ready-button ${isReady ? "ready" : "not-ready"}`}
+            className={`rpgui-button ${isReady ? "ready" : "not-ready"}`}
             onClick={onClick}
             disabled={isReady}
         >
@@ -120,7 +120,7 @@ function ShareRoomCodeButton() {
 
     return (
         <button
-            className="share-room-code-button"
+            className="rpgui-button"
             onClick={onShareRoomCodeBtnClicked}
         >
             참가 링크 복사
