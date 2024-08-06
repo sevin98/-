@@ -12,6 +12,7 @@ export class Player {
     #x;
     #y;
     #direction;
+    #sprite;
 
     static MAX_SEEK_COUNT = 5;
 
@@ -110,6 +111,14 @@ export class Player {
 
     canSeek() {
         return this.#restSeekCount > 0;
+    }
+
+    setSprite(sprite) {
+        this.#sprite = sprite;
+    }
+
+    getSprite() {
+        return this.#sprite;
     }
 }
 

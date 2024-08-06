@@ -172,18 +172,61 @@ export default class GameRepository {
             `페이즈 변경: ${data.phase}, ${data.finishAfterMilliSec}ms 후 종료`
         );
 
-        // 한 라운드가 끝나면 역할 반전
         this.#currentPhase = data.phase;
         if (this.#currentPhase === Phase.READY) {
-            console.log(
-                `당신의 팀이 ${
-                    this.getMe().isHidingTeam() ? "숨을" : "찾을"
-                } 차례입니다.`
-            );
+            if (this.getMe().isHidingTeam()) {
+                console.log(
+                    `당신의 팀이 숨을 차례입니다. ${data.finishAfterMilliSec}ms 안에 숨지 못하면 탈락합니다.`
+                );
+
+                // 화면에 찾는 팀, 숨는 팀 플레이어들이 보이게 하기
+                this.#setTeamPlayersVisibility(this.getSeekingTeam(), true);
+                this.#setTeamPlayersVisibility(this.getHidingTeam(), true);
+            } else {
+                console.log(
+                    `당신의 팀이 찾을 차례입니다. ${data.finishAfterMilliSec}ms 후에 상대 팀을 찾을 수 있습니다.`
+                );
+
+                // 화면에 찾는 팀 플레이어들이 보이게 하기
+                this.#setTeamPlayersVisibility(this.getSeekingTeam(), true);
+                // 화면에 숨는 팀 플레이어들이 보이지 않게 하기
+                this.#setTeamPlayersVisibility(this.getHidingTeam(), false);
+            }
+        } else if (this.#currentPhase === Phase.MAIN) {
+            if (this.getMe().isHidingTeam()) {
+                console.log(
+                    `앞으로 ${data.finishAfterMilliSec}ms 동안 들키지 않으면 생존합니다.`
+                );
+
+                // 화면에 찾는 팀 플레이어들이 보이게 하기
+                this.#setTeamPlayersVisibility(this.getSeekingTeam(), true);
+                // 화면에 숨는 팀 플레이어들이 보이지 않게 하기
+                this.#setTeamPlayersVisibility(this.getHidingTeam(), false);
+            } else {
+                console.log(
+                    `앞으로 ${data.finishAfterMilliSec}ms 동안 상대 팀을 찾아야 합니다.`
+                );
+
+                // 화면에 찾는 팀 플레이어들이 보이게 하기
+                this.#setTeamPlayersVisibility(this.getSeekingTeam(), true);
+                // 화면에 숨는 팀 플레이어들이 보이지 않게 하기
+                this.#setTeamPlayersVisibility(this.getHidingTeam(), false);
+            }
         } else if (this.#currentPhase === Phase.END) {
-            // 역할 전환
+            // 한 라운드가 끝나면 역할 반전
             this.#racoonTeam.setIsHidingTeam(!this.#racoonTeam.isHidingTeam());
             this.#foxTeam.setIsHidingTeam(!this.#foxTeam.isHidingTeam());
+        }
+    }
+
+    #setTeamPlayersVisibility(team, isVisible) {
+        for (let player of team.getPlayers()) {
+            // 내 플레이어의 가시성은 Game.js에서 별도 처리
+            if (player.getPlayerId() === this.#me.getPlayerId()) {
+                continue;
+            }
+            const sprite = player.getSprite();
+            sprite.visible = isVisible;
         }
     }
 
@@ -327,6 +370,14 @@ export default class GameRepository {
 
     getFoxTeam() {
         return this.#foxTeam;
+    }
+
+    getHidingTeam() {
+        return this.#foxTeam.isHidingTeam() ? this.#foxTeam : this.#racoonTeam;
+    }
+
+    getSeekingTeam() {
+        return this.#foxTeam.isHidingTeam() ? this.#racoonTeam : this.#foxTeam;
     }
 
     getAllPlayers() {

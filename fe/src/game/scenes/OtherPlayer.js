@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { getRoomRepository } from "../../repository";
 import { Phase } from "../../repository/_game";
 
-export default class OtherPlayer extends Phaser.Physics.Arcade.Sprite {
+export default class OtherPlayerSprite extends Phaser.Physics.Arcade.Sprite {
     static PLAYER_SPEED = 200;
     static moveX = [0, 1, 0, -1];
     static moveY = [-1, 0, 1, 0];
@@ -30,8 +30,8 @@ export default class OtherPlayer extends Phaser.Physics.Arcade.Sprite {
         this.gameRepository = this.roomRepository.getGameRepository();
 
         //id로 player초기화
-        this.otherPlayer = this.gameRepository.getPlayerWithId(id);
-        this.isRacoon = this.otherPlayer.isRacoonTeam();
+        this._player = this.gameRepository.getPlayerWithId(id);
+        this.isRacoon = this._player.isRacoonTeam();
         this.setupAnimations();
     }
 
@@ -303,7 +303,7 @@ export default class OtherPlayer extends Phaser.Physics.Arcade.Sprite {
     // phaser 따라서 구분.
 
     // 만약에 나: 하이딩 상대방: 하이딩 -> 상대방보임
-    // 나: 찾 상대방:하이딩 -> this.otherPlayer.visibel == false (if phase==숨는시간)
+    // 나: 찾 상대방:하이딩 -> this._player.visibel == false (if phase==숨는시간)
 
     getPosition() {
         const position = this.#player.getPosition();

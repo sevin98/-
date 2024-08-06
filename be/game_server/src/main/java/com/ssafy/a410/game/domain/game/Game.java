@@ -2,6 +2,7 @@ package com.ssafy.a410.game.domain.game;
 
 import com.ssafy.a410.auth.model.entity.UserProfileEntity;
 import com.ssafy.a410.auth.service.UserService;
+import com.ssafy.a410.common.constant.MilliSecOf;
 import com.ssafy.a410.common.exception.ErrorDetail;
 import com.ssafy.a410.common.exception.ResponseException;
 import com.ssafy.a410.common.exception.UnhandledException;
@@ -162,9 +163,16 @@ public class Game extends Subscribable implements Runnable {
 
     @Override
     public void run() {
+        log.info("방 {} 게임 초기화", room.getRoomNumber());
         initializeGame();
-        for (int round = 1; round <= TOTAL_ROUND && !isGameFinished(); round++) {
+        // 클라이언트가 초기화 할 시간 주기
+        try {
+            Thread.sleep(2L * MilliSecOf.SECONDS);
+        } catch (InterruptedException e) {
+            throw new UnhandledException("Game start interrupted");
+        }
 
+        for (int round = 1; round <= TOTAL_ROUND && !isGameFinished(); round++) {
             // 첫 라운드 제외하고 계속 맵 줄이기
             if (round > 1)
                 reduceSafeZoneWithElimination();

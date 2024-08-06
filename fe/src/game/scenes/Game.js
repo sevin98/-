@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 
-import Player, { HandlePlayerMove } from "./Player";
-import OtherPlayer from "./OtherPlayer";
+import MyPlayerSprite, { HandlePlayerMove } from "./Player";
+import OtherPlayerSprite from "./OtherPlayer";
 import MapTile from "./MapTile";
 import TextGroup from "./TextGroup";
 
@@ -15,15 +15,6 @@ export class game extends Phaser.Scene {
     //fauna = Phaser.Physics.Arcade.Sprite;
     constructor() {
         super("game");
-        /// 임의로 포지션 넣은 코드, 이후 삭제
-        this.positions = [
-            [500, 400],
-            [500, 390],
-            [500, 380],
-            [500, 370],
-            [500, 360],
-            [500, 350],
-        ];
 
         this.MapTile = null;
         this.objects = null;
@@ -58,7 +49,13 @@ export class game extends Phaser.Scene {
         // 로컬플레이어 객체 생성, 카메라 follow
         const me = this.gameRepository.getMe();
         const { x, y, direction } = me.getPosition();
-        this.localPlayer = new Player(this, x, y, "fauna-idle-down", true);
+        this.localPlayer = new MyPlayerSprite(
+            this,
+            x,
+            y,
+            "fauna-idle-down",
+            true
+        );
         playercam.startFollow(this.localPlayer);
 
         //로컬플레이어와 layer의 충돌설정
@@ -100,24 +97,23 @@ export class game extends Phaser.Scene {
         });
 
         // 다른 플레이어 스프라이트
-        this.otherPlayers = [];
+        this.otherPlayerSprites = [];
         for (let player of this.gameRepository.getAllPlayers()) {
             if (player.getPlayerId() === me.getPlayerId()) {
                 continue;
             }
 
-            const otherPlayer = new OtherPlayer(
+            const otherPlayerSprite = new OtherPlayerSprite(
                 this,
                 player.getPosition().x,
                 player.getPosition().y,
                 "fauna-idle-down",
                 player.getPlayerId()
             );
-            otherPlayer.visible = true;
-            this.otherPlayers.push(otherPlayer);
+            otherPlayerSprite.visible = true;
+            player.setSprite(otherPlayerSprite);
+            this.otherPlayerSprites.push(otherPlayerSprite);
         }
-
-        // playercam.startFollow(this.otherPlayers[0]);
 
         // //setinteval 대신 addevent 함수씀
         this.time.addEvent({
@@ -136,6 +132,31 @@ export class game extends Phaser.Scene {
         // 로컬플레이어 포지션 트래킹 , 이후 위치는 x,y,headDir로 접근
         const me = this.gameRepository.getMe();
         const { x, y, headDir } = me.getPosition();
+
+        // 페이즈에 따라 플레이어의 움직임 및 화면 표시 여부 제한
+        if (this.gameRepository.getCurrentPhase() === Phase.READY) {
+            // 레디 페이즈에 숨는 팀이면 표시 및 움직임 허가
+            if (me.isHidingTeam()) {
+                this.localPlayer.visible = true;
+                this.localPlayer.allowMove();
+            }
+            // 레디 페이즈에 찾는 팀이면 표시 및 움직임 제한
+            else {
+                this.localPlayer.visible = true;
+                this.localPlayer.disallowMove();
+            }
+        } else if (this.gameRepository.getCurrentPhase() === Phase.MAIN) {
+            // 메인 페이즈에 숨는 팀이면 표시 및 움직임 제한
+            if (me.isHidingTeam()) {
+                this.localPlayer.visible = false;
+                this.localPlayer.disallowMove();
+            }
+            // 메인 페이즈에 찾는 팀이면 표시 및 움직임 허가
+            else {
+                this.localPlayer.visible = true;
+                this.localPlayer.allowMove();
+            }
+        }
 
         // player.js 에서 player 키조작이벤트 불러옴
         const playerMoveHandler = new HandlePlayerMove(
@@ -300,9 +321,9 @@ export class game extends Phaser.Scene {
 
     //constructor에 있는 임의의 position 배열에서 좌표 꺼내는 랜덤함수
     updateAnotherPlayerSpritePosition() {
-        for (let otherPlayer of this.otherPlayers) {
-            otherPlayer.updatePosition();
-            otherPlayer.move(otherPlayer.getHeadDir());
+        for (let otherPlayerSprite of this.otherPlayerSprites) {
+            otherPlayerSprite.updatePosition();
+            otherPlayerSprite.move(otherPlayerSprite.getHeadDir());
         }
     }
 }
