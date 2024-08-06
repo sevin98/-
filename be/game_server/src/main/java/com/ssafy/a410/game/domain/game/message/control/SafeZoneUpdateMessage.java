@@ -7,7 +7,7 @@ import java.util.List;
 
 @Getter
 public class SafeZoneUpdateMessage extends GameControlMessage {
-    public SafeZoneUpdateMessage(List<Point> corners) {
+    public SafeZoneUpdateMessage(List<Integer> corners) {
         super(GameControlType.SAFE_ZONE_UPDATE, corners);
     }
 }
