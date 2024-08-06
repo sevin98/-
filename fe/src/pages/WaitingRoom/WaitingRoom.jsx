@@ -60,13 +60,24 @@ export default function WaitingRoom() {
                     resp.data;
                 roomRepository.startSubscribeRoom(roomSubscriptionInfo);
                 roomRepository.startSubscribePlayer(playerSubscriptionInfo);
+            })
+            .catch((error) => {
+                if (error.response.status === 404) {
+                    toast.error("해당하는 방이 없습니다.");
+                } else if (error.response.status === 401) {
+                    toast.error("비밀번호가 틀립니다.");
+                } else if (error.response.status === 409) {
+                    toast.error("이미 8명이 참가한 방입니다.");
+                } else {
+                    toast.error("방 참가 중 오류가 발생했습니다.");
+                }
             });
 
         // 페이지를 떠날 때 방 나가기 처리
         const handleBeforeUnload = (event) => {
-            axios.post(`/api/rooms/${roomNumber}/leave`).catch((err) => {
-                console.error("Failed to leave room:", err);
-            });
+            // axios.post(`/api/rooms/${roomNumber}/leave`).catch((err) => {
+            //     console.error("Failed to leave room:", err);
+            // });
         };
 
         // 브라우저를 닫을 때 leave API 호출
@@ -78,9 +89,9 @@ export default function WaitingRoom() {
             window.removeEventListener("beforeunload", handleBeforeUnload);
 
             // 방 나가기 요청
-            axios.post(`/api/rooms/${roomNumber}/leave`).catch((err) => {
-                console.error("Failed to leave room:", err);
-            });
+            // axios.post(`/api/rooms/${roomNumber}/leave`).catch((err) => {
+            //     console.error("Failed to leave room:", err);
+            // });
         };
     }, []);
 
