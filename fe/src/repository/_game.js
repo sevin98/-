@@ -3,6 +3,7 @@ import { v4 as uuid } from "uuid";
 import { getStompClient } from "../network/StompClient";
 import { Team, Player } from "./interface";
 import asyncResponses from "./_asyncResponses";
+import { Mutex } from "async-mutex";
 
 // 게임 시작 이벤트
 const GAME_START = "GAME_START";
@@ -12,6 +13,8 @@ const GAME_INFO = "GAME_INFO";
 const ROUND_CHANGE = "ROUND_CHANGE";
 // 페이즈 전환 이벤트
 const PHASE_CHANGE = "PHASE_CHANGE";
+// 게임 종료 이벤트
+const GAME_END = "GAME_END";
 // 숨기 성공 이벤트
 const INTERACT_HIDE_SUCCESS = "INTERACT_HIDE_SUCCESS";
 // 숨기 실패 이벤트
@@ -20,6 +23,12 @@ const INTERACT_HIDE_FAIL = "INTERACT_HIDE_FAIL";
 const INTERACT_SEEK_SUCCESS = "INTERACT_SEEK_SUCCESS";
 // 찾기 실패 이벤트
 const INTERACT_SEEK_FAIL = "INTERACT_SEEK_FAIL";
+// 플레이어 탈락 이벤트
+const ELIMINATION = "ELIMINATION";
+// 플레이어 게임 이탈 이벤트
+const PLAYER_DISCONNECTED = "PLAYER_DISCONNECTED";
+// 안전 구역 업데이트 이벤트
+const SAFE_ZONE_UPDATE = "SAFE_ZONE_UPDATE";
 
 // 화면 가리기 명령 이벤트
 const COVER_SCREEN = "COVER_SCREEN";
@@ -31,6 +40,9 @@ const SHARE_POSITION = "SHARE_POSITION";
 const FREEZE = "FREEZE";
 // 플레이어 조작 불가 해제 명령 이벤트
 const UNFREEZE = "UNFREEZE";
+
+// 게임 상태의 초기화를 보장하기 위한 뮤텍스
+const gameInitializationMutex = new Mutex();
 
 export class Phase {
     // 게임을 초기화 하고 있는 상태
@@ -48,6 +60,7 @@ export class Phase {
 }
 
 export default class GameRepository {
+    #room;
     #roomNumber;
     #stompClient;
     #startedAt;
@@ -56,7 +69,10 @@ export default class GameRepository {
     #racoonTeam;
     #me;
 
-    constructor(roomNumber, gameSubscriptionInfo, startsAfterMilliSec) {
+    #isInitialized = false;
+
+    constructor(room, roomNumber, gameSubscriptionInfo, startsAfterMilliSec) {
+        this.#room = room;
         this.#roomNumber = roomNumber;
 
         const initializationTrial = setInterval(() => {
@@ -68,7 +84,6 @@ export default class GameRepository {
                 })
                 .catch((e) => {});
         }, 100);
-        
     }
 
     startSubscribeGame(gameSubscriptionInfo) {
@@ -81,20 +96,30 @@ export default class GameRepository {
         );
     }
 
-    #handleGameMessage(message) {
+    async #handleGameMessage(message) {
         const { type, data } = message;
+
+        if (!this.#isInitialized && type !== GAME_INFO) {
+            await gameInitializationMutex.acquire();
+        }
+
         switch (type) {
             case GAME_START:
                 this.#handleGameStartEvent(data);
                 break;
             case GAME_INFO:
                 this.#handleGameInfoEvent(data);
+                this.#isInitialized = true;
+                gameInitializationMutex.release();
                 break;
             case ROUND_CHANGE:
                 this.#handleRoundChangeEvent(data);
                 break;
             case PHASE_CHANGE:
                 this.#handlePhaseChangeEvent(data);
+                break;
+            case GAME_END:
+                console.log(`게임 종료`);
                 break;
             case INTERACT_HIDE_SUCCESS:
                 this.#handleInteractHideSuccessEvent(data);
@@ -108,7 +133,17 @@ export default class GameRepository {
             case INTERACT_SEEK_FAIL:
                 this.#handleInteractSeekFailEvent(data);
                 break;
+            case ELIMINATION:
+                console.log(`플레이어 ${data.playerId}님이 탈락하셨습니다.`);
+                break;
+            case PLAYER_DISCONNECTED:
+                console.log(`플레이어 ${data.playerId}님이 이탈하셨습니다.`);
+                break;
+            case SAFE_ZONE_UPDATE:
+                console.log(`안전 지역이 변경되었습니다.`);
+                break;
             default:
+                console.error("Received unknown message:", message);
                 throw new Error(
                     "Unknown message type in GameRepository:" + type
                 );
@@ -137,18 +172,61 @@ export default class GameRepository {
             `페이즈 변경: ${data.phase}, ${data.finishAfterMilliSec}ms 후 종료`
         );
 
-        // 한 라운드가 끝나면 역할 반전
         this.#currentPhase = data.phase;
         if (this.#currentPhase === Phase.READY) {
-            console.log(
-                `당신의 팀이 ${
-                    this.getMe().isHidingTeam() ? "숨을" : "찾을"
-                } 차례입니다.`
-            );
+            if (this.getMe().isHidingTeam()) {
+                console.log(
+                    `당신의 팀이 숨을 차례입니다. ${data.finishAfterMilliSec}ms 안에 숨지 못하면 탈락합니다.`
+                );
+
+                // 화면에 찾는 팀, 숨는 팀 플레이어들이 보이게 하기
+                this.#setTeamPlayersVisibility(this.getSeekingTeam(), true);
+                this.#setTeamPlayersVisibility(this.getHidingTeam(), true);
+            } else {
+                console.log(
+                    `당신의 팀이 찾을 차례입니다. ${data.finishAfterMilliSec}ms 후에 상대 팀을 찾을 수 있습니다.`
+                );
+
+                // 화면에 찾는 팀 플레이어들이 보이게 하기
+                this.#setTeamPlayersVisibility(this.getSeekingTeam(), true);
+                // 화면에 숨는 팀 플레이어들이 보이지 않게 하기
+                this.#setTeamPlayersVisibility(this.getHidingTeam(), false);
+            }
+        } else if (this.#currentPhase === Phase.MAIN) {
+            if (this.getMe().isHidingTeam()) {
+                console.log(
+                    `앞으로 ${data.finishAfterMilliSec}ms 동안 들키지 않으면 생존합니다.`
+                );
+
+                // 화면에 찾는 팀 플레이어들이 보이게 하기
+                this.#setTeamPlayersVisibility(this.getSeekingTeam(), true);
+                // 화면에 숨는 팀 플레이어들이 보이지 않게 하기
+                this.#setTeamPlayersVisibility(this.getHidingTeam(), false);
+            } else {
+                console.log(
+                    `앞으로 ${data.finishAfterMilliSec}ms 동안 상대 팀을 찾아야 합니다.`
+                );
+
+                // 화면에 찾는 팀 플레이어들이 보이게 하기
+                this.#setTeamPlayersVisibility(this.getSeekingTeam(), true);
+                // 화면에 숨는 팀 플레이어들이 보이지 않게 하기
+                this.#setTeamPlayersVisibility(this.getHidingTeam(), false);
+            }
         } else if (this.#currentPhase === Phase.END) {
-            // 역할 전환
+            // 한 라운드가 끝나면 역할 반전
             this.#racoonTeam.setIsHidingTeam(!this.#racoonTeam.isHidingTeam());
             this.#foxTeam.setIsHidingTeam(!this.#foxTeam.isHidingTeam());
+        }
+    }
+
+    #setTeamPlayersVisibility(team, isVisible) {
+        for (let player of team.getPlayers()) {
+            // 내 플레이어의 가시성은 Game.js에서 별도 처리
+            if (player.getPlayerId() === this.#me.getPlayerId()) {
+                continue;
+            }
+            const sprite = player.getSprite();
+            sprite.visible = isVisible;
         }
     }
 
@@ -193,15 +271,16 @@ export default class GameRepository {
         const { playerPositionInfo, teamCharacter, teamSubscriptionInfo } =
             data;
 
+        console.log(`내 정보 초기화: ${playerPositionInfo.playerId}`);
+
         this.#me = new Player({
             playerId: playerPositionInfo.playerId,
             playerNickname: "me",
             isReady: true,
         });
-        this.#me.setCharacter(teamCharacter.toLowerCase());
         this.#me.setPosition(playerPositionInfo);
 
-        if (this.#me.isFoxTeam()) {
+        if (teamCharacter.toLowerCase() === "fox") {
             this.#me.setTeam(this.#foxTeam);
         } else {
             this.#me.setTeam(this.#racoonTeam);
@@ -267,9 +346,8 @@ export default class GameRepository {
 
     // 해당 id를 가지는 플레이어를 찾아 반환
     getPlayerWithId(playerId) {
-        return (
-            this.#racoonTeam.getPlayerWithId(playerId) ??
-            this.#foxTeam.getPlayerWithId(playerId)
+        return this.getAllPlayers().find(
+            (player) => player.getPlayerId() === playerId
         );
     }
 
@@ -294,8 +372,16 @@ export default class GameRepository {
         return this.#foxTeam;
     }
 
+    getHidingTeam() {
+        return this.#foxTeam.isHidingTeam() ? this.#foxTeam : this.#racoonTeam;
+    }
+
+    getSeekingTeam() {
+        return this.#foxTeam.isHidingTeam() ? this.#racoonTeam : this.#foxTeam;
+    }
+
     getAllPlayers() {
-        return this.#racoonTeam.getPlayers().concat(this.#foxTeam.getPlayers());
+        return this.#room.getJoinedPlayers();
     }
 
     // HP =====================================================================

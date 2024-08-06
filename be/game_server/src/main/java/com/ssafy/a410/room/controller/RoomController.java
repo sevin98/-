@@ -1,5 +1,7 @@
 package com.ssafy.a410.room.controller;
 
+import com.ssafy.a410.common.exception.ErrorDetail;
+import com.ssafy.a410.common.exception.ResponseException;
 import com.ssafy.a410.game.domain.Message;
 import com.ssafy.a410.game.domain.player.Player;
 import com.ssafy.a410.room.controller.dto.*;
@@ -74,7 +76,7 @@ public class RoomController {
     // 방 나가기
     @PostMapping("/api/rooms/{roomId}/leave")
     public ResponseEntity<Void> leaveRoom(@PathVariable String roomId, Principal principal) {
-        Room room = roomService.findRoomById(roomId).orElseThrow(() -> new RuntimeException("Room not found"));
+        Room room = roomService.findRoomById(roomId).orElseThrow(() -> new ResponseException(ErrorDetail.ROOM_NOT_FOUND));
         Player player = room.getPlayerWith(principal.getName());
         roomService.leaveRoom(room, player);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();

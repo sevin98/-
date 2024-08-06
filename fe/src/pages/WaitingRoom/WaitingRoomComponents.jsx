@@ -10,7 +10,7 @@ function BackToLobbyButton({ isDisabled, onClick }) {
             onClick={onClick}
             disabled={isDisabled}
         >
-            돌아가기
+            <h2>돌아가기</h2>
         </button>
     );
 }
@@ -46,7 +46,7 @@ ChatBox.propTypes = {
 // PlayerSlot 컴포넌트
 function PlayerSlot({ player, isMe }) {
     if (!player) {
-        return <div className="rpgui-container framed-grey player-slot empty">빈 슬롯</div>;
+        return <div className="rpgui-container framed-grey player-slot empty"><h2 className="empty-slot">빈 슬롯</h2></div>;
     }
 
     return (
@@ -56,10 +56,10 @@ function PlayerSlot({ player, isMe }) {
             }`}
         >
             <div className="player-icon">{player.icon}</div>
-            <div className="player-nickname">{player.getPlayerNickname()}</div>
-            <div className="player-ready-status">
+            <h2 className="player-nickname">{player.getPlayerNickname()}</h2>
+            <h2 className={`player-ready-status ${player.getIsReady() ? "ready" : "not-ready"}`}>
                 {player.getIsReady() ? "준비완료" : "대기중"}
-            </div>
+            </h2>
         </div>
     );
 }
@@ -97,7 +97,7 @@ function ReadyButton({ isReady, onClick }) {
             onClick={onClick}
             disabled={isReady}
         >
-            {isReady ? "준비 완료" : "준비하기"}
+            {isReady ? <h2>준비 완료</h2> : <h2>준비하기</h2> }
         </button>
     );
 }
@@ -123,7 +123,7 @@ function ShareRoomCodeButton() {
             className="rpgui-button"
             onClick={onShareRoomCodeBtnClicked}
         >
-            참가 링크 복사
+            <h2>참가 링크 복사</h2>
         </button>
     );
 }

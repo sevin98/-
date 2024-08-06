@@ -7,9 +7,11 @@
     align-items: center;
     background-color: aliceblue;
     justify-content: center;
+    align-items: center;
     text-align: center;
+}
 
-    .rpgui-content h2 {
+.rpgui-content h2 {
     font-size: 1.7em !important;
     font-family: "MoveSans-Bold";
     display: flex;
@@ -37,6 +39,8 @@
 
 /* 플레이어 슬롯 스타일 */
 .player-slot {
+    align-items: center;
+    justify-content: center;
     padding: 0.5rem;
     text-align: center;
 }
@@ -45,6 +49,17 @@
 .player-slot.empty {
     background-color: #e0e0e0;
     border: 1px dashed #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.player-ready-status.not-ready {
+    color: #f3da4b;
+}
+
+.player-ready-status.ready {
+    color: #5353c8;
 }
 
 /* 채팅창 */
@@ -63,6 +78,7 @@
 /* 카운트다운 표시 */
 .countdown-display,
 .countdown-message {
+    font-size: 1.2em;
     font-weight: bold;
     font-family: "MoveSans-Bold";
     color: white;
