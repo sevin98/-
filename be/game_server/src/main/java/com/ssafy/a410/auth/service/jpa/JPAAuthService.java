@@ -58,7 +58,8 @@ public class JPAAuthService implements AuthService {
     public void signup(UserProfile userProfile, String loginId, String rawPassword) {
         if(isDuplicateId(loginId))
             throw new ResponseException(ErrorDetail.DUPLICATE_ID);
-
+        if(isDuplicateNickName(userProfile.getNickname()))
+            throw new ResponseException(ErrorDetail.DUPLICATE_NICKNAME);
 
         UserProfileEntity userProfileEntity = UserProfileEntity.builder()
                 .uuid(UUID.randomUUID().toString())  // UUID 자동 생성
@@ -103,5 +104,10 @@ public class JPAAuthService implements AuthService {
     @Override
     public boolean isDuplicateId(String loginId) {
         return authInfoRepository.findByLoginId(loginId).isPresent();
+    }
+
+    @Override
+    public boolean isDuplicateNickName(String nickName) {
+        return userProfileRepository.existsByNickname(nickName);
     }
 }

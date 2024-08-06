@@ -34,10 +34,10 @@ public class WebSecurityConfiguration {
             Pattern.compile("^/ws(\\?.*)?$"),
     };
 
-    private final String allowedOrigin;
+    private final List<String> allowedOrigins;
 
-    public WebSecurityConfiguration(@Value("${security.allowed-origin}") String allowedOrigin) {
-        this.allowedOrigin = allowedOrigin;
+    public WebSecurityConfiguration(@Value("#{'${security.allowed-origins}'.split(';')}") List<String> allowedOrigins) {
+        this.allowedOrigins = allowedOrigins;
     }
 
 
@@ -55,7 +55,7 @@ public class WebSecurityConfiguration {
                 ).csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(request -> {
                     var corsConfiguration = new org.springframework.web.cors.CorsConfiguration();
-                    corsConfiguration.setAllowedOrigins(List.of(allowedOrigin));
+                    corsConfiguration.setAllowedOrigins(allowedOrigins);
                     corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                     corsConfiguration.setAllowedHeaders(List.of("*"));
                     return corsConfiguration;

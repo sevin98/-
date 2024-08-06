@@ -1,10 +1,13 @@
 package com.ssafy.a410.game.domain.player;
 
 import com.ssafy.a410.auth.domain.UserProfile;
-import com.ssafy.a410.auth.service.UserService;
-import com.ssafy.a410.auth.service.jpa.JPAUserService;
+import com.ssafy.a410.common.exception.ErrorDetail;
 import com.ssafy.a410.common.exception.ResponseException;
 import com.ssafy.a410.game.domain.Pos;
+import com.ssafy.a410.game.domain.game.Game;
+import com.ssafy.a410.game.domain.game.Item;
+import com.ssafy.a410.game.domain.game.message.EliminationMessage;
+import com.ssafy.a410.game.service.MessageBroadcastService;
 import com.ssafy.a410.room.domain.Room;
 import com.ssafy.a410.socket.domain.Subscribable;
 import lombok.Getter;
@@ -13,12 +16,16 @@ import lombok.Setter;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static com.ssafy.a410.common.exception.ErrorDetail.PLAYER_ALREADY_READY;
 
 @Getter
 @Setter
 public class Player extends Subscribable {
+    // 기본 이동속도 200
+    public static final int DEFAULT_SPEED = 200;
     // 플레이어 식별자
     private final String id;
     // 플레이어 이름
@@ -47,6 +54,16 @@ public class Player extends Subscribable {
     private Duration playTime;
     // 봇 여부
     private boolean isBot;
+    // 현재 속도 = 기본은 default_speed 로 설정
+    private int speed = DEFAULT_SPEED;
+    // 현재 player 에게 적용된 아이템
+    private Item currentItem;
+    // 아이템이 적용 된 시점의 시간
+    private LocalDateTime itemAppliedTime;
+    // 아이템의 지속 시간
+    private Duration itemDuration;
+    // 나한테 공격한 사람의 ID (HP 에 아이템을 숨겨놓은 사람)
+    private String appliedById;
 
     public Player(UserProfile userProfile, Room room) {
         this(userProfile.getUuid(), userProfile.getNickname(), room);
@@ -65,7 +82,7 @@ public class Player extends Subscribable {
 
     // 봇 생성자
     // TODO : id / nickname의 경우 수정할 경우 auth 통해서 받아오는 걸로
-    public Player(Room room, boolean isBot){
+    public Player(Room room, boolean isBot) {
         // 나중에 uuid로 봇을 구분해서 움직이는 등의 게임 진행을 해야할 일이 있을까..?
         this.id = UUID.randomUUID().toString();
         // 랜덤 닉네임을 배정해줘야 하는가?
@@ -120,19 +137,25 @@ public class Player extends Subscribable {
 
     public void eliminate() {
         this.isEliminated = true;
+        MessageBroadcastService broadcastService = room.getPlayingGame().getBroadcastService();
+        Game game = room.getPlayingGame();
+        broadcastService.unicastTo(this, new EliminationMessage(id));
+        broadcastService.broadcastTo(game, new EliminationMessage(id));
         // eliminate 당한시간 기록
         this.eliminationTime = LocalDateTime.now();
     }
 
-    public void increaseCatchCount() { this.catchCount++; }
+    public void increaseCatchCount() {
+        this.catchCount++;
+    }
 
     // 시작 시간 할당
-    public void setPlayerStartTime(){
+    public void setPlayerStartTime() {
         this.startTime = LocalDateTime.now();
     }
 
     // 생존 시간 구하기
-    public long getSurvivalTimeInSeconds(){
+    public long getSurvivalTimeInSeconds() {
         LocalDateTime endTime = this.isEliminated ? this.eliminationTime : LocalDateTime.now();
         this.playTime = Duration.between(startTime, endTime);
         return playTime.getSeconds();
@@ -157,5 +180,68 @@ public class Player extends Subscribable {
         this.startTime = null;
         this.eliminationTime = null;
         this.playTime = null;
+        this.speed = DEFAULT_SPEED;
+        clearItem();
+    }
+
+    // 아이템 적용 메서드
+    public void applyItem(Item item, Duration duration, String appliedById) {
+        this.currentItem = item;
+        this.itemAppliedTime = LocalDateTime.now();
+        this.itemDuration = duration;
+        this.appliedById = appliedById;
+
+        switch (item) {
+            case RED_PEPPER -> this.speed = 300;
+            case BANANA -> this.speed = 100;
+            case BEEHIVE -> this.speed = 0;
+            case MUSHROOM -> applyMushroomEffect();
+        }
+        scheduleItemRemoval(duration);
+    }
+
+    // 라운드가 종료 될 때 한번 더 체크해줘야함
+    public void clearItem() {
+        this.currentItem = null;
+        this.itemAppliedTime = null;
+        this.itemDuration = null;
+        this.speed = DEFAULT_SPEED;
+        this.appliedById = null;
+    }
+
+    // 현재 아이템이 적용중인지 확인
+    public boolean isItemActive() {
+        return currentItem != null
+                && Duration.between(itemAppliedTime, LocalDateTime.now()).compareTo(itemDuration) < 0;
+    }
+
+    private void scheduleItemRemoval(Duration duration) {
+        Executors.newScheduledThreadPool(1).schedule(() -> {
+            clearItem();
+            room.getPlayingGame().notifyItemCleared(this);
+        }, duration.toMillis(), TimeUnit.MILLISECONDS);
+    }
+
+    public DirectionArrow getDirectionTo(Player target) {
+        double directionX = target.getPos().getX() - this.pos.getX();
+        double directionY = target.getPos().getY() - this.pos.getY();
+
+        // ArithmeticException 방지위한 오차설정
+        final double TOLERANCE = 0.01;
+
+        if (Math.abs(directionX) < TOLERANCE && directionY > 0) return DirectionArrow.UP;
+        if (Math.abs(directionX) < TOLERANCE && directionY < 0) return DirectionArrow.DOWN;
+        if (directionX > 0 && Math.abs(directionY) < TOLERANCE) return DirectionArrow.RIGHT;
+        if (directionX < 0 && Math.abs(directionY) < TOLERANCE) return DirectionArrow.LEFT;
+        if (directionX > 0 && directionY > 0) return DirectionArrow.UP_RIGHT;
+        if (directionX > 0 && directionY < 0) return DirectionArrow.DOWN_RIGHT;
+        if (directionX < 0 && directionY > 0) return DirectionArrow.UP_LEFT;
+        if (directionX < 0 && directionY < 0) return DirectionArrow.DOWN_LEFT;
+
+        throw new ResponseException(ErrorDetail.UNDEFINED_DIRECTION);
+    }
+
+    public void applyMushroomEffect() {
+        room.getPlayingGame().applyMushroomEffect(this);
     }
 }
