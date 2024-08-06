@@ -106,7 +106,7 @@ public class Room extends Subscribable {
     // 사용자가 방에 참가할 수 있는지 확인
     public boolean canJoin(UserProfile userProfile) {
         synchronized (this) {
-            return !(isFull() || hasPlayingGame() || hasPlayerWith(userProfile.getUuid()));
+            return !(isFull() || hasPlayingGame());
         }
     }
 
@@ -192,14 +192,14 @@ public class Room extends Subscribable {
 
     public void endGame() {
         //게임 종료시 각자 player 들의 endTime 기록
-        for(Player player : players.values()) {
+        for (Player player : players.values()) {
             player.getSurvivalTimeInSeconds();
         }
         gameThread.interrupt();
         reset();
     }
 
-    public void reset(){
+    public void reset() {
         this.playingGame = null;
         this.gameThread = null;
     }
