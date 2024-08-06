@@ -2,15 +2,18 @@ import Phaser from "phaser";
 import { getRoomRepository } from "../../repository";
 import { Phase } from "../../repository/_game";
 
-export default class OtherPlayer extends Phaser.Physics.Arcade.Sprite {
+export default class OtherPlayerSprite extends Phaser.Physics.Arcade.Sprite {
     static PLAYER_SPEED = 200;
     static moveX = [0, 1, 0, -1];
     static moveY = [-1, 0, 1, 0];
 
+    #player;
+
     constructor(scene, x, y, texture, id) {
-        super(scene, x, y, texture, id);
+        super(scene, x, y, texture);
 
         this.id = id;
+        this.#player = getRoomRepository().getPlayerWithId(id);
         this.scale = 1;
         this.alpha = 1;
         this.setDepth(10); //화면 제일 앞에 렌더링
@@ -27,20 +30,8 @@ export default class OtherPlayer extends Phaser.Physics.Arcade.Sprite {
         this.gameRepository = this.roomRepository.getGameRepository();
 
         //id로 player초기화
-        this.otherPlayer = this.gameRepository.getPlayerWithId(id);
-
-        // 이후 repo의 정보값으로 대체
-        this.isHidingTeam = true; // 임시 
-        this.isRacoon = true;
-        // this.isHidingTeam = this.otherPlayer.isHidingTeam();
-        // this.isRacoon = this.otherPlayer.isRacoonTeam();
-
-        // this.isHidingTeam = this.otherPlayer.isHidingTeam();
-        // this.isRacoon = this.otherPlayer.isRacoonTeam();
-
-        // 이후 진짜 값 들어오면 삭제
-        this.isHidingTeam= true;
-        this.isRacoon  = true; 
+        this._player = this.gameRepository.getPlayerWithId(id);
+        this.isRacoon = this._player.isRacoonTeam();
         this.setupAnimations();
     }
 
@@ -312,5 +303,32 @@ export default class OtherPlayer extends Phaser.Physics.Arcade.Sprite {
     // phaser 따라서 구분.
 
     // 만약에 나: 하이딩 상대방: 하이딩 -> 상대방보임
-    // 나: 찾 상대방:하이딩 -> this.otherPlayer.visibel == false (if phase==숨는시간)
+    // 나: 찾 상대방:하이딩 -> this._player.visibel == false (if phase==숨는시간)
+
+    getPosition() {
+        const position = this.#player.getPosition();
+        return { x: position.x, y: position.y, direction: position.direction };
+    }
+
+    updatePosition() {
+        const position = this.roomRepository
+            .getPlayerWithId(this.#player.getPlayerId())
+            .getPosition();
+        this.x = position.x;
+        this.y = position.y;
+    }
+
+    getHeadDir() {
+        const direction = this.#player.getPosition().direction;
+        switch (direction) {
+            case "UP":
+                return 0;
+            case "RIGHT":
+                return 1;
+            case "DOWN":
+                return 2;
+            case "LEFT":
+                return 3;
+        }
+    }
 }
