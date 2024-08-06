@@ -19,6 +19,10 @@
     width: 35rem;
 }
 
+#errorMessage {
+    color:rgb(215, 180, 180);
+}
+
 .wrapper {
     display: flex;
     width: 25rem;
@@ -73,13 +77,13 @@
 
 .form-box .input-box input {
     height: 2rem;
-    margin-left: 0.5rem;
+    margin-left: 1rem;
 }
 
 .form-box .input-box ::placeholder {
     color:rgba(0, 0, 0, 0.134);
     height: 2rem;
-    margin-left: 0.5rem;
+    margin-left: 1rem;
 }
 
 form .register-link {

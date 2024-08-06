@@ -11,4 +11,6 @@ public interface GameService {
     void sendGameInfoToPlayer(String roomId, String playerId, String requestId);
 
     void sharePosition(String roomId, String userProfileUuid, PlayerPositionReq playerPositionReq);
+
+    Game getGameByRoomId(String roomId);
 }
