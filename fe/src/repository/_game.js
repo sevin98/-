@@ -3,6 +3,7 @@ import { v4 as uuid } from "uuid";
 import { getStompClient } from "../network/StompClient";
 import { Team, Player } from "./interface";
 import asyncResponses from "./_asyncResponses";
+import { Mutex } from "async-mutex";
 
 // 게임 시작 이벤트
 const GAME_START = "GAME_START";
@@ -32,6 +33,9 @@ const FREEZE = "FREEZE";
 // 플레이어 조작 불가 해제 명령 이벤트
 const UNFREEZE = "UNFREEZE";
 
+// 게임 상태의 초기화를 보장하기 위한 뮤텍스
+const gameInitializationMutex = new Mutex();
+
 export class Phase {
     // 게임을 초기화 하고 있는 상태
     static INITIALIZING = "INITIALIZING";
@@ -48,6 +52,7 @@ export class Phase {
 }
 
 export default class GameRepository {
+    #room;
     #roomNumber;
     #stompClient;
     #startedAt;
@@ -56,7 +61,10 @@ export default class GameRepository {
     #racoonTeam;
     #me;
 
-    constructor(roomNumber, gameSubscriptionInfo, startsAfterMilliSec) {
+    #isInitialized = false;
+
+    constructor(room, roomNumber, gameSubscriptionInfo, startsAfterMilliSec) {
+        this.#room = room;
         this.#roomNumber = roomNumber;
 
         const initializationTrial = setInterval(() => {
@@ -68,7 +76,6 @@ export default class GameRepository {
                 })
                 .catch((e) => {});
         }, 100);
-        
     }
 
     startSubscribeGame(gameSubscriptionInfo) {
@@ -81,14 +88,21 @@ export default class GameRepository {
         );
     }
 
-    #handleGameMessage(message) {
+    async #handleGameMessage(message) {
         const { type, data } = message;
+
+        if (!this.#isInitialized && type !== GAME_INFO) {
+            await gameInitializationMutex.acquire();
+        }
+
         switch (type) {
             case GAME_START:
                 this.#handleGameStartEvent(data);
                 break;
             case GAME_INFO:
                 this.#handleGameInfoEvent(data);
+                this.#isInitialized = true;
+                gameInitializationMutex.release();
                 break;
             case ROUND_CHANGE:
                 this.#handleRoundChangeEvent(data);
@@ -198,10 +212,9 @@ export default class GameRepository {
             playerNickname: "me",
             isReady: true,
         });
-        this.#me.setCharacter(teamCharacter.toLowerCase());
         this.#me.setPosition(playerPositionInfo);
 
-        if (this.#me.isFoxTeam()) {
+        if (teamCharacter.toLowerCase() === "fox") {
             this.#me.setTeam(this.#foxTeam);
         } else {
             this.#me.setTeam(this.#racoonTeam);
@@ -267,9 +280,8 @@ export default class GameRepository {
 
     // 해당 id를 가지는 플레이어를 찾아 반환
     getPlayerWithId(playerId) {
-        return (
-            this.#racoonTeam.getPlayerWithId(playerId) ??
-            this.#foxTeam.getPlayerWithId(playerId)
+        return this.getAllPlayers().find(
+            (player) => player.getPlayerId() === playerId
         );
     }
 
@@ -295,7 +307,7 @@ export default class GameRepository {
     }
 
     getAllPlayers() {
-        return this.#racoonTeam.getPlayers().concat(this.#foxTeam.getPlayers());
+        return this.#room.getJoinedPlayers();
     }
 
     // HP =====================================================================

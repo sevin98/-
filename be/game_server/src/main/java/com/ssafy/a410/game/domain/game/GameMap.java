@@ -128,4 +128,7 @@ public class GameMap {
     public List<Pos> getStartPosBy(Team team) {
         return team.getCharacter() == Team.Character.RACOON ? racoonStartPos : foxStartPos;
     }
+    public void setGameToHpObjects(Game game) {
+        hpObjects.values().forEach(hpObject -> hpObject.setGame(game));
+    }
 }

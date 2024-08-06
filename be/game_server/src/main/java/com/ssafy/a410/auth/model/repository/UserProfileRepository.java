@@ -10,8 +10,6 @@ public interface UserProfileRepository extends JpaRepository<UserProfileEntity, 
 
     Optional<UserProfileEntity> findByUuid(String uuid);
 
-    UserProfileEntity save(UserProfileEntity userProfile);
-
     boolean existsByNickname(String nickname);
 
     boolean existsByUuid(String uuid);

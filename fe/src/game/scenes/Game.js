@@ -59,9 +59,7 @@ export class game extends Phaser.Scene {
         const me = this.gameRepository.getMe();
         const { x, y, direction } = me.getPosition();
         this.localPlayer = new Player(this, x, y, "fauna-idle-down", true);
-
-        // 잠깐 주석처리하고 카메라가 otherplayer를 따라가도록 바꿔놓음
-        // playercam.startFollow(this.localPlayer);
+        playercam.startFollow(this.localPlayer);
 
         //로컬플레이어와 layer의 충돌설정
         this.physics.add.collider(
@@ -101,24 +99,33 @@ export class game extends Phaser.Scene {
             console.log("숨을수있음");
         });
 
-        // 다른 플레이어 화면 구현
-        this.otherPlayer = new OtherPlayer(
-            this,
-            500,
-            500,
-            "fauna-idle-down",
-            1 // 임의의 id
-        );
-        //setinteval 대신 addevent 함수씀
+        // 다른 플레이어 스프라이트
+        this.otherPlayers = [];
+        for (let player of this.gameRepository.getAllPlayers()) {
+            if (player.getPlayerId() === me.getPlayerId()) {
+                continue;
+            }
+
+            const otherPlayer = new OtherPlayer(
+                this,
+                player.getPosition().x,
+                player.getPosition().y,
+                "fauna-idle-down",
+                player.getPlayerId()
+            );
+            otherPlayer.visible = true;
+            this.otherPlayers.push(otherPlayer);
+        }
+
+        // playercam.startFollow(this.otherPlayers[0]);
+
+        // //setinteval 대신 addevent 함수씀
         this.time.addEvent({
-            delay: 500,
-            //500마다 mockingPosition함수 실행
-            callback: this.mockingPosition, // mockingPostion 이라는 함수 만듦
+            delay: 10,
+            callback: this.updateAnotherPlayerSpritePosition, // mockingPostion 이라는 함수 만듦
             callbackScope: this, // this를 현재 씬으로 지정
             loop: true, // 여러번 실행
         });
-        // camera가 otherplayer 따라가게만듦
-        this.cameras.main.startFollow(this.otherPlayer);
 
         //game-ui 씬
         this.scene.run("game-ui");
@@ -292,14 +299,10 @@ export class game extends Phaser.Scene {
     }
 
     //constructor에 있는 임의의 position 배열에서 좌표 꺼내는 랜덤함수
-    mockingPosition() {
-        this.currentPos =
-            this.positions[Math.floor(Math.random() * this.positions.length)];
-        //headDir보이기
-        this.headDir = Math.floor(Math.random() * 4);
-        // otherPlayer의 포지션 변경
-        this.otherPlayer.x = this.currentPos[0];
-        this.otherPlayer.y = this.currentPos[1];
-        this.otherPlayer.move(this.headDir);
+    updateAnotherPlayerSpritePosition() {
+        for (let otherPlayer of this.otherPlayers) {
+            otherPlayer.updatePosition();
+            otherPlayer.move(otherPlayer.getHeadDir());
+        }
     }
 }

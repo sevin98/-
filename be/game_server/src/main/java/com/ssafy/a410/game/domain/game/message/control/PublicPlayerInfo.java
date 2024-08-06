@@ -9,10 +9,11 @@ import java.util.List;
 public record PublicPlayerInfo(
         String playerId,
         String playerNickname,
-        boolean isDead
+        boolean isDead,
+        boolean isBot
 ) {
     public PublicPlayerInfo(Player player) {
-        this(player.getId(), player.getNickname(), false);
+        this(player.getId(), player.getNickname(), false, player.isBot());
     }
 
     public static List<PublicPlayerInfo> getPublicPlayerInfosOf(Team team) {
