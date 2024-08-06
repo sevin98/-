@@ -12,4 +12,5 @@ public interface AuthService {
     boolean login(String loginId, String rawPassword);
 
     boolean isDuplicateId(String loginId);
+    boolean isDuplicateNickName(String nickName);
 }
