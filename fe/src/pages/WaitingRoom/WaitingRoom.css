@@ -1,12 +1,4 @@
-/* 기본 스타일 */
-body,
-html {
-    margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
-}
-
-/* 대기실 전체 레이아웃 */
+/* 전체 대기실 스타일 */
 .waiting-room {
     width: 100%;
     max-width: 800px;

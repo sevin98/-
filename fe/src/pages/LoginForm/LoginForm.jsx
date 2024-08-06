@@ -76,7 +76,7 @@ export default function LoginForm() {
                 <div className="form-box login rpgui-container framed">
                     <form className="input-form">
                         <h1>Welcome!</h1>
-                        <div className="input-box">
+                        <div className="input-box ">
                             <FaUser className="icon" />
                             <input
                                 type="text"
@@ -85,7 +85,7 @@ export default function LoginForm() {
                                 onChange={(e) => setUsername(e.target.value)}
                             />
                         </div>
-                        <div className="input-box">
+                        <div className="input-box ">
                             <FaLock className="icon" />
                             <input
                                 type="password"
@@ -94,31 +94,36 @@ export default function LoginForm() {
                                 onChange={(e) => setPassword(e.target.value)}
                             />
                         </div>
-                        <div>
-                            <button
-                                className="rpgui-button"
-                                onClick={(e) =>
-                                    doLoginAndMoveToLobby(e, username, password)
-                                }
-                            >
-                                LOGIN
-                            </button>
-
-                            <button
-                                className="guest rpgui-button"
-                                type="button"
-                                onClick={onGuestLoginBtnClicked}
-                            >
-                                GUEST
-                            </button>
-                        </div>
-                        <div className="register-link">
-                            <button
-                                className="rpgui-button"
-                                onClick={changeToRegisterForm}
-                            >
-                                JOIN
-                            </button>
+                        <div className="button-box rpgui-content">
+                            <div className="button-box-top">
+                                <button
+                                    className="rpgui-button "
+                                    onClick={(e) =>
+                                        doLoginAndMoveToLobby(
+                                            e,
+                                            username,
+                                            password
+                                        )
+                                    }
+                                >
+                                    <p>LOGIN</p>
+                                </button>
+                                <button
+                                    className="rpgui-button"
+                                    onClick={changeToRegisterForm}
+                                >
+                                    <p>JOIN</p>
+                                </button>
+                            </div>
+                            <div className="register-link">
+                                <button
+                                    className="guest rpgui-button"
+                                    type="button"
+                                    onClick={onGuestLoginBtnClicked}
+                                >
+                                    <p>GUEST</p>
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -148,7 +153,7 @@ export default function LoginForm() {
                             />
                         </div>
 
-                        <div className="register-link">
+                        <div className="register-link rpgui-content">
                             <button
                                 className="rpgui-button"
                                 onClick={(e) =>
@@ -159,13 +164,13 @@ export default function LoginForm() {
                                     )
                                 }
                             >
-                                REGISTER
+                                <p> REGISTER</p>
                             </button>
                             <button
                                 className="rpgui-button"
                                 onClick={changeToLoginForm}
                             >
-                                Back
+                                <p> Back </p>
                             </button>
                         </div>
                     </form>
