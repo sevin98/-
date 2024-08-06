@@ -15,6 +15,7 @@ import com.ssafy.a410.room.domain.Room;
 import com.ssafy.a410.room.service.RoomService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.Response;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -29,8 +30,12 @@ public class MemoryBasedGameService implements GameService {
     @Override
     public Optional<Game> findGameByPlayerId(String playerId) {
         // roomService에서 방을 찾아와서 playingGame을 가져온다.
-        Room room = roomService.getRoomById(playerId);
-        return Optional.ofNullable(room.playingGame);
+        Optional<Room> room = roomService.findRoomByPlayerId(playerId);
+        if(room.isEmpty())
+            throw new ResponseException(ErrorDetail.ROOM_NOT_FOUND);
+
+        Game game = room.get().getPlayingGame();
+        return Optional.ofNullable(game);
     }
 
     @Override
