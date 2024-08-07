@@ -69,7 +69,9 @@ export default class GameRepository {
     #foxTeam;
     #racoonTeam;
     #me;
-    #currentSafeZone; // 세이프존
+    #nextPhaseChangeAt;
+    #currentPhaseFinishAfterMilliSec;
+    #currentSafeZone; // 세
 
     #isInitialized = false;
 
@@ -173,6 +175,10 @@ export default class GameRepository {
 
     #handlePhaseChangeEvent(data) {
         this.#currentPhase = data.phase;
+        this.#nextPhaseChangeAt = new Date(
+            Date.now() + data.finishAfterMilliSec
+        );
+        this.#currentPhaseFinishAfterMilliSec = data.finishAfterMilliSec;
 
         console.log(
             `페이즈 변경: ${data.phase}, ${data.finishAfterMilliSec}ms 후 종료`
@@ -477,10 +483,18 @@ export default class GameRepository {
         // TODO : HP에 뭔 짓을 해줘야 함?
         // TODO : 아이템 처리 필요
     }
+
+    getNextPhaseChangeAt() {
+        return this.#nextPhaseChangeAt;
+    }
+
+    getCurrentPhaseFinishAfterMilliSec() {
+        return this.#currentPhaseFinishAfterMilliSec;
+    }
     //맵축소
     #handleSafeZoneUpdateEvent(data) {
         const safeZone = data; //[0, 0, 1600, 1600],
-        console.log(data)
+        console.log(data);
         this.#currentSafeZone = safeZone;
     }
     //맵축소

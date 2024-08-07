@@ -158,26 +158,43 @@ export class game extends Phaser.Scene {
         const me = this.gameRepository.getMe();
         const { x, y, headDir } = me.getPosition();
 
-        // 페이즈에 따라 플레이어의 움직임 및 화면 표시 여부 제한
-        if (this.gameRepository.getCurrentPhase() === Phase.READY) {
-            // 레디 페이즈에 숨는 팀이면 표시 및 움직임 허가
-            if (me.isHidingTeam()) {
-                this.localPlayer.visible = true;
-                this.localPlayer.allowMove();
+        // 숨는 팀인 경우
+        if (me.isHidingTeam()) {
+            // 레디 페이즈에
+            if (this.gameRepository.getCurrentPhase() === Phase.READY) {
+                // 숨었다고 처리 되었으나 화면에 보이고 있으면
+                if (me.isHiding() && this.localPlayer.visible) {
+                    // 화면에서 숨기고 움직임 제한
+                    this.localPlayer.visible = false;
+                    this.localPlayer.disallowMove();
+                }
+                // 아직 안숨었으면
+                else if (!me.isHiding()) {
+                    // 화면에 보이게 하고 움직임 허가
+                    this.localPlayer.visible = true;
+                    this.localPlayer.allowMove();
+                }
             }
-            // 레디 페이즈에 찾는 팀이면 표시 및 움직임 제한
-            else {
-                this.localPlayer.visible = true;
-                this.localPlayer.disallowMove();
-            }
-        } else if (this.gameRepository.getCurrentPhase() === Phase.MAIN) {
-            // 메인 페이즈에 숨는 팀이면 표시 및 움직임 제한
-            if (me.isHidingTeam()) {
+            // 메인 페이즈에
+            else if (this.gameRepository.getCurrentPhase() === Phase.MAIN) {
+                // 화면에 안보이게 하고 움직임 제한
                 this.localPlayer.visible = false;
                 this.localPlayer.disallowMove();
             }
-            // 메인 페이즈에 찾는 팀이면 표시 및 움직임 허가
-            else {
+        }
+        // 찾는 팀인 경우
+        else {
+            // 항상 숨어 있지 않은 상태를 보장해주고
+            me.setIsHiding(false);
+            // 레디 페이즈에
+            if (this.gameRepository.getCurrentPhase() === Phase.READY) {
+                // 화면에 보이게 하고 움직임 제한
+                this.localPlayer.visible = true;
+                this.localPlayer.disallowMove();
+            }
+            // 메인 페이즈에
+            else if (this.gameRepository.getCurrentPhase() === Phase.MAIN) {
+                // 화면에 보이게 하고 움직임 허가
                 this.localPlayer.visible = true;
                 this.localPlayer.allowMove();
             }
@@ -264,8 +281,7 @@ export class game extends Phaser.Scene {
                         .then(({ isSucceeded }) => {
                             if (isSucceeded) {
                                 console.log("숨기 성공");
-                                this.localPlayer.stopMove();
-                                this.localPlayer.visible = false; // 화면에 사용자 안보임
+                                this.gameRepository.getMe().setIsHiding(true);
                                 this.text.showTextHide(
                                     this,
                                     closest.body.x - 20,
