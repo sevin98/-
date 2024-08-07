@@ -39,6 +39,10 @@
 
 /* 플레이어 슬롯 스타일 */
 .player-slot {
+    display: flex;
+    width: 12rem;
+    height: 10rem;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: 0.5rem;
