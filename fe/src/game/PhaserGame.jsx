@@ -1,6 +1,7 @@
 import PropTypes from "prop-types";
 import { forwardRef, useEffect, useLayoutEffect, useRef } from "react";
 import StartGame from "./main";
+import GameRepository from "../repository/_game";
 import { EventBus } from "./EventBus";
 
 export const PhaserGame = forwardRef(function PhaserGame(
@@ -8,7 +9,6 @@ export const PhaserGame = forwardRef(function PhaserGame(
     ref
 ) {
     const game = useRef();
-
     // Create the game inside a useLayoutEffect hook to avoid the game being created outside the DOM
     useLayoutEffect(() => {
         if (game.current === undefined) {
