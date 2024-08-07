@@ -4,7 +4,11 @@ import com.ssafy.a410.auth.domain.UserProfile;
 import com.ssafy.a410.common.exception.ErrorDetail;
 import com.ssafy.a410.common.exception.ResponseException;
 import com.ssafy.a410.game.domain.Pos;
+import com.ssafy.a410.game.domain.game.Game;
 import com.ssafy.a410.game.domain.game.Item;
+import com.ssafy.a410.game.domain.game.message.EliminationMessage;
+import com.ssafy.a410.game.domain.game.message.EliminationOutOfSafeZoneMessage;
+import com.ssafy.a410.game.service.MessageBroadcastService;
 import com.ssafy.a410.room.domain.Room;
 import com.ssafy.a410.socket.domain.Subscribable;
 import lombok.Getter;
@@ -21,6 +25,8 @@ import static com.ssafy.a410.common.exception.ErrorDetail.PLAYER_ALREADY_READY;
 @Getter
 @Setter
 public class Player extends Subscribable {
+    // 기본 이동속도 200
+    public static final int DEFAULT_SPEED = 200;
     // 플레이어 식별자
     private final String id;
     // 플레이어 이름
@@ -49,8 +55,6 @@ public class Player extends Subscribable {
     private Duration playTime;
     // 봇 여부
     private boolean isBot;
-    // 기본 이동속도 200
-    public static final int DEFAULT_SPEED = 200;
     // 현재 속도 = 기본은 default_speed 로 설정
     private int speed = DEFAULT_SPEED;
     // 현재 player 에게 적용된 아이템
@@ -134,6 +138,20 @@ public class Player extends Subscribable {
 
     public void eliminate() {
         this.isEliminated = true;
+        MessageBroadcastService broadcastService = room.getPlayingGame().getBroadcastService();
+        Game game = room.getPlayingGame();
+        broadcastService.unicastTo(this, new EliminationMessage(id));
+        broadcastService.broadcastTo(game, new EliminationMessage(id));
+        // eliminate 당한시간 기록
+        this.eliminationTime = LocalDateTime.now();
+    }
+
+    public void eliminateOutOfSafeZone() {
+        this.isEliminated = true;
+        MessageBroadcastService broadcastService = room.getPlayingGame().getBroadcastService();
+        Game game = room.getPlayingGame();
+        broadcastService.unicastTo(this, new EliminationOutOfSafeZoneMessage(id));
+        broadcastService.broadcastTo(game, new EliminationOutOfSafeZoneMessage(id));
         // eliminate 당한시간 기록
         this.eliminationTime = LocalDateTime.now();
     }
@@ -194,7 +212,7 @@ public class Player extends Subscribable {
     }
 
     // 라운드가 종료 될 때 한번 더 체크해줘야함
-    public void clearItem(){
+    public void clearItem() {
         this.currentItem = null;
         this.itemAppliedTime = null;
         this.itemDuration = null;
@@ -203,7 +221,7 @@ public class Player extends Subscribable {
     }
 
     // 현재 아이템이 적용중인지 확인
-    public boolean isItemActive(){
+    public boolean isItemActive() {
         return currentItem != null
                 && Duration.between(itemAppliedTime, LocalDateTime.now()).compareTo(itemDuration) < 0;
     }
@@ -234,7 +252,7 @@ public class Player extends Subscribable {
         throw new ResponseException(ErrorDetail.UNDEFINED_DIRECTION);
     }
 
-    public void applyMushroomEffect(){
+    public void applyMushroomEffect() {
         room.getPlayingGame().applyMushroomEffect(this);
     }
 }

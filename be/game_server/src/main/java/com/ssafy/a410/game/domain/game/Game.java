@@ -24,10 +24,16 @@ import com.ssafy.a410.socket.domain.Subscribable;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.awt.*;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.List;
+import java.util.Queue;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.ssafy.a410.common.exception.ErrorDetail.PLAYER_NOT_IN_ROOM;
@@ -35,7 +41,11 @@ import static com.ssafy.a410.common.exception.ErrorDetail.PLAYER_NOT_IN_ROOM;
 @Getter
 @Slf4j
 public class Game extends Subscribable implements Runnable {
-    private static final int TOTAL_ROUND = 3;
+
+    private static final int SAFE_ZONE_REDUCE_AMOUNT = 100;
+    private static final int SAFE_ZONE_REDUCE_DURATION = 10;
+
+    private static final int TOTAL_ROUND = 5;
     // 게임 맵
     private final GameMap gameMap;
     // 플레이어들이 속해 있는 방
@@ -50,6 +60,8 @@ public class Game extends Subscribable implements Runnable {
     private final UserService userService;
     // 현재 게임이 머물러 있는 상태(단계)
     private Phase currentPhase;
+
+    private int round;
 
     public Game(Room room, MessageBroadcastService broadcastService, UserService userService) {
         this.room = room;
@@ -75,7 +87,7 @@ public class Game extends Subscribable implements Runnable {
     private void initialize() {
         // 초기화 시작 (게임 진입 불가)
         this.currentPhase = Phase.INITIALIZING;
-
+        this.round = 0 ;
         // 랜덤으로 플레이어 편 나누기
         randomAssignPlayersToTeam();
         // 나눠진 각 팀 플레이어들의 초기 위치 지정
@@ -153,7 +165,8 @@ public class Game extends Subscribable implements Runnable {
     @Override
     public void run() {
         initializeGame();
-        for (int round = 1; round <= TOTAL_ROUND && !isGameFinished(); round++) {
+        for (round = 1; round <= TOTAL_ROUND && !isGameFinished(); round++) {
+
             // 라운드 변경 알림
             log.debug("Room {} round {} start =======================================", room.getRoomNumber(), round);
             broadcastService.broadcastTo(this, new RoundChangeControlMessage(round, TOTAL_ROUND));
@@ -168,8 +181,8 @@ public class Game extends Subscribable implements Runnable {
 
             log.debug("Room {} END Phase start --------------------------------------", room.getRoomNumber());
             runEndPhase();
+            if(round < TOTAL_ROUND) reduceSafeZoneWithElimination();
             resetSeekCount();
-
             exitPlayers();
             resetHPObjects();
             swapTeam();
@@ -599,8 +612,8 @@ public class Game extends Subscribable implements Runnable {
     }
 
     // 계산된 hider들의 방향을 seeker에게 전송해주는 메소드
-    public void sendDirectionHints(){
-        for(Player seeker : seekingTeam.getPlayers().values()){
+    public void sendDirectionHints() {
+        for (Player seeker : seekingTeam.getPlayers().values()) {
             List<DirectionArrow> directions = getDirectionsOfHiders(seeker);
             broadcastService.unicastTo(seeker, new DirectionHintMessage(seeker.getId(), directions));
         }
@@ -638,5 +651,33 @@ public class Game extends Subscribable implements Runnable {
         sortedStats.put("FOX", foxTeamStats);
 
         return sortedStats;
+    }
+
+    private void sendSafeZoneUpdate() {
+        List<Integer> corners = gameMap.getSafeZoneCorners();
+        broadcastService.broadcastTo(this, new SafeZoneUpdateMessage(corners));
+    }
+
+    private void reduceSafeZoneWithElimination() {
+
+        // 맵 축소
+        gameMap.reduceSafeArea(TOTAL_ROUND, round);
+        // 안전구역 알림
+        sendSafeZoneUpdate();
+
+        // 10초 후 안전구역 바깥에 있는 플레이어들 탈락처리 메소드 예약
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+        scheduler.schedule(this::eliminatePlayersOutsideSafeZone, SAFE_ZONE_REDUCE_DURATION, TimeUnit.SECONDS);
+    }
+
+    // 안전구역 바깥에 있는 플레이어들 탈락처리
+    private void eliminatePlayersOutsideSafeZone() {
+        List<Player> allPlayers = new ArrayList<>(room.getPlayers().values());
+
+        for (Player player : allPlayers) {
+            if (!gameMap.isInSafeZone(player)) {
+                player.eliminateOutOfSafeZone();
+            }
+        }
     }
 }
