@@ -70,6 +70,7 @@ export default class GameRepository {
     #foxTeam;
     #racoonTeam;
     #me;
+    #currentSafeZone; // 세이프존
 
     #isInitialized = false;
 
@@ -142,6 +143,8 @@ export default class GameRepository {
                 console.log(`플레이어 ${data.playerId}님이 이탈하셨습니다.`);
                 break;
             case SAFE_ZONE_UPDATE:
+                //맵축소
+                this.#handleSafeZoneUpdateEvent(data);
                 console.log(`안전 지역이 변경되었습니다.`);
                 break;
             default:
@@ -229,8 +232,6 @@ export default class GameRepository {
             // 한 라운드가 끝나면 역할 반전
             this.#racoonTeam.setIsHidingTeam(!this.#racoonTeam.isHidingTeam());
             this.#foxTeam.setIsHidingTeam(!this.#foxTeam.isHidingTeam());
-
-
         }
     }
 
@@ -476,5 +477,14 @@ export default class GameRepository {
 
         // TODO : HP에 뭔 짓을 해줘야 함?
         // TODO : 아이템 처리 필요
+    }
+    //맵축소
+    #handleSafeZoneUpdateEvent(data) {
+        const safeZone = data; //[0, 0, 1600, 1600],
+        this.#currentSafeZone = safeZone;
+    }
+    //맵축소
+    getCurrentSafeZone() {
+        return this.#currentSafeZone;
     }
 }

@@ -48,6 +48,7 @@ export class game extends Phaser.Scene {
     }
 
     create() {
+
         this.text = new TextGroup(this); // 팝업텍스트 객체
 
         this.graphics = this.add.graphics().setDepth(1000); //선만들기 위한 그래픽
@@ -150,16 +151,15 @@ export class game extends Phaser.Scene {
             console.log("작아지는 벽과 충돌");
         });
 
-        //이벤트 리스너로 createmap 관리
-        // this.time.addEvent({
-        //     delay:100,
-        //     callback: this.createMapWall,
-        //     callbackScope:this,
-        //     loop:true
-        // })
     }
 
     update() {
+        //현재 safezone 업데이트 
+        this.currentSafeZone = this.gameRepository.getCurrentSafeZone();
+
+        // 맵축소
+        this.createMapWall();
+
         // 로컬플레이어 포지션 트래킹 , 이후 위치는 x,y,headDir로 접근
         const me = this.gameRepository.getMe();
         const { x, y, headDir } = me.getPosition();
@@ -346,9 +346,6 @@ export class game extends Phaser.Scene {
                 closest.body.y - 20
             );
         }
-
-        // 벽 좁히기
-        this.createMapWall();
     }
 
     // 맵타일단위를 pix로 변환
@@ -375,23 +372,19 @@ export class game extends Phaser.Scene {
         // 지금 가지고 있는 벽의 경계 데이터와 현재 최신 맵의 경계를 비교하여
         // 하나라도 다른 값이 있으면 갱신 된 것으로 간주하고 새로 벽을 만들어준다.
         // 랜덤으로 뽑기
-        console.log('줄어듭니다')
-        this.currentMapPos =
-            this.mapPositions[
-                Math.floor(Math.random() * this.mapPositions.length)
-            ];
+        // console.log('줄어듭니다')
+        this.currentMapPos = this.currentSafeZone;
+
         if (
             this.lastWallPos.x !== this.currentMapPos[0] ||
             this.lastWallPos.y !== this.currentMapPos[1] ||
             this.lastWallPos.endX !== this.currentMapPos[2] ||
             this.lastWallPos.endY !== this.currentMapPos[3]
         ) {
-            console.log(this.lastWallPos.x);
-            console.log(this.currentMapPos[0]);
             // 이전맵 초기화해주기
             // this.mapWalls.clear(true, true);
 
-            console.log("맵이 줄어듭니다.");
+            // console.log("맵이 줄어듭니다.");
             const tileSize = 17.1;
 
             console.log(this.currentMapPos);
