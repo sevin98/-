@@ -35,7 +35,7 @@ export default function RoomJoin() {
                             />
                             <input
                             className="input-box"
-                            type="password"
+                            type="number"
                             value={roomPassword}
                             onChange={(e) => setRoomPassword(e.target.value)}
                             placeholder="비밀번호"
