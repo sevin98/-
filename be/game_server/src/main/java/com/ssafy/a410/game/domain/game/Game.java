@@ -187,7 +187,7 @@ public class Game extends Subscribable implements Runnable {
 
             log.debug("Room {} END Phase start --------------------------------------", room.getRoomNumber());
             runEndPhase();
-            if (round < TOTAL_ROUND) reduceSafeZoneWithElimination();
+            reduceSafeZoneWithElimination();
             resetSeekCount();
             exitPlayers();
             resetHPObjects();
