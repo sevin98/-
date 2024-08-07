@@ -20,6 +20,7 @@ export default function RoomJoin() {
     };
 
     return (
+
         <div id="container" className="rpgui-cursor-default">
             <div className="wrapper rpgui-content">
                 <div className="rpgui-container framed main-frame">
