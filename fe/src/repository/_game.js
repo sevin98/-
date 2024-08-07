@@ -6,6 +6,7 @@ import asyncResponses from "./_asyncResponses";
 import { Mutex } from "async-mutex";
 import uiControlQueue from "../util/UIControlQueue";
 
+
 // 게임 시작 이벤트
 const GAME_START = "GAME_START";
 // 게임 정보 전달 이벤트
@@ -228,6 +229,8 @@ export default class GameRepository {
             // 한 라운드가 끝나면 역할 반전
             this.#racoonTeam.setIsHidingTeam(!this.#racoonTeam.isHidingTeam());
             this.#foxTeam.setIsHidingTeam(!this.#foxTeam.isHidingTeam());
+
+
         }
     }
 
