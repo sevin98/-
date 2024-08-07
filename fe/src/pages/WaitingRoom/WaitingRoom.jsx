@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { hasFalsy } from "../../util/validation";
 import { getRoomRepository, userRepository } from "../../repository";
-import axios from "../../network/AxiosClient";
+import axios, { updateAxiosAccessToken } from "../../network/AxiosClient";
 import { getStompClient } from "../../network/StompClient";
 
 import { LOGIN_FORM_ROUTE_PATH } from "../LoginForm/LoginForm";
@@ -52,48 +52,56 @@ export default function WaitingRoom() {
     const roomRepository = getRoomRepository(roomNumber, roomPassword);
 
     useEffect(() => {
-        axios
-            .post(`/api/rooms/${roomNumber}/join`, { password: roomPassword })
-            .then(async (resp) => {
-                // 방 진입, 방/플레이어 채널 구독 요청
-                const { roomSubscriptionInfo, playerSubscriptionInfo } =
-                    resp.data;
-                roomRepository.startSubscribeRoom(roomSubscriptionInfo);
-                roomRepository.startSubscribePlayer(playerSubscriptionInfo);
-            })
-            .catch((error) => {
-                if (error.response.status === 404) {
-                    toast.error("해당하는 방이 없습니다.");
-                } else if (error.response.status === 401) {
-                    toast.error("비밀번호가 틀립니다.");
-                } else if (error.response.status === 409) {
-                    toast.error("이미 8명이 참가한 방입니다.");
-                } else {
-                    toast.error("방 참가 중 오류가 발생했습니다.");
+        const guestLoginAndJoinRoom = async () => {
+            if (!userProfile) {
+                try {
+                    const resp = await axios.post("/api/auth/guest/sign-up");
+                    const { accessToken, userProfile, webSocketConnectionToken } = resp.data;
+
+                    // 인증 및 사용자 정보 초기화
+                    updateAxiosAccessToken(accessToken);
+                    userRepository.setUserProfile(userProfile);
+                    setUserProfile(userProfile); // 상태 업데이트
+
+                    // STOMP Client 초기화
+                    getStompClient(webSocketConnectionToken);
+                } catch (error) {
+                    toast.error("게스트 로그인 실패");
+                    navigate(LOGIN_FORM_ROUTE_PATH);
+                    return;
                 }
-            });
-
-        // 페이지를 떠날 때 방 나가기 처리
-        const handleBeforeUnload = (event) => {
-            // axios.post(`/api/rooms/${roomNumber}/leave`).catch((err) => {
-            //     console.error("Failed to leave room:", err);
-            // });
+            }
         };
 
-        // 브라우저를 닫을 때 leave API 호출
-        window.addEventListener("beforeunload", handleBeforeUnload);
-        // 컴포넌트가 언마운트될 때 클린업 함수 실행
-        return () => {
-            clearInterval(updateDataIntervalId);
-            roomRepository.endSubscribe();
-            window.removeEventListener("beforeunload", handleBeforeUnload);
+        guestLoginAndJoinRoom();
+    });
 
-            // 방 나가기 요청
-            // axios.post(`/api/rooms/${roomNumber}/leave`).catch((err) => {
-            //     console.error("Failed to leave room:", err);
-            // });
-        };
-    }, []);
+    useEffect(() => {
+        if (userProfile) {
+            axios
+                .post(`/api/rooms/${roomNumber}/join`, {
+                    password: roomPassword,
+                })
+                .then(async (resp) => {
+                    // 방 진입, 방/플레이어 채널 구독 요청
+                    const { roomSubscriptionInfo, playerSubscriptionInfo } = resp.data;
+                    roomRepository.startSubscribeRoom(roomSubscriptionInfo);
+                    roomRepository.startSubscribePlayer(playerSubscriptionInfo);
+                })
+                .catch((error) => {
+                    if (error.response.status === 404) {
+                        toast.error("해당하는 방이 없습니다.");
+                    } else if (error.response.status === 401) {
+                        toast.error("비밀번호가 틀립니다.");
+                    } else if (error.response.status === 409) {
+                        toast.error("이미 8명이 참가한 방입니다.");
+                    } else {
+                        toast.error("방 참가 중 오류가 발생했습니다.");
+                    }
+                });
+        }
+    });
+
 
     // 방 정보 업데이트 주기 설정
     const updateDataIntervalId = setInterval(() => {
