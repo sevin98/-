@@ -9,4 +9,5 @@ public enum GameControlType {
     SAFE_ZONE_UPDATE, // 안전 구역 업데이트
     ELIMINATION, // 사용자 탈락
     GAME_END, // 게임 종료
+    ELIMINATION_OUT_OF_SAFE_ZONE, // 안전 구역 밖에서의 탈락
 }
