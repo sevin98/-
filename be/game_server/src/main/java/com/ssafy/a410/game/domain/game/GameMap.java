@@ -147,22 +147,26 @@ public class GameMap {
         this.finalSafeZone = new Rectangle(finalSafeZoneX, finalSafeZoneY, 320, 320);
     }
 
-    // 안전구역 축소 메서드
+    // 라운드마다 안전구역 축소
     public void reduceSafeArea(int totalRounds, int currentRound) {
-        // 남은 라운드
-        int roundsLeft = totalRounds - currentRound;
-        if (roundsLeft > 0) {
+        // 초기 안전구역 설정
+        int initialX = 0;
+        int initialY = 0;
+        int initialWidth = 1600;
+        int initialHeight = 1600;
+
+        if (currentRound < totalRounds) {
             double ratio = 1.0 - ((double) currentRound / totalRounds);
-            int newWidth = (int) (safeZone.width * ratio);
-            int newHeight = (int) (safeZone.height * ratio);
-            int newX = finalSafeZone.x + Math.abs((finalSafeZone.width - newWidth) / 2);
-            int newY = finalSafeZone.y + Math.abs((finalSafeZone.height - newHeight) / 2);
+
+            // x, y 좌표와 width, height를 각 라운드마다 줄어들게 계산
+            int newX = (int) (initialX * ratio + finalSafeZone.x * (1 - ratio));
+            int newY = (int) (initialY * ratio + finalSafeZone.y * (1 - ratio));
+            int newWidth = (int) (initialWidth * ratio + finalSafeZone.width * (1 - ratio));
+            int newHeight = (int) (initialHeight * ratio + finalSafeZone.height * (1 - ratio));
 
             safeZone.setBounds(newX, newY, newWidth, newHeight);
-        } else {
-            // 최종 라운드일 때
+        } else
             safeZone.setBounds(finalSafeZone);
-        }
     }
 
     // 안전구역의 네 꼭짓점 구하기
