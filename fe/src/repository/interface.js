@@ -13,6 +13,7 @@ export class Player {
     #y;
     #direction;
     #sprite;
+    #isHiding = false;
 
     static MAX_SEEK_COUNT = 5;
 
@@ -119,6 +120,14 @@ export class Player {
 
     getSprite() {
         return this.#sprite;
+    }
+
+    setIsHiding(isHiding) {
+        this.#isHiding = isHiding;
+    }
+
+    isHiding() {
+        return this.#isHiding;
     }
 }
 
