@@ -1,21 +1,26 @@
+import { getRoomRepository } from "./index";
+
 export class Player {
     #playerId;
     #playerNickname;
+    #team;
+    #isBot;
     #isReady;
     #isDead;
     #restSeekCount; // 남은 찾기 횟수
     #catchCount; // 잡은 횟수
-    #character;
     #x;
     #y;
     #direction;
-    #team;
+    #sprite;
 
     static MAX_SEEK_COUNT = 5;
 
-    constructor({ playerId, playerNickname, isReady }) {
+    constructor({ playerId, playerNickname, isReady, isBot, team }) {
         this.#playerId = playerId;
         this.#playerNickname = playerNickname;
+        this.#team = team;
+        this.#isBot = isBot;
         this.#isReady = isReady;
         this.#isDead = false;
         this.#restSeekCount = 5;
@@ -30,6 +35,10 @@ export class Player {
         return this.#playerNickname;
     }
 
+    getIsBot() {
+        return this.#isBot;
+    }
+
     getIsReady() {
         return this.#isReady;
     }
@@ -42,16 +51,12 @@ export class Player {
         this.#isDead = true;
     }
 
-    setCharacter(character) {
-        this.#character = character;
-    }
-
     isRacoonTeam() {
-        return this.#character.toLowerCase() === "racoon";
+        return this.#team.getCharacter().toLowerCase() === "racoon";
     }
 
     isFoxTeam() {
-        return this.#character.toLowerCase() === "fox";
+        return this.#team.getCharacter().toLowerCase() === "fox";
     }
 
     setPosition({ x, y, direction }) {
@@ -107,6 +112,14 @@ export class Player {
     canSeek() {
         return this.#restSeekCount > 0;
     }
+
+    setSprite(sprite) {
+        this.#sprite = sprite;
+    }
+
+    getSprite() {
+        return this.#sprite;
+    }
 }
 
 export class Team {
@@ -121,8 +134,23 @@ export class Team {
         this.#isHidingTeam = isHidingTeam;
         this.#isSeekingTeam = isSeekingTeam;
 
-        for (const player of players) {
-            this.#players.push(new Player(player));
+        const roomRepository = getRoomRepository();
+        for (const _player of players) {
+            const playerInRoom = roomRepository.getPlayerWithId(
+                _player.playerId
+            );
+            let player;
+
+            // 대기실에 없던 플레이어인 경우 (봇)
+            if (!playerInRoom) {
+                player = new Player({ ..._player, team: this });
+                // 방에 추가
+                roomRepository.addPlayer(player);
+            } else {
+                player = playerInRoom;
+            }
+            this.#players.push(player);
+            player.setTeam(this);
         }
     }
 
@@ -150,6 +178,11 @@ export class Team {
 
     getPlayers() {
         return this.#players;
+    }
+
+    addPlayer(player) {
+        player.setTeam(this);
+        this.#players.push(player);
     }
 
     isFoxTeam() {

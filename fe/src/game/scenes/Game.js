@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 
-import Player, { HandlePlayerMove } from "./Player";
-import OtherPlayer from "./OtherPlayer";
+import MyPlayerSprite, { HandlePlayerMove } from "./Player";
+import OtherPlayerSprite from "./OtherPlayer";
 import MapTile from "./MapTile";
 import TextGroup from "./TextGroup";
 
@@ -15,15 +15,6 @@ export class game extends Phaser.Scene {
     //fauna = Phaser.Physics.Arcade.Sprite;
     constructor() {
         super("game");
-        /// 임의로 포지션 넣은 코드, 이후 삭제
-        this.positions = [
-            [500, 400],
-            [500, 390],
-            [500, 380],
-            [500, 370],
-            [500, 360],
-            [500, 350],
-        ];
 
         this.mapPositions = [
             [0, 0, 800, 800],
@@ -70,11 +61,15 @@ export class game extends Phaser.Scene {
         // playercam.zoomTo(1.2,300)
 
         // 로컬플레이어 객체 생성, 카메라 follow
-        // const me = this.gameRepository.getMe();
-        // const { x, y, direction } = me.getPosition();
-        this.localPlayer = new Player(this, 400, 400, "fauna-idle-down", true);
-
-        // 잠깐 주석처리하고 카메라가 otherplayer를 따라가도록 바꿔놓음
+        const me = this.gameRepository.getMe();
+        const { x, y, direction } = me.getPosition();
+        this.localPlayer = new MyPlayerSprite(
+            this,
+            x,
+            y,
+            "fauna-idle-down",
+            true
+        );
         playercam.startFollow(this.localPlayer);
 
         //로컬플레이어와 layer의 충돌설정
@@ -115,24 +110,32 @@ export class game extends Phaser.Scene {
             console.log("숨을수있음");
         });
 
-        // 다른 플레이어 화면 구현
-        this.otherPlayer = new OtherPlayer(
-            this,
-            500,
-            500,
-            "fauna-idle-down",
-            1 // 임의의 id
-        );
-        //setinteval 대신 addevent 함수씀
+        // 다른 플레이어 스프라이트
+        this.otherPlayerSprites = [];
+        for (let player of this.gameRepository.getAllPlayers()) {
+            if (player.getPlayerId() === me.getPlayerId()) {
+                continue;
+            }
+
+            const otherPlayerSprite = new OtherPlayerSprite(
+                this,
+                player.getPosition().x,
+                player.getPosition().y,
+                "fauna-idle-down",
+                player.getPlayerId()
+            );
+            otherPlayerSprite.visible = true;
+            player.setSprite(otherPlayerSprite);
+            this.otherPlayerSprites.push(otherPlayerSprite);
+        }
+
+        // //setinteval 대신 addevent 함수씀
         this.time.addEvent({
-            delay: 500,
-            //500마다 mockingPosition함수 실행
-            callback: this.mockingPosition, // mockingPostion 이라는 함수 만듦
+            delay: 10,
+            callback: this.updateAnotherPlayerSpritePosition, // mockingPostion 이라는 함수 만듦
             callbackScope: this, // this를 현재 씬으로 지정
             loop: true, // 여러번 실행
         });
-        // camera가 otherplayer 따라가게만듦
-        // this.cameras.main.startFollow(this.otherPlayer);
 
         //game-ui 씬
         this.scene.run("game-ui");
@@ -157,6 +160,34 @@ export class game extends Phaser.Scene {
     }
 
     update() {
+        // 로컬플레이어 포지션 트래킹 , 이후 위치는 x,y,headDir로 접근
+        const me = this.gameRepository.getMe();
+        const { x, y, headDir } = me.getPosition();
+
+        // 페이즈에 따라 플레이어의 움직임 및 화면 표시 여부 제한
+        if (this.gameRepository.getCurrentPhase() === Phase.READY) {
+            // 레디 페이즈에 숨는 팀이면 표시 및 움직임 허가
+            if (me.isHidingTeam()) {
+                this.localPlayer.visible = true;
+                this.localPlayer.allowMove();
+            }
+            // 레디 페이즈에 찾는 팀이면 표시 및 움직임 제한
+            else {
+                this.localPlayer.visible = true;
+                this.localPlayer.disallowMove();
+            }
+        } else if (this.gameRepository.getCurrentPhase() === Phase.MAIN) {
+            // 메인 페이즈에 숨는 팀이면 표시 및 움직임 제한
+            if (me.isHidingTeam()) {
+                this.localPlayer.visible = false;
+                this.localPlayer.disallowMove();
+            }
+            // 메인 페이즈에 찾는 팀이면 표시 및 움직임 허가
+            else {
+                this.localPlayer.visible = true;
+                this.localPlayer.allowMove();
+            }
+        }
 
         // player.js 에서 player 키조작이벤트 불러옴
         const playerMoveHandler = new HandlePlayerMove(
@@ -323,15 +354,11 @@ export class game extends Phaser.Scene {
     }
 
     //constructor에 있는 임의의 position 배열에서 좌표 꺼내는 랜덤함수
-    mockingPosition() {
-        this.currentPos =
-            this.positions[Math.floor(Math.random() * this.positions.length)];
-        //headDir보이기
-        this.headDir = Math.floor(Math.random() * 4);
-        // otherPlayer의 포지션 변경
-        this.otherPlayer.x = this.currentPos[0];
-        this.otherPlayer.y = this.currentPos[1];
-        this.otherPlayer.move(this.headDir);
+    updateAnotherPlayerSpritePosition() {
+        for (let otherPlayerSprite of this.otherPlayerSprites) {
+            otherPlayerSprite.updatePosition();
+            otherPlayerSprite.move(otherPlayerSprite.getHeadDir());
+        }
     }
 
     // 벽 만드는 함수: 시작점과 끝점 받아서 직사각형 모양으로 타일 깔기

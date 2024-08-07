@@ -183,6 +183,7 @@ export default class RoomRepository {
     #handleSubscribeGameEvent(data) {
         const { subscriptionInfo, startsAfterMilliSec } = data;
         this.#gameRepository = new GameRepository(
+            this,
             this.#roomNumber,
             subscriptionInfo,
             startsAfterMilliSec
@@ -230,6 +231,16 @@ export default class RoomRepository {
     // 단, 인게임이 아닌 방에 관련된 정보만 사용해야 한다.
     getJoinedPlayers() {
         return this.#joinedPlayers;
+    }
+
+    getPlayerWithId(playerId) {
+        return this.#joinedPlayers.find(
+            (player) => player.getPlayerId() === playerId
+        );
+    }
+
+    addPlayer(player) {
+        this.#joinedPlayers.push(player);
     }
 
     // 게임 정보를 담고 있는 repository 반환
