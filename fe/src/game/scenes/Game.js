@@ -16,12 +16,6 @@ export class game extends Phaser.Scene {
     constructor() {
         super("game");
 
-        this.mapPositions = [
-            [0, 0, 800, 800],
-            [500, 500, 700, 700],
-            [300, 300, 700, 700],
-        ];
-
         this.MapTile = null;
         this.objects = null;
         this.lastSentTime = Date.now();
@@ -48,7 +42,6 @@ export class game extends Phaser.Scene {
     }
 
     create() {
-
         this.text = new TextGroup(this); // 팝업텍스트 객체
 
         this.graphics = this.add.graphics().setDepth(1000); //선만들기 위한 그래픽
@@ -66,10 +59,18 @@ export class game extends Phaser.Scene {
         // 로컬플레이어 객체 생성, 카메라 follow
         const me = this.gameRepository.getMe();
         const { x, y, direction } = me.getPosition();
+        // this.localPlayer = new MyPlayerSprite(
+        //     this,
+        //     x,
+        //     y,
+        //     "fauna-idle-down",
+        //     true
+        // );
+        //맵축소확인용
         this.localPlayer = new MyPlayerSprite(
             this,
-            x,
-            y,
+            350,
+            350,
             "fauna-idle-down",
             true
         );
@@ -150,16 +151,9 @@ export class game extends Phaser.Scene {
         this.physics.add.collider(this.localPlayer, this.mapWalls, () => {
             console.log("작아지는 벽과 충돌");
         });
-
     }
 
     update() {
-        //현재 safezone 업데이트 
-        this.currentSafeZone = this.gameRepository.getCurrentSafeZone();
-
-        // 맵축소
-        this.createMapWall();
-
         // 로컬플레이어 포지션 트래킹 , 이후 위치는 x,y,headDir로 접근
         const me = this.gameRepository.getMe();
         const { x, y, headDir } = me.getPosition();
@@ -346,6 +340,8 @@ export class game extends Phaser.Scene {
                 closest.body.y - 20
             );
         }
+        // 맵축소
+        this.createMapWall();
     }
 
     // 맵타일단위를 pix로 변환
@@ -363,67 +359,66 @@ export class game extends Phaser.Scene {
 
     // 벽 만드는 함수: 시작점과 끝점 받아서 직사각형 모양으로 타일 깔기
     createMapWall() {
+        // console.log(this.gameRepository.getCurrentPhase() === Phase.END);
         // END Phase에만 호출되어야 함
-        if (this.gameRepository.getCurrentPhase() !== Phase.END) {
-            // console.log("아직아님");
+        // if (this.gameRepository.getCurrentPhase() === Phase.END) {
+        //     console.log('줄어듭니다')
+        // const currentSafeZone = [300, 300, 500, 500];
+        const currentSafeZone = this.gameRepository.getCurrentSafeZone();
+        if (!currentSafeZone) {
             return;
         }
-        
-        // 지금 가지고 있는 벽의 경계 데이터와 현재 최신 맵의 경계를 비교하여
-        // 하나라도 다른 값이 있으면 갱신 된 것으로 간주하고 새로 벽을 만들어준다.
-        // 랜덤으로 뽑기
-        // console.log('줄어듭니다')
-        this.currentMapPos = this.currentSafeZone;
 
         if (
-            this.lastWallPos.x !== this.currentMapPos[0] ||
-            this.lastWallPos.y !== this.currentMapPos[1] ||
-            this.lastWallPos.endX !== this.currentMapPos[2] ||
-            this.lastWallPos.endY !== this.currentMapPos[3]
+            this.lastWallPos.x !== currentSafeZone[0] ||
+            this.lastWallPos.y !== currentSafeZone[1] ||
+            this.lastWallPos.endX !== currentSafeZone[2] ||
+            this.lastWallPos.endY !== currentSafeZone[3]
         ) {
             // 이전맵 초기화해주기
-            // this.mapWalls.clear(true, true);
-
-            // console.log("맵이 줄어듭니다.");
-            const tileSize = 17.1;
-
-            console.log(this.currentMapPos);
-            const startX = this.currentMapPos[0];
-            const startY = this.currentMapPos[1];
-            const endX = this.currentMapPos[2];
-            const endY = this.currentMapPos[3];
+            const [startX, startY, endX, endY] = currentSafeZone;
+            console.log("Update! :", currentSafeZone, "vs", this.lastWallPos);
 
             // 위쪽 벽
-            for (let x = startX; x <= endX; x += tileSize) {
+            for (let x = startX; x < endX; x += 30) {
                 this.createWallTile(x, startY);
             }
             // 아래쪽 벽
-            for (let x = startX; x <= endX; x += tileSize) {
+            for (let x = startX; x < endX; x += 30) {
                 this.createWallTile(x, endY);
             }
             // 왼쪽 벽
-            for (let y = startY + tileSize; y < endY; y += tileSize) {
+            for (let y = startY + 30; y < endY; y += 30) {
                 this.createWallTile(startX, y);
             }
             // 오른쪽 벽
-            for (let y = startY + tileSize; y < endY; y += tileSize) {
+            for (let y = startY + 30; y < endY; y += 30) {
                 this.createWallTile(endX, y);
             }
 
             // 현재 맵의 경계를 저장
             this.lastWallPos = {
-                x: this.currentMapPos[0],
-                y: this.currentMapPos[1],
-                endX: this.currentMapPos[2],
-                endY: this.currentMapPos[3],
+                x: startX,
+                y: startY,
+                endX: endX,
+                endY: endY,
             };
         }
     }
-    // 개별 벽 타일 생성 함수
     createWallTile(x, y) {
+        const color = 0xffffff; // 검은색
+        const alpha = 0.02; // 반투명도 (0: 완전 투명, 1: 완전 불투명)
+        const width = 30;
+        const height = 30;
+
+        const graphics = this.add.graphics();
+        graphics.fillStyle(color, alpha);
+        graphics.fillRect(0, 0, width, height);
+
+        graphics.generateTexture("wallTile", width, height); // 텍스쳐 만듦
+
         this.mapWalls
-            .create(x, y, "mapWallBorder")
-            .setSize(16, 16)
-            .setDisplaySize(18, 18);
+            .create(x, y, "wallTile") // 타일 만듦
+            .setDisplaySize(width, height);
     }
 }

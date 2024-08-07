@@ -6,7 +6,6 @@ import asyncResponses from "./_asyncResponses";
 import { Mutex } from "async-mutex";
 import uiControlQueue from "../util/UIControlQueue";
 
-
 // 게임 시작 이벤트
 const GAME_START = "GAME_START";
 // 게임 정보 전달 이벤트
@@ -481,6 +480,7 @@ export default class GameRepository {
     //맵축소
     #handleSafeZoneUpdateEvent(data) {
         const safeZone = data; //[0, 0, 1600, 1600],
+        console.log(data)
         this.#currentSafeZone = safeZone;
     }
     //맵축소
