@@ -69,12 +69,11 @@
     overflow-y: auto;
     margin: 1rem 0;
     padding: 0.5rem;
-    text-align: left;
+    text-align: center;
     font-family: "MoveSans-Bold";
     color : white;
 
 }
-
 
 /* 카운트다운 표시 */
 .countdown-display,
@@ -83,4 +82,16 @@
     font-weight: bold;
     font-family: "MoveSans-Bold";
     color: white;
+
+}
+
+button.rpgui-button {
+    align-items: center;
+    text-align: center;
+    justify-content: center;
+}
+
+button.rpgui-button h2 {
+    margin: 0;
+    font-size: 1em;
 }
