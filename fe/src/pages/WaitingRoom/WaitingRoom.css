@@ -66,6 +66,10 @@
     color: #5353c8;
 }
 
+.player-nickname{
+    white-space: nowrap;
+}
+
 /* 채팅창 */
 .chat-box {
     border: 0.5rem solid #000;
