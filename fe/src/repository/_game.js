@@ -69,6 +69,8 @@ export default class GameRepository {
     #foxTeam;
     #racoonTeam;
     #me;
+    #nextPhaseChangeAt;
+    #currentPhaseFinishAfterMilliSec;
 
     #isInitialized = false;
 
@@ -170,6 +172,10 @@ export default class GameRepository {
 
     #handlePhaseChangeEvent(data) {
         this.#currentPhase = data.phase;
+        this.#nextPhaseChangeAt = new Date(
+            Date.now() + data.finishAfterMilliSec
+        );
+        this.#currentPhaseFinishAfterMilliSec = data.finishAfterMilliSec;
 
         console.log(
             `페이즈 변경: ${data.phase}, ${data.finishAfterMilliSec}ms 후 종료`
@@ -473,5 +479,13 @@ export default class GameRepository {
 
         // TODO : HP에 뭔 짓을 해줘야 함?
         // TODO : 아이템 처리 필요
+    }
+
+    getNextPhaseChangeAt() {
+        return this.#nextPhaseChangeAt;
+    }
+
+    getCurrentPhaseFinishAfterMilliSec() {
+        return this.#currentPhaseFinishAfterMilliSec;
     }
 }
