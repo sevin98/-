@@ -16,7 +16,7 @@ public enum Phase {
     // 찾는 팀이 숨은 팀을 찾고 있는 상태
     MAIN(3000, 10L * MilliSecOf.SECONDS),
     // 다음 라운드를 위해 기존의 게임 상태를 정리 하고 있는 상태
-    END(4000, 0L),
+    END(4000, MilliSecOf.SECONDS),
     // 게임이 끝난 상태
     FINISHED(5000, 0L);
 
