@@ -25,6 +25,12 @@ export class game extends Phaser.Scene {
             [500, 350],
         ];
 
+        this.mapPositions = [
+            [0, 0, 800, 800],
+            [500, 500, 700, 700],
+            [300, 300, 700, 700],
+        ];
+
         this.MapTile = null;
         this.objects = null;
         this.lastSentTime = Date.now();
@@ -40,10 +46,7 @@ export class game extends Phaser.Scene {
             "mapWallGoldenBorder",
             "rpgui/img/border-image-golden2.png"
         );
-        this.load.image(
-            "mapWallBorder",
-            "rpgui/img/border-image.png"
-        );
+        this.load.image("mapWallBorder", "rpgui/img/border-image.png");
         //
         this.load.image("racoon", "assets/character/image.png");
         this.cursors = this.input.keyboard.createCursorKeys();
@@ -136,22 +139,24 @@ export class game extends Phaser.Scene {
         this.m_cursorKeys = this.input.keyboard.createCursorKeys();
 
         //작아지는 맵은 제일 위에 위치해야함!!
-        // 좌측 상단좌표, 우측 하단좌표 //
-        const start = { x: 380, y: 380 };
-        const end = { x: 500, y: 500 };
         this.mapWalls = this.physics.add.staticGroup();
-        this.createMapWall(start, end); // 380,380 - 500,500 벽 생성
-        //(충돌설정은 로컬플레이어 생성 후 실행)
-        // 플레이어와 경계 충돌 처리
+        //플레이어와 충돌처리
         this.physics.add.collider(this.localPlayer, this.mapWalls, () => {
             console.log("작아지는 벽과 충돌");
         });
+
+        //이벤트 리스너로 createmap 관리
+        this.time.addEvent({
+            delay:100,
+            callback:this.createMapWall(),
+            callbackScope:this,
+            loop:true
+        })
+
+
     }
 
     update() {
-        // 로컬플레이어 포지션 트래킹 , 이후 위치는 x,y,headDir로 접근
-        // const me = this.gameRepository.getMe();
-        // const { x, y, headDir } = me.getPosition();
 
         // player.js 에서 player 키조작이벤트 불러옴
         const playerMoveHandler = new HandlePlayerMove(
@@ -328,31 +333,51 @@ export class game extends Phaser.Scene {
         this.otherPlayer.y = this.currentPos[1];
         this.otherPlayer.move(this.headDir);
     }
- // 벽 만드는 함수: 시작점과 끝점 받아서 직사각형 모양으로 타일 깔기
-    createMapWall(start, end) {
+
+    // 벽 만드는 함수: 시작점과 끝점 받아서 직사각형 모양으로 타일 깔기
+    createMapWall() {
+        if (this.gameRepository.getCurrentPhase() !== Phase.END) {
+            return
+        }
+        // 이전맵 초기화해주기
+        this.mapWalls.clear(true, true);
+        
+        console.log("맵이 줄어듭니다.");
         const tileSize = 17.1;
+
+        // 랜덤으로 뽑기
+        this.currentMapPos =
+            this.mapPositions[
+                Math.floor(Math.random() * this.mapPositions.length)
+            ];
+        console.log(this.currentMapPos);
+        const startX = this.currentMapPos[0];
+        const startY = this.currentMapPos[1];
+        const endX = this.currentMapPos[2];
+        const endY = this.currentMapPos[3];
+
         // 위쪽 벽
-        for (let x = start.x; x <= end.x; x += tileSize) {
-            this.createWallTile(x, start.y);
+        for (let x = startX; x <= endX; x += tileSize) {
+            this.createWallTile(x, startY);
         }
         // 아래쪽 벽
-        for (let x = start.x; x <= end.x; x += tileSize) {
-            this.createWallTile(x, end.y);
+        for (let x = startX; x <= endX; x += tileSize) {
+            this.createWallTile(x, endY);
         }
         // 왼쪽 벽
-        for (let y = start.y + tileSize; y < end.y; y += tileSize) {
-            this.createWallTile(start.x, y);
+        for (let y = startY + tileSize; y < endY; y += tileSize) {
+            this.createWallTile(startX, y);
         }
         // 오른쪽 벽
-        for (let y = start.y + tileSize; y < end.y; y += tileSize) {
-            this.createWallTile(end.x, y);
+        for (let y = startY + tileSize; y < endY; y += tileSize) {
+            this.createWallTile(endX, y);
         }
     }
     // 개별 벽 타일 생성 함수
     createWallTile(x, y) {
-        this.mapWalls.create(x, y, "mapWallBorder")
+        this.mapWalls
+            .create(x, y, "mapWallBorder")
             .setSize(16, 16)
             .setDisplaySize(18, 18);
     }
-
 }

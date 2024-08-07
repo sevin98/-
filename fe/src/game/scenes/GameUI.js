@@ -27,7 +27,7 @@ export default class GameUI extends Phaser.Scene{
             quantity : 3
         })
         
-
+        
         this.movingTeam= this.add.group({
             classType : Phaser.GameObjects.Image
         })
@@ -40,6 +40,7 @@ export default class GameUI extends Phaser.Scene{
             },
             quantity : 1
         })
-    }
 
+    }
+    
 }
