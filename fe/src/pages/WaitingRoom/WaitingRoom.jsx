@@ -10,11 +10,7 @@ import { LOGIN_FORM_ROUTE_PATH } from "../LoginForm/LoginForm";
 import { PHASER_GAME_ROUTE_PATH } from "../../game/PhaserGame";
 import { LOBBY_ROUTE_PATH } from "../Lobby/Lobby";
 
-import PlayerGrid from "./PlayerGrid"; // 플레이어 슬롯 컴포넌트
-import ReadyButton from "./ReadyButton"; // 레디 버튼 컴포넌트
-import BackToLobbyButton from "./BackToLobbyButton"; // 뒤로가기 버튼 컴포넌트
-import ShareRoomCodeButton from "./ShareRoomCodeButton"; // 방 코드 공유 버튼 컴포넌트
-import ChatBox from "./ChatBox"; // 채팅창 컴포넌트
+import { BackToLobbyButton, ChatBox, PlayerGrid, ReadyButton, ShareRoomCodeButton } from './WaitingRoomComponents'; //컴포넌트 import
 
 import { toast } from "react-toastify"; // react-toastify 추가
 import "./WaitingRoom.css"; // CSS 파일
@@ -117,7 +113,7 @@ export default function WaitingRoom() {
     }, 10);
 
     const startCountdown = (gameStartsAt) => {
-        setCountdownMessage("게임이 곧 시작됩니다!");
+        setCountdownMessage(<h2>게임이 곧 시작됩니다!</h2>);
 
         // 매우 짧은 주기로 남은 시간을 초 단위로 계산하여 줄여 나감
         const leftSecondsToStart = Math.ceil(
@@ -167,30 +163,14 @@ export default function WaitingRoom() {
 
     return (
         <div id="container" className="rpgui-cursor-default">
-            <div className="waiting-room">
-                {/* 왼쪽 위: 뒤로가기 버튼 */}
-                <BackToLobbyButton
-                    onClick={onBackToLobbyBtnClicked}
-                    isDisabled={isPlayerReady}
-                />
-
-                {/* 오른쪽 위: 방 코드 공유 버튼 */}
-                <ShareRoomCodeButton />
-
-                {/* 플레이어 슬롯 (가운데) */}
-                <PlayerGrid players={joinedPlayers} />
-
-                {/* 왼쪽 아래: 레디 버튼 */}
-                <ReadyButton
-                    onClick={onReadyBtnClicked}
-                    isReady={isPlayerReady}
-                />
-
-                {/* 오른쪽 아래: 채팅창 */}
-                <ChatBox
-                    leftSecondsToStart={leftSecondsToStart}
-                    countdownMessage={countdownMessage}
-                />
+            <div className="wrapper rpgui-content">
+                 <div className="rpgui-container framed">
+                    <BackToLobbyButton onClick={onBackToLobbyBtnClicked} isDisabled={isPlayerReady} />
+                    <ShareRoomCodeButton />
+                    <PlayerGrid players={joinedPlayers} />
+                    <ReadyButton onClick={onReadyBtnClicked} isReady={isPlayerReady} />
+                    <ChatBox leftSecondsToStart={leftSecondsToStart} countdownMessage={countdownMessage} />
+                </div>
             </div>
         </div>
     );
