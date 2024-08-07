@@ -42,7 +42,7 @@ export default function RoomCreate() {
                     <h2>비밀번호 입력 시 새로운 방이 만들어집니다</h2>
                     <input
                         className="input-box"
-                        type="password"
+                        type="number"
                         placeholder="(생략시 방에 누구나 들어올 수 있음)"
                         onChange={(e) => setRoomPassword(e.target.value)}
                     ></input>
