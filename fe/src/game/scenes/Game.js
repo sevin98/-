@@ -59,21 +59,21 @@ export class game extends Phaser.Scene {
         // 로컬플레이어 객체 생성, 카메라 follow
         const me = this.gameRepository.getMe();
         const { x, y, direction } = me.getPosition();
-        // this.localPlayer = new MyPlayerSprite(
-        //     this,
-        //     x,
-        //     y,
-        //     "fauna-idle-down",
-        //     true
-        // );
-        //맵축소확인용
         this.localPlayer = new MyPlayerSprite(
             this,
-            350,
-            350,
+            x,
+            y,
             "fauna-idle-down",
             true
         );
+        //맵축소확인용
+        // this.localPlayer = new MyPlayerSprite(
+        //     this,
+        //     350,
+        //     350,
+        //     "fauna-idle-down",
+        //     true
+        // );
         playercam.startFollow(this.localPlayer);
 
         //로컬플레이어와 layer의 충돌설정
@@ -395,21 +395,23 @@ export class game extends Phaser.Scene {
             const [startX, startY, endX, endY] = currentSafeZone;
             console.log("Update! :", currentSafeZone, "vs", this.lastWallPos);
 
+            const tileSize = (endX - startX)/5 //나누는 수 숫자만 바꾸면 됨
             // 위쪽 벽
-            for (let x = startX; x < endX; x += 30) {
-                this.createWallTile(x, startY);
-            }
-            // 아래쪽 벽
-            for (let x = startX; x < endX; x += 30) {
-                this.createWallTile(x, endY);
+            for (let x = startX; x < endX; x += tileSize) {
+                this.createWallTile(x, startY, tileSize);
             }
             // 왼쪽 벽
-            for (let y = startY + 30; y < endY; y += 30) {
-                this.createWallTile(startX, y);
+            for (let y = startY + tileSize; y < endY; y += tileSize) {
+                this.createWallTile(startX, y, tileSize);
+            
+                // 아래쪽 벽
+            for (let x = startX+tileSize; x < endX; x += tileSize) {
+                this.createWallTile(x, endY-tileSize, tileSize);
+            }
             }
             // 오른쪽 벽
-            for (let y = startY + 30; y < endY; y += 30) {
-                this.createWallTile(endX, y);
+            for (let y = startY + tileSize; y < endY; y += tileSize) {
+                this.createWallTile(endX-tileSize, y, tileSize);
             }
 
             // 현재 맵의 경계를 저장
@@ -421,11 +423,11 @@ export class game extends Phaser.Scene {
             };
         }
     }
-    createWallTile(x, y) {
+    createWallTile(x, y,tileSize) {
         const color = 0xffffff; // 검은색
-        const alpha = 0.02; // 반투명도 (0: 완전 투명, 1: 완전 불투명)
-        const width = 30;
-        const height = 30;
+        const alpha = 0.01; // 반투명도 (0: 완전 투명, 1: 완전 불투명)
+        const width = tileSize;
+        const height = tileSize;
 
         const graphics = this.add.graphics();
         graphics.fillStyle(color, alpha);

@@ -494,8 +494,8 @@ export default class GameRepository {
     //맵축소
     #handleSafeZoneUpdateEvent(data) {
         const safeZone = data; //[0, 0, 1600, 1600],
-        console.log(data);
         this.#currentSafeZone = safeZone;
+        console.log(safeZone);
     }
     //맵축소
     getCurrentSafeZone() {
