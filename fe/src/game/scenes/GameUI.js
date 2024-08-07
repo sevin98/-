@@ -1,15 +1,30 @@
 import Phaser from "phaser";
 
 import uiControlQueue, { MESSAGE_TYPE } from "../../util/UIControlQueue";
+import { getRoomRepository } from "../../repository";
 
 export default class GameUI extends Phaser.Scene {
+    static progressBarAssetPrefix = "progress-bar-01-";
+
     constructor() {
         super({ key: "game-ui" });
+
+        const gameRepositoryTrial = setInterval(() => {
+            if (getRoomRepository()) {
+                this.gameRepository = getRoomRepository().getGameRepository();
+                clearInterval(gameRepositoryTrial);
+            }
+        }, 50);
     }
 
     preload() {
         this.load.image("racoonhead", "assets/object/racoonhead.png");
         this.load.image("foxhead", "assets/object/foxhead.png");
+
+        this.load.image(
+            "timer-progress-bar-background",
+            `assets/ui/timer-progress-bar/background.png`
+        );
     }
 
     create() {
@@ -39,6 +54,47 @@ export default class GameUI extends Phaser.Scene {
         //     },
         //     quantity : 1
         // })
+
+        this.add
+            .image(
+                this.cameras.main.width / 2,
+                this.cameras.main.height,
+                "timer-progress-bar-background"
+            )
+            .setOrigin(0.5, 1)
+            .setDisplaySize(this.cameras.main.width * 0.75, 15);
+
+        // Add progress bar(red rectangle) on bar background
+        this.progressBar = this.add
+            .rectangle(
+                this.cameras.main.width * 0.192,
+                this.cameras.main.height * 0.97,
+                this.getProgressBarFullWidth(),
+                5,
+                "0xFFB22C"
+            )
+            .setOrigin(0, 0.5);
+    }
+
+    updateProgressBar() {
+        if (!this.gameRepository) {
+            return;
+        }
+
+        const nextPhaseChangeAt = this.gameRepository.getNextPhaseChangeAt();
+        if (nextPhaseChangeAt) {
+            const now = new Date().getTime();
+            const remainMilliSec = nextPhaseChangeAt - now;
+            const percentage =
+                remainMilliSec /
+                this.gameRepository.getCurrentPhaseFinishAfterMilliSec();
+            this.progressBar.width =
+                this.getProgressBarFullWidth() * percentage;
+        }
+    }
+
+    getProgressBarFullWidth() {
+        return this.cameras.main.width * 0.62;
     }
 
     update() {
@@ -52,6 +108,8 @@ export default class GameUI extends Phaser.Scene {
                     break;
             }
         }
+
+        this.updateProgressBar();
     }
 
     showTopCenterMessage(data) {
