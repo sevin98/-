@@ -55,6 +55,7 @@ form {
 .wrapper .input-box {
     display: flex;
     justify-content: space-evenly;
+    text-align: center;
     align-items: center;
 }
 
@@ -66,6 +67,9 @@ form {
     height: 25px;
     border: none;
     border-radius: 10px;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
 }
 
 .button-box-lobby {
@@ -81,4 +85,11 @@ form {
 
 button {
     align-items: center;
+}
+
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
