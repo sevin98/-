@@ -46,7 +46,7 @@ public class Game extends Subscribable implements Runnable {
     private static final int SAFE_ZONE_REDUCE_AMOUNT = 100;
     private static final int SAFE_ZONE_REDUCE_DURATION = 10;
 
-    private static final int TOTAL_ROUND = 3;
+    private static final int TOTAL_ROUND = 5;
     // 게임 맵
     private final GameMap gameMap;
     // 플레이어들이 속해 있는 방
@@ -61,6 +61,8 @@ public class Game extends Subscribable implements Runnable {
     private final UserService userService;
     // 현재 게임이 머물러 있는 상태(단계)
     private Phase currentPhase;
+
+    private int round;
 
     public Game(Room room, MessageBroadcastService broadcastService, UserService userService) {
         this.room = room;
@@ -86,7 +88,7 @@ public class Game extends Subscribable implements Runnable {
     private void initialize() {
         // 초기화 시작 (게임 진입 불가)
         this.currentPhase = Phase.INITIALIZING;
-
+        this.round = 0 ;
         // 랜덤으로 플레이어 편 나누기
         randomAssignPlayersToTeam();
         // 나눠진 각 팀 플레이어들의 초기 위치 지정
@@ -165,6 +167,7 @@ public class Game extends Subscribable implements Runnable {
     public void run() {
         log.info("방 {} 게임 초기화", room.getRoomNumber());
         initializeGame();
+
         // 클라이언트가 초기화 할 시간 주기
         try {
             Thread.sleep(2L * MilliSecOf.SECONDS);
@@ -173,10 +176,6 @@ public class Game extends Subscribable implements Runnable {
         }
 
         for (int round = 1; round <= TOTAL_ROUND && !isGameFinished(); round++) {
-            // 첫 라운드 제외하고 계속 맵 줄이기
-            if (round > 1)
-                reduceSafeZoneWithElimination();
-
             // 라운드 변경 알림
             log.debug("Room {} round {} start =======================================", room.getRoomNumber(), round);
             broadcastService.broadcastTo(this, new RoundChangeControlMessage(round, TOTAL_ROUND));
@@ -191,8 +190,8 @@ public class Game extends Subscribable implements Runnable {
 
             log.debug("Room {} END Phase start --------------------------------------", room.getRoomNumber());
             runEndPhase();
+            if(round < TOTAL_ROUND) reduceSafeZoneWithElimination();
             resetSeekCount();
-
             exitPlayers();
             resetHPObjects();
             swapTeam();
@@ -686,14 +685,14 @@ public class Game extends Subscribable implements Runnable {
     }
 
     private void sendSafeZoneUpdate() {
-        List<Point> corners = gameMap.getSafeZoneCorners();
+        List<Integer> corners = gameMap.getSafeZoneCorners();
         broadcastService.broadcastTo(this, new SafeZoneUpdateMessage(corners));
     }
 
     private void reduceSafeZoneWithElimination() {
 
         // 맵 축소
-        gameMap.reduceSafeArea(SAFE_ZONE_REDUCE_AMOUNT);
+        gameMap.reduceSafeArea(TOTAL_ROUND, round);
         // 안전구역 알림
         sendSafeZoneUpdate();
 
@@ -708,7 +707,7 @@ public class Game extends Subscribable implements Runnable {
 
         for (Player player : allPlayers) {
             if (!gameMap.isInSafeZone(player)) {
-                player.eliminate();
+                player.eliminateOutOfSafeZone();
             }
         }
     }

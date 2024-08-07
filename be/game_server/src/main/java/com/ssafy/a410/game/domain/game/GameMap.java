@@ -15,10 +15,8 @@ import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 @Getter
 public class GameMap {
@@ -41,7 +39,9 @@ public class GameMap {
     // 여우 팀이 시작할 수 있는 초기 위치 정보
     private final List<Pos> foxStartPos = new ArrayList<>();
     // 안전구역
-    private final Rectangle safeZone;
+    private Rectangle safeZone;
+    // 최종 안전구역
+    private Rectangle finalSafeZone;
     // 읽어서 파싱해 놓은 원본 JSON 객체
     private JsonObject rawJsonObject;
 
@@ -50,6 +50,7 @@ public class GameMap {
         setRawJsonObject();
         setFromLayers();
         this.safeZone = new Rectangle(0, 0, 1600, 1600);
+        setRandomFinalSafeZone();
     }
 
     // 정적 파일로부터 맵 정보를 읽어와서 파싱
@@ -138,24 +139,37 @@ public class GameMap {
         hpObjects.values().forEach(hpObject -> hpObject.setGame(game));
     }
 
-    // 안전구역 축소 메서드
-    public void reduceSafeArea(int reductionAmount) {
-        int newWidth = Math.max(safeZone.width - reductionAmount, 0);
-        int newHeight = Math.max(safeZone.height - reductionAmount, 0);
-        int newX = safeZone.x + (safeZone.width - newWidth) / 2;
-        int newY = safeZone.y + (safeZone.height - newHeight) / 2;
+    // 최종 안전구역 랜덤설정
+    private void setRandomFinalSafeZone(){
+        Random rand = new Random();
+        int finalSafeZoneX = 320 + rand.nextInt(1280 - 320 - 320 + 1);
+        int finalSafeZoneY = 160 + rand.nextInt(1440 - 160 - 320 + 1);
+        this.finalSafeZone = new Rectangle(finalSafeZoneX, finalSafeZoneY, 320, 320);
+    }
 
-        // 메소드가 호출될 때마다 절대위치 변경
-        safeZone.setBounds(newX, newY, newWidth, newHeight);
+    // 안전구역 축소 메서드
+    public void reduceSafeArea(int totalRounds, int currentRound) {
+        // 남은 라운드
+        int roundsLeft = totalRounds - currentRound;
+        if (roundsLeft > 0) {
+            double ratio = 1.0 - ((double) currentRound / totalRounds);
+            int newWidth = (int) (safeZone.width * ratio);
+            int newHeight = (int) (safeZone.height * ratio);
+            int newX = finalSafeZone.x + (finalSafeZone.width - newWidth) / 2;
+            int newY = finalSafeZone.y + (finalSafeZone.height - newHeight) / 2;
+
+            safeZone.setBounds(newX, newY, newWidth, newHeight);
+        } else {
+            // 최종 라운드일 때
+            safeZone.setBounds(finalSafeZone);
+        }
     }
 
     // 안전구역의 네 꼭짓점 구하기
-    public List<Point> getSafeZoneCorners() {
+    public List<Integer> getSafeZoneCorners() {
         return List.of(
-                new Point(safeZone.x, safeZone.y), // 왼쪽 위
-                new Point(safeZone.x + safeZone.width, safeZone.y), // 오른쪽 위
-                new Point(safeZone.x, safeZone.y + safeZone.height), // 왼쪽 아래
-                new Point(safeZone.x + safeZone.width, safeZone.y + safeZone.height) // 오른쪽 아래
+                safeZone.x, safeZone.y, // 왼쪽 위
+                safeZone.x + safeZone.width, safeZone.y + safeZone.height // 오른쪽 아래
         );
     }
 
