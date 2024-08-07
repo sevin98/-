@@ -4,6 +4,7 @@ import { getStompClient } from "../network/StompClient";
 import { Team, Player } from "./interface";
 import asyncResponses from "./_asyncResponses";
 import { Mutex } from "async-mutex";
+import uiControlQueue from "../util/UIControlQueue";
 
 // 게임 시작 이벤트
 const GAME_START = "GAME_START";
@@ -168,11 +169,22 @@ export default class GameRepository {
     }
 
     #handlePhaseChangeEvent(data) {
+        this.#currentPhase = data.phase;
+
         console.log(
             `페이즈 변경: ${data.phase}, ${data.finishAfterMilliSec}ms 후 종료`
         );
 
-        this.#currentPhase = data.phase;
+        if (
+            this.#currentPhase === Phase.READY ||
+            this.#currentPhase === Phase.MAIN
+        ) {
+            uiControlQueue.addPhaseChangeMessage(
+                this.#currentPhase,
+                data.finishAfterMilliSec
+            );
+        }
+
         if (this.#currentPhase === Phase.READY) {
             if (this.getMe().isHidingTeam()) {
                 console.log(
