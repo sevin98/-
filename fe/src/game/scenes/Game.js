@@ -24,6 +24,8 @@ export class game extends Phaser.Scene {
         this.gameRepository = this.roomRepository.getGameRepository();
 
         this.lastWallPos = {};
+        this.hintImages = {};
+        this.shownHintForCurrentPhase = false;
     }
 
     preload() {
@@ -141,6 +143,13 @@ export class game extends Phaser.Scene {
         // 로컬플레이어 포지션 트래킹 , 이후 위치는 x,y,headDir로 접근
         const me = this.gameRepository.getMe();
         const { x, y, headDir } = me.getPosition();
+        if (this.hintImages) {
+            for (let direction in this.hintImages) {
+                if (this.hintImages[direction]) {
+                    this.hintImages[direction].setPosition(this.localPlayer.x, this.localPlayer.y - 20);
+                }
+            }
+        }
 
         // 숨는 팀인 경우
         if (me.isHidingTeam()) {
@@ -175,12 +184,37 @@ export class game extends Phaser.Scene {
                 // 화면에 보이게 하고 움직임 제한
                 this.localPlayer.visible = true;
                 this.localPlayer.disallowMove();
+                this.shownHintForCurrentPhase = false;
             }
             // 메인 페이즈에
             else if (this.gameRepository.getCurrentPhase() === Phase.MAIN) {
                 // 화면에 보이게 하고 움직임 허가
                 this.localPlayer.visible = true;
                 this.localPlayer.allowMove();
+
+                if (!this.shownHintForCurrentPhase) {
+                    const directionHints = this.roomRepository.getDirectionHints();
+                    directionHints.forEach((direction) => {
+                        if (!this.hintImages[direction]) {
+                            this.hintImages[direction] = this.add.image(this.localPlayer.x, this.localPlayer.y - 20, direction);
+                            this.hintImages[direction].setScale(0.03);
+    
+                            // 1.5초 후에 이미지를 제거
+                            this.time.addEvent({
+                                delay: 1500,
+                                callback: () => {
+                                    if (this.hintImages[direction]) {
+                                        this.hintImages[direction].destroy();
+                                        this.hintImages[direction] = null;
+                                    }
+                                },
+                                callbackScope: this
+                            });
+                        }
+                    });
+
+                    this.shownHintForCurrentPhase = true;
+                }
             }
         }
 
