@@ -66,14 +66,6 @@ export class game extends Phaser.Scene {
             "fauna-idle-down",
             true
         );
-        //맵축소확인용
-        // this.localPlayer = new MyPlayerSprite(
-        //     this,
-        //     350,
-        //     350,
-        //     "fauna-idle-down",
-        //     true
-        // );
         playercam.startFollow(this.localPlayer);
 
         //로컬플레이어와 layer의 충돌설정
@@ -375,33 +367,21 @@ export class game extends Phaser.Scene {
 
     // 벽 만드는 함수: 시작점과 끝점 받아서 직사각형 모양으로 타일 깔기
     createMapWall() {
-        // console.log(this.gameRepository.getCurrentPhase() === Phase.END);
-        // END Phase에만 호출되어야 함
-        // if (this.gameRepository.getCurrentPhase() === Phase.END) {
-        //     console.log('줄어듭니다')
-        // const currentSafeZone = [300, 300, 500, 500];
+
         const currentSafeZone = this.gameRepository.getCurrentSafeZone();
         if (!currentSafeZone) {
             return;
-        }
+        } // 없으면 리턴 
 
         if (
-            this.lastWallPos.x !== currentSafeZone[0] ||
-            this.lastWallPos.y !== currentSafeZone[1] ||
-            this.lastWallPos.endX !== currentSafeZone[2] ||
-            this.lastWallPos.endY !== currentSafeZone[3]
+            // 중복좌표 안나오니 이전 x좌표 하나만 체크
+            this.lastWallPos.x !== currentSafeZone[0]
         ) {
-            // 이전맵 초기화해주기
             const [startX, startY, endX, endY] = currentSafeZone;
             console.log("Update! :", currentSafeZone, "vs", this.lastWallPos);
 
-            const tileSize = (endX - startX)/8 //나누는 수 숫자만 바꾸면 됨
-            // let tileSize
-            // if (this.lastWallPos > 0){
-                // tileSize = startX-this.lastWallPos.x//그 뒤는 빈공간없이 전부 덮게? 
-            // } else{
-                // tileSize = (endX - startX) / 20; // 처음 타일 너비는 40-50? 
-            // }
+            //나누는 수 숫자만 바꿔서 타일사이즈 조정가능
+            const tileSize = (endX - startX)/10 
 
             // 위쪽 벽
             for (let x = startX; x < endX; x += tileSize) {
@@ -424,9 +404,6 @@ export class game extends Phaser.Scene {
             // 현재 맵의 경계를 저장
             this.lastWallPos = {
                 x: startX,
-                y: startY,
-                endX: endX,
-                endY: endY,
             };
         }
     }
