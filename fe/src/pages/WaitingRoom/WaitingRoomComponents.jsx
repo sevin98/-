@@ -46,7 +46,9 @@ ChatBox.propTypes = {
 // PlayerSlot 컴포넌트
 function PlayerSlot({ player, isMe }) {
     if (!player) {
-        return <div className="rpgui-container framed-grey player-slot empty"><h2 className="empty-slot">빈 슬롯</h2></div>;
+        return <div className="rpgui-container framed-grey player-slot empty">
+            <div class="rpgui-icon shield-slot"></div>
+            <h2 className="empty-slot">빈 슬롯</h2></div>;
     }
 
     return (
