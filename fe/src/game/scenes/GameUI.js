@@ -2,6 +2,7 @@ import Phaser from "phaser";
 
 import uiControlQueue, { MESSAGE_TYPE } from "../../util/UIControlQueue";
 import { getRoomRepository } from "../../repository";
+import { Phase } from "../../repository/_game";
 
 export default class GameUI extends Phaser.Scene {
     static progressBarAssetPrefix = "progress-bar-01-";
@@ -58,19 +59,19 @@ export default class GameUI extends Phaser.Scene {
         this.add
             .image(
                 this.cameras.main.width / 2,
-                this.cameras.main.height,
+                this.cameras.main.height + 10,
                 "timer-progress-bar-background"
             )
             .setOrigin(0.5, 1)
-            .setDisplaySize(this.cameras.main.width * 0.75, 15);
+            .setDisplaySize(this.cameras.main.width * 0.75, 60);
 
         // Add progress bar(red rectangle) on bar background
         this.progressBar = this.add
             .rectangle(
                 this.cameras.main.width * 0.192,
-                this.cameras.main.height * 0.97,
+                this.cameras.main.height * 0.978,
                 this.getProgressBarFullWidth(),
-                5,
+                25,
                 "0xFFB22C"
             )
             .setOrigin(0, 0.5);
@@ -119,23 +120,45 @@ export default class GameUI extends Phaser.Scene {
     showTopCenterMessage(data) {
         const { phase, finishAfterMilliSec } = data;
 
-        const message = `${phase} 페이즈가 시작되었습니다. ${
-            finishAfterMilliSec / 1000
-        }초 후 종료됩니다.`;
+        const restSeconds = Math.floor(finishAfterMilliSec / 1000);
+        const messageTokens = [];
+        if (phase === Phase.READY) {
+            if (this.gameRepository.getMe().isHidingTeam()) {
+                messageTokens.push(
+                    `앞으로 ${restSeconds}초 동안 숨어야한다구리!`
+                );
+            } else {
+                messageTokens.push(
+                    `앞으로 ${restSeconds}초 뒤에 찾아야한다구리!`
+                );
+            }
+        } else if (phase === Phase.MAIN) {
+            const foeAnimal = this.gameRepository.getMe().isRacoonTeam()
+                ? "여우"
+                : "너구리";
+            if (this.gameRepository.getMe().isHidingTeam()) {
+                messageTokens.push(`${foeAnimal}들이 쫓아오고 있다구리!`);
+            } else {
+                messageTokens.push(`${foeAnimal}들을 찾아야한다구리!`);
+            }
+        }
+
+        const message = messageTokens.join(" ");
         const text = this.add.text(
             this.cameras.main.width / 2,
             this.cameras.main.height / 10,
             message,
             {
-                font: "10px Arial",
+                font: "30px Arial",
                 color: "#ffffff",
-                backgroundColor: "#000000",
+                backgroundColor: "#000000aa",
                 align: "center",
+                fontSize: 20,
                 padding: {
-                    left: 5,
-                    right: 5,
-                    top: 5,
-                    bottom: 5,
+                    left: 8,
+                    right: 8,
+                    top: 8,
+                    bottom: 8,
                 },
             }
         );
