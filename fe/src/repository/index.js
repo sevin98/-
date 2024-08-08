@@ -7,9 +7,6 @@ export const userRepository = new UserRepository();
 
 let roomRepository = null;
 export const getRoomRepository = function (roomNumber, roomPassword) {
-    if (roomNumber) {
-        roomRepository = new RoomRepository(roomNumber, roomPassword);
-    }
     if (!roomRepository) {
         if (!roomNumber) {
             throw new Error("RoomRepository is not initialized");

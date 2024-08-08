@@ -89,16 +89,7 @@ export default class RoomRepository {
         });
     }
 
-    clear() {
-        this.#joinedPlayers = [];
-        this.#gameRepository = null;
-        this.#gameStartsAt = null;
-        this.#isInitialized = false;
-
-        this.#endSubscribe();
-    }
-
-    #endSubscribe() {
+    endSubscribe() {
         clearInterval(this.#joinedPlayerIntervalId);
     }
 

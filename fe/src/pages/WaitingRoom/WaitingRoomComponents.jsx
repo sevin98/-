@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import PropTypes from 'prop-types';
-import { toast } from 'react-toastify';
+import React, { useState } from "react";
+import PropTypes from "prop-types";
+import { toast } from "react-toastify";
 
 // BackToLobbyButton 컴포넌트
 function BackToLobbyButton({ isDisabled, onClick }) {
@@ -32,7 +32,7 @@ function ChatBox({ leftSecondsToStart, countdownMessage }) {
                 {leftSoundsToStartDisplayingText}
             </div>
             {countdownMessage && (
-                <div className="countdown-message">{countdownMessage}</div>
+                <h2 className="countdown-message">{countdownMessage}</h2>
             )}
         </div>
     );
@@ -56,13 +56,17 @@ function PlayerSlot({ player, isMe }) {
 
     return (
         <div
-            className={`rpgui-container framed-grey player-slot ${player.getIsReady() ? "ready" : ""} ${
-                isMe ? "me" : ""
-            }`}
+            className={`rpgui-container framed-grey player-slot ${
+                player.getIsReady() ? "ready" : ""
+            } ${isMe ? "me" : ""}`}
         >
             <div className="player-icon">{player.icon}</div>
             <h2 className="player-nickname">{player.getPlayerNickname()}</h2>
-            <h2 className={`player-ready-status ${player.getIsReady() ? "ready" : "not-ready"}`}>
+            <h2
+                className={`player-ready-status ${
+                    player.getIsReady() ? "ready" : "not-ready"
+                }`}
+            >
                 {player.getIsReady() ? "준비완료" : "대기중"}
             </h2>
         </div>
@@ -96,13 +100,13 @@ PlayerGrid.propTypes = {
 
 // ReadyButton 컴포넌트
 function ReadyButton({ isReady, onClick }) {
-    return ( 
+    return (
         <button
             className={`rpgui-button ${isReady ? "ready" : "not-ready"}`}
             onClick={onClick}
             disabled={isReady}
         >
-            {isReady ? <h2>준비 완료</h2> : <h2>준비하기</h2> }
+            {isReady ? <h2>준비 완료</h2> : <h2>준비하기</h2>}
         </button>
     );
 }
@@ -124,10 +128,7 @@ function ShareRoomCodeButton() {
     };
 
     return (
-        <button
-            className="rpgui-button"
-            onClick={onShareRoomCodeBtnClicked}
-        >
+        <button className="rpgui-button" onClick={onShareRoomCodeBtnClicked}>
             <h2>참가 링크 복사</h2>
         </button>
     );
@@ -139,5 +140,5 @@ export {
     ChatBox,
     PlayerGrid,
     ReadyButton,
-    ShareRoomCodeButton
+    ShareRoomCodeButton,
 };
