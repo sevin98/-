@@ -40,7 +40,6 @@ export default function WaitingRoom() {
 
     const [leftSecondsToStart, setLeftSecondsToStart] = useState(Infinity);
     const [countdownMessage, setCountdownMessage] = useState(""); // 카운트다운 완료 메시지 상태
-    const [gameStartsAt, setGameStartsAt] = useState(null); // 게임 시작 시각
     const [roomRepository, setRoomRepository] = useState(null);
     let [isCountdownStarted, setIsCountdownStarted] = useState(false);
 
@@ -70,13 +69,12 @@ export default function WaitingRoom() {
             // 주기적으로 플레이어 목록과 게임 시작 시각을 업데이트
             const updateDataIntervalId = setInterval(() => {
                 setJoinedPlayers(roomRepository.getJoinedPlayers());
-                setGameStartsAt(roomRepository.getGameStartsAt());
 
                 // 게임 시작 시간이 정해졌고, 아직 카운트다운을 시작하지 않았다면
-                if (gameStartsAt && !isCountdownStarted) {
+                if (roomRepository.getGameStartsAt() && !isCountdownStarted) {
                     // 카운트다운 시작
                     setIsCountdownStarted(true);
-                    startCountdown(gameStartsAt);
+                    startCountdown(roomRepository.getGameStartsAt());
                 } else if (isCountdownStarted) {
                     clearInterval(updateDataIntervalId);
                 }
@@ -115,7 +113,7 @@ export default function WaitingRoom() {
     };
 
     const startCountdown = (gameStartsAt) => {
-        setCountdownMessage(<h2>게임이 곧 시작됩니다!</h2>);
+        setCountdownMessage("게임이 곧 시작됩니다!");
 
         // 매우 짧은 주기로 남은 시간을 초 단위로 계산하여 줄여 나감
         const leftSecondsToStart = Math.ceil(
