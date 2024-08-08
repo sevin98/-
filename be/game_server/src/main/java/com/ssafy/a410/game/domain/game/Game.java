@@ -331,7 +331,7 @@ public class Game extends Subscribable implements Runnable {
                 }
             }
             // 안 숨었을 경우 탈락 처리
-            if (!isHide) {
+            if (!isHide && !player.isEliminated()) {
                 player.eliminate();
             }
         }
