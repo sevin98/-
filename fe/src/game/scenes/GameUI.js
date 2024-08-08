@@ -3,6 +3,8 @@ import Phaser from "phaser";
 import uiControlQueue, { MESSAGE_TYPE } from "../../util/UIControlQueue";
 import { getRoomRepository } from "../../repository";
 
+import eventBus from "../EventBus";
+
 export default class GameUI extends Phaser.Scene {
     static progressBarAssetPrefix = "progress-bar-01-";
 
@@ -18,8 +20,10 @@ export default class GameUI extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image("racoonhead", "assets/object/racoonhead.png");
-        this.load.image("foxhead", "assets/object/foxhead.png");
+        this.load.image("foxHeadAlive", "assets/object/foxHeadAlive.png");
+        this.load.image("foxHeadDead", "assets/object/foxHeadDead.png");
+        this.load.image("racoonHeadAlive", "assets/object/racoonHeadAlive.png");
+        this.load.image("racoonHeadDead", "assets/object/racoonHeadDead.png");
 
         this.load.image(
             "timer-progress-bar-background",
@@ -28,32 +32,39 @@ export default class GameUI extends Phaser.Scene {
     }
 
     create() {
-        //묶음으로 UI 만드는 법.
-        // this.hearts = this.add.group({
-        //     classType : Phaser.GameObjects.Image
-        // })
-        //key : 사용될 이미지, setXY : 위치 좌표(stepX는 UI 객체간 거리), quantity : UI 갯수
-        // this.hearts.createMultiple({
-        //     key : 'cattemp',
-        //     setXY : {
-        //         x: 10,
-        //         y: 10,
-        //         stepX : 70
-        //     },
-        //     quantity : 3
-        // })
-        // this.movingTeam= this.add.group({
-        //     classType : Phaser.GameObjects.Image
-        // })
-        // this.movingTeam.createMultiple({
-        //     key : 'racoonhead',
-        //     setXY : {
-        //         x: 100,
-        //         y: 50,
-        //         stepX : 0
-        //     },
-        //     quantity : 1
-        // })
+        //이벤트리스너
+        // 게임씬에서 remove-image 이벤트 감지해서 removeImage 호출
+        eventBus.on("remove-image", this.removeImage, this);
+        // 이미지를 배열로 관리
+        this.images = [
+            this.add.image(this.cameras.main.width / 10, 200, "foxHeadAlive"),
+            this.add.image(this.cameras.main.width / 10, 150, "foxHeadAlive"),
+            this.add.image(this.cameras.main.width / 10, 100, "foxHeadAlive"),
+            this.add.image(this.cameras.main.width / 10, 50, "foxHeadAlive"),
+        ];
+
+        this.images = [
+            this.add.image(
+                (this.cameras.main.width * 9) / 10,
+                200,
+                "racoonHeadAlive"
+            ),
+            this.add.image(
+                (this.cameras.main.width * 9) / 10,
+                150,
+                "racoonHeadAlive"
+            ),
+            this.add.image(
+                (this.cameras.main.width * 9) / 10,
+                100,
+                "racoonHeadAlive"
+            ),
+            this.add.image(
+                (this.cameras.main.width * 9) / 10,
+                50,
+                "racoonHeadAlive"
+            ),
+        ];
 
         this.add
             .image(
@@ -74,6 +85,13 @@ export default class GameUI extends Phaser.Scene {
                 "0xFFB22C"
             )
             .setOrigin(0, 0.5);
+    }
+
+    //이벤트리스너
+    removeImage() {
+        if (this.images.length > 0) {
+            console.log(this.images);
+        }
     }
 
     updateProgressBar() {

@@ -5,7 +5,6 @@ import {game} from './scenes/Game'
 import GameUI from './scenes/GameUI'
 import { useEffect } from 'react'
 
-
 const config = {
     type: Phaser.AUTO,
     width: 400,
@@ -17,7 +16,7 @@ const config = {
         autoCenter: Phaser.Scale.CENTER_BOTH,
         // zoom:1,
     },
-    scene: [Preloader, MainMenu, game, GameUI],
+    scene: [Preloader, MainMenu, game, GameUI,],
 
     physics: {
         default: "arcade",
