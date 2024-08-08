@@ -172,15 +172,13 @@ export default function WaitingRoom() {
                         isDisabled={isPlayerReady}
                     />
                     <ShareRoomCodeButton />
+                    <hr className="golden"></hr>
                     <PlayerGrid players={joinedPlayers} />
-                    <ReadyButton
-                        onClick={onReadyBtnClicked}
-                        isReady={isPlayerReady}
-                    />
-                    <ChatBox
-                        leftSecondsToStart={leftSecondsToStart}
-                        countdownMessage={countdownMessage}
-                    />
+                    <hr className="golden"></hr>
+                    <div className="rpgui-icon ring-slot"></div>
+                    <ReadyButton onClick={onReadyBtnClicked} isReady={isPlayerReady} />
+                    <div className="rpgui-icon helmet-slot"></div>
+                    <ChatBox leftSecondsToStart={leftSecondsToStart} countdownMessage={countdownMessage} />
                 </div>
             </div>
         </div>
