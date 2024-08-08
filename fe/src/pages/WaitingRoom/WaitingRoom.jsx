@@ -34,86 +34,96 @@ export default function WaitingRoom() {
         navigate(LOGIN_FORM_ROUTE_PATH);
     }
 
-    const [userProfile, setUserProfile] = useState(null);
+    const [userProfile, setUserProfile] = useState(
+        userRepository.getUserProfile()
+    );
+    if (!userProfile) {
+        // TODO : 로그인 되어 있지 않은 상태이면 게스트 로그인으로 참가시켜주기
+        console.error("유저 정보가 없습니다.");
+        navigate(LOGIN_FORM_ROUTE_PATH);
+    }
+
     const [joinedPlayers, setJoinedPlayers] = useState([]);
     const [isPlayerReady, setIsPlayerReady] = useState(false); // 접속한 사용자의 레디 여부
 
     const [leftSecondsToStart, setLeftSecondsToStart] = useState(Infinity);
     const [countdownMessage, setCountdownMessage] = useState(""); // 카운트다운 완료 메시지 상태
-    const [roomRepository, setRoomRepository] = useState(null);
-    let [isCountdownStarted, setIsCountdownStarted] = useState(false);
+    const [gameStartsAt, setGameStartsAt] = useState(null); // 게임 시작 시각
+    let isCountdownStarted = false;
+
+    const roomRepository = getRoomRepository(roomNumber, roomPassword);
 
     useEffect(() => {
-        setUserProfile(userRepository.getUserProfile());
-        setRoomRepository(getRoomRepository(roomNumber, roomPassword));
-    }, [roomNumber, roomPassword]);
+        const guestLoginAndJoinRoom = async () => {
+            if (!userProfile) {
+                try {
+                    const resp = await axios.post("/api/auth/guest/sign-up");
+                    const {
+                        accessToken,
+                        userProfile,
+                        webSocketConnectionToken,
+                    } = resp.data;
+
+                    // 인증 및 사용자 정보 초기화
+                    updateAxiosAccessToken(accessToken);
+                    userRepository.setUserProfile(userProfile);
+                    setUserProfile(userProfile); // 상태 업데이트
+
+                    // STOMP Client 초기화
+                    getStompClient(webSocketConnectionToken);
+                } catch (error) {
+                    toast.error("게스트 로그인 실패");
+                    navigate(LOGIN_FORM_ROUTE_PATH);
+                    return;
+                }
+            }
+        };
+
+        guestLoginAndJoinRoom();
+    }, []);
 
     useEffect(() => {
-        // roomRepository가 정상적으로 초기화 되었을 때만 실행
-        if (!roomRepository) {
-            return;
-        }
-
-        // UserProfile의 초기화에 성공하면
-        ensureAndGetUserProfile().then(async () => {
-            const { roomSubscriptionInfo, playerSubscriptionInfo } = (
-                await axios.post(`/api/rooms/${roomNumber}/join`, {
+        if (userProfile) {
+            axios
+                .post(`/api/rooms/${roomNumber}/join`, {
                     password: roomPassword,
                 })
-            ).data;
-
-            // 방 진입, 방/플레이어 채널 구독 요청
-            roomRepository.startSubscribeRoom(roomSubscriptionInfo);
-            roomRepository.startSubscribePlayer(playerSubscriptionInfo);
-
-            // 주기적으로 플레이어 목록과 게임 시작 시각을 업데이트
-            const updateDataIntervalId = setInterval(() => {
-                setJoinedPlayers(roomRepository.getJoinedPlayers());
-
-                // 게임 시작 시간이 정해졌고, 아직 카운트다운을 시작하지 않았다면
-                if (roomRepository.getGameStartsAt() && !isCountdownStarted) {
-                    // 카운트다운 시작
-                    setIsCountdownStarted(true);
-                    startCountdown(roomRepository.getGameStartsAt());
-                } else if (isCountdownStarted) {
-                    clearInterval(updateDataIntervalId);
-                }
-            }, 10);
-        });
-
-        return () => {
-            roomRepository.clear();
-        };
-    }, [roomRepository]);
-
-    const ensureAndGetUserProfile = async () => {
-        if (userProfile) {
-            return userProfile;
-        } else {
-            try {
-                const resp = await axios.post("/api/auth/guest/sign-up");
-                const { accessToken, userProfile, webSocketConnectionToken } =
-                    resp.data;
-
-                // 인증 및 사용자 정보 초기화
-                updateAxiosAccessToken(accessToken);
-                userRepository.setUserProfile(userProfile);
-                setUserProfile(userProfile); // 상태 업데이트
-
-                // STOMP Client 초기화
-                getStompClient(webSocketConnectionToken);
-
-                return userProfile;
-            } catch (error) {
-                toast.error("게스트 로그인 실패");
-                navigate(LOGIN_FORM_ROUTE_PATH);
-                throw new Error("게스트 로그인 실패");
-            }
+                .then(async (resp) => {
+                    // 방 진입, 방/플레이어 채널 구독 요청
+                    const { roomSubscriptionInfo, playerSubscriptionInfo } =
+                        resp.data;
+                    roomRepository.startSubscribeRoom(roomSubscriptionInfo);
+                    roomRepository.startSubscribePlayer(playerSubscriptionInfo);
+                })
+                .catch((error) => {
+                    if (error.response.status === 404) {
+                        toast.error("해당하는 방이 없습니다.");
+                    } else if (error.response.status === 401) {
+                        toast.error("비밀번호가 틀립니다.");
+                    } else if (error.response.status === 409) {
+                        toast.error("이미 8명이 참가한 방입니다.");
+                    } else {
+                        toast.error("방 참가 중 오류가 발생했습니다.");
+                    }
+                });
         }
-    };
+    }, [userProfile, roomNumber, roomPassword, navigate, roomRepository]);
+
+    // 방 정보 업데이트 주기 설정
+    const updateDataIntervalId = setInterval(() => {
+        setJoinedPlayers(roomRepository.getJoinedPlayers());
+        setGameStartsAt(roomRepository.getGameStartsAt());
+
+        // 게임 시작 시간이 정해졌고, 아직 카운트다운을 시작하지 않았다면
+        if (gameStartsAt && !isCountdownStarted) {
+            // 카운트다운 시작
+            isCountdownStarted = true;
+            startCountdown(gameStartsAt);
+        }
+    }, 10);
 
     const startCountdown = (gameStartsAt) => {
-        setCountdownMessage("게임이 곧 시작됩니다!");
+        setCountdownMessage(<h2>게임이 곧 시작됩니다!</h2>);
 
         // 매우 짧은 주기로 남은 시간을 초 단위로 계산하여 줄여 나감
         const leftSecondsToStart = Math.ceil(
