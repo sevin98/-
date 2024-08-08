@@ -5,7 +5,7 @@
     width: 100%;
     height: 100%;
     padding-top: 3%;
-    background-image: url("image/title-background.png");
+    background-image: url("/image/title-background.png");
     background-size: 100% 100%;
 }
 
@@ -20,7 +20,7 @@
 }
 
 #errorMessage {
-    color:rgb(215, 180, 180);
+    color: rgb(215, 180, 180);
 }
 
 .wrapper {
@@ -81,7 +81,7 @@
 }
 
 .form-box .input-box ::placeholder {
-    color:rgba(74, 69, 69, 0.776);
+    color: rgba(74, 69, 69, 0.776);
     height: 2rem;
     margin-left: 1rem;
 }
@@ -100,7 +100,7 @@ form .register-link {
     justify-content: space-around;
 }
 
-.button-box .guest{
+.button-box .guest {
     /* background-color: white; */
     width: 303px;
 }
