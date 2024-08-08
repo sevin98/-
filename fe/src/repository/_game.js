@@ -71,6 +71,7 @@ export default class GameRepository {
     #me;
     #nextPhaseChangeAt;
     #currentPhaseFinishAfterMilliSec;
+    #currentSafeZone; // 세
 
     #isInitialized = false;
 
@@ -143,6 +144,8 @@ export default class GameRepository {
                 console.log(`플레이어 ${data.playerId}님이 이탈하셨습니다.`);
                 break;
             case SAFE_ZONE_UPDATE:
+                //맵축소
+                this.#handleSafeZoneUpdateEvent(data);
                 console.log(`안전 지역이 변경되었습니다.`);
                 break;
             default:
@@ -487,5 +490,14 @@ export default class GameRepository {
 
     getCurrentPhaseFinishAfterMilliSec() {
         return this.#currentPhaseFinishAfterMilliSec;
+    }
+    //맵축소
+    #handleSafeZoneUpdateEvent(data) {
+        const safeZone = data; //[0, 0, 1600, 1600],
+        this.#currentSafeZone = safeZone;
+    }
+    //맵축소
+    getCurrentSafeZone() {
+        return this.#currentSafeZone;
     }
 }
