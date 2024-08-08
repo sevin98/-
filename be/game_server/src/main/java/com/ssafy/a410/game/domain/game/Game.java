@@ -9,6 +9,7 @@ import com.ssafy.a410.common.exception.UnhandledException;
 import com.ssafy.a410.game.domain.Pos;
 import com.ssafy.a410.game.domain.game.item.ItemUseReq;
 import com.ssafy.a410.game.domain.game.message.DirectionHintMessage;
+import com.ssafy.a410.game.domain.game.message.EliminationOutOfSafeZoneMessage;
 import com.ssafy.a410.game.domain.game.message.control.*;
 import com.ssafy.a410.game.domain.game.message.control.item.ItemApplicationFailedMessage;
 import com.ssafy.a410.game.domain.game.message.control.item.ItemAppliedMessage;
@@ -442,9 +443,12 @@ public class Game extends Subscribable implements Runnable {
 
     // player는 현재 사용하지 않지만, 후에 "player가 나갔습니다" 를 뿌려줄까봐 유지함
     public void notifyDisconnection(Player player) {
+
+        String team = this.getPlayerTeam(player);
+
         GameControlMessage message = new GameControlMessage(
                 GameControlType.PLAYER_DISCONNECTED,
-                Map.of("playerId", player.getId())
+                Map.of("playerId", player.getId(), "team", team, "roomInfo", RoomMemberInfo.getAllInfoListFrom(this.getRoom()))
         );
         broadcastService.broadcastTo(this, message);
     }
@@ -706,7 +710,21 @@ public class Game extends Subscribable implements Runnable {
         for (Player player : allPlayers) {
             if (!gameMap.isInSafeZone(player)) {
                 player.eliminateOutOfSafeZone();
+                String team = getPlayerTeam(player);
+                EliminationOutOfSafeZoneMessage message = new EliminationOutOfSafeZoneMessage(player.getId(), team);
+                broadcastService.broadcastTo(this, message);
+                broadcastService.unicastTo(player, message);
             }
+        }
+    }
+
+    public String getPlayerTeam(Player player) {
+        if (hidingTeam.has(player)) {
+            return hidingTeam.getCharacter() == Team.Character.RACOON ? "RACOON" : "FOX";
+        } else if (seekingTeam.has(player)) {
+            return seekingTeam.getCharacter() == Team.Character.RACOON ? "RACOON" : "FOX";
+        } else {
+            throw new ResponseException(PLAYER_NOT_IN_ROOM);
         }
     }
 }
