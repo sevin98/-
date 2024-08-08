@@ -226,8 +226,9 @@ export default class RoomRepository {
     }
     #handleDirectionHintEvent(requestId, result) {
         console.log("위치 힌트 정보입니다.");
-        console.log(result.data);
-        console.log(result.direction);
+        // console.log(result.data);
+        console.log(result.data.directions);
+        this.#directionHints = result.data.directions;
         // TODO : #directionHints에 data 꺼내서 넣기
     }
 
