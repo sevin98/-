@@ -16,9 +16,6 @@ export class Preloader extends Scene {
             "assets/character/fox.png",
             "assets/character/fox.json"
         );
-        // this.load.image("blackSide", "assets/blacksideTemp.png");
-        //여기서부터 시작
-
 
         // map 이미지 로드 
         this.load.tilemapTiledJSON(

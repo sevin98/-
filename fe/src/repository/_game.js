@@ -4,6 +4,7 @@ import { getStompClient } from "../network/StompClient";
 import { Team, Player } from "./interface";
 import asyncResponses from "./_asyncResponses";
 import { Mutex } from "async-mutex";
+import uiControlQueue from "../util/UIControlQueue";
 
 // 게임 시작 이벤트
 const GAME_START = "GAME_START";
@@ -68,6 +69,9 @@ export default class GameRepository {
     #foxTeam;
     #racoonTeam;
     #me;
+    #nextPhaseChangeAt;
+    #currentPhaseFinishAfterMilliSec;
+    #currentSafeZone; // 세
 
     #isInitialized = false;
 
@@ -140,6 +144,8 @@ export default class GameRepository {
                 console.log(`플레이어 ${data.playerId}님이 이탈하셨습니다.`);
                 break;
             case SAFE_ZONE_UPDATE:
+                //맵축소
+                this.#handleSafeZoneUpdateEvent(data);
                 console.log(`안전 지역이 변경되었습니다.`);
                 break;
             default:
@@ -168,11 +174,26 @@ export default class GameRepository {
     }
 
     #handlePhaseChangeEvent(data) {
+        this.#currentPhase = data.phase;
+        this.#nextPhaseChangeAt = new Date(
+            Date.now() + data.finishAfterMilliSec
+        );
+        this.#currentPhaseFinishAfterMilliSec = data.finishAfterMilliSec;
+
         console.log(
             `페이즈 변경: ${data.phase}, ${data.finishAfterMilliSec}ms 후 종료`
         );
 
-        this.#currentPhase = data.phase;
+        if (
+            this.#currentPhase === Phase.READY ||
+            this.#currentPhase === Phase.MAIN
+        ) {
+            uiControlQueue.addPhaseChangeMessage(
+                this.#currentPhase,
+                data.finishAfterMilliSec
+            );
+        }
+
         if (this.#currentPhase === Phase.READY) {
             if (this.getMe().isHidingTeam()) {
                 console.log(
@@ -461,5 +482,22 @@ export default class GameRepository {
 
         // TODO : HP에 뭔 짓을 해줘야 함?
         // TODO : 아이템 처리 필요
+    }
+
+    getNextPhaseChangeAt() {
+        return this.#nextPhaseChangeAt;
+    }
+
+    getCurrentPhaseFinishAfterMilliSec() {
+        return this.#currentPhaseFinishAfterMilliSec;
+    }
+    //맵축소
+    #handleSafeZoneUpdateEvent(data) {
+        const safeZone = data; //[0, 0, 1600, 1600],
+        this.#currentSafeZone = safeZone;
+    }
+    //맵축소
+    getCurrentSafeZone() {
+        return this.#currentSafeZone;
     }
 }

@@ -22,9 +22,19 @@ export class game extends Phaser.Scene {
 
         this.roomRepository = getRoomRepository();
         this.gameRepository = this.roomRepository.getGameRepository();
+
+        this.lastWallPos = {};
     }
 
     preload() {
+        //블록 이미지 로드
+        this.load.image("mapWallGolden", "rpgui/img/border-image-golden.png");
+        this.load.image(
+            "mapWallGoldenBorder",
+            "rpgui/img/border-image-golden2.png"
+        );
+        this.load.image("mapWallBorder", "rpgui/img/border-image.png");
+        //
         this.load.image("racoon", "assets/character/image.png");
         this.cursors = this.input.keyboard.createCursorKeys();
         this.headDir = 2; //under direction
@@ -126,6 +136,13 @@ export class game extends Phaser.Scene {
         //game-ui 씬
         this.scene.run("game-ui");
         this.m_cursorKeys = this.input.keyboard.createCursorKeys();
+
+        //작아지는 맵은 제일 위에 위치해야함!!
+        this.mapWalls = this.physics.add.staticGroup();
+        //플레이어와 충돌처리
+        this.physics.add.collider(this.localPlayer, this.mapWalls, () => {
+            console.log("작아지는 벽과 충돌");
+        });
     }
 
     update() {
@@ -133,26 +150,43 @@ export class game extends Phaser.Scene {
         const me = this.gameRepository.getMe();
         const { x, y, headDir } = me.getPosition();
 
-        // 페이즈에 따라 플레이어의 움직임 및 화면 표시 여부 제한
-        if (this.gameRepository.getCurrentPhase() === Phase.READY) {
-            // 레디 페이즈에 숨는 팀이면 표시 및 움직임 허가
-            if (me.isHidingTeam()) {
-                this.localPlayer.visible = true;
-                this.localPlayer.allowMove();
+        // 숨는 팀인 경우
+        if (me.isHidingTeam()) {
+            // 레디 페이즈에
+            if (this.gameRepository.getCurrentPhase() === Phase.READY) {
+                // 숨었다고 처리 되었으나 화면에 보이고 있으면
+                if (me.isHiding() && this.localPlayer.visible) {
+                    // 화면에서 숨기고 움직임 제한
+                    this.localPlayer.visible = false;
+                    this.localPlayer.disallowMove();
+                }
+                // 아직 안숨었으면
+                else if (!me.isHiding()) {
+                    // 화면에 보이게 하고 움직임 허가
+                    this.localPlayer.visible = true;
+                    this.localPlayer.allowMove();
+                }
             }
-            // 레디 페이즈에 찾는 팀이면 표시 및 움직임 제한
-            else {
-                this.localPlayer.visible = true;
-                this.localPlayer.disallowMove();
-            }
-        } else if (this.gameRepository.getCurrentPhase() === Phase.MAIN) {
-            // 메인 페이즈에 숨는 팀이면 표시 및 움직임 제한
-            if (me.isHidingTeam()) {
+            // 메인 페이즈에
+            else if (this.gameRepository.getCurrentPhase() === Phase.MAIN) {
+                // 화면에 안보이게 하고 움직임 제한
                 this.localPlayer.visible = false;
                 this.localPlayer.disallowMove();
             }
-            // 메인 페이즈에 찾는 팀이면 표시 및 움직임 허가
-            else {
+        }
+        // 찾는 팀인 경우
+        else {
+            // 항상 숨어 있지 않은 상태를 보장해주고
+            me.setIsHiding(false);
+            // 레디 페이즈에
+            if (this.gameRepository.getCurrentPhase() === Phase.READY) {
+                // 화면에 보이게 하고 움직임 제한
+                this.localPlayer.visible = true;
+                this.localPlayer.disallowMove();
+            }
+            // 메인 페이즈에
+            else if (this.gameRepository.getCurrentPhase() === Phase.MAIN) {
+                // 화면에 보이게 하고 움직임 허가
                 this.localPlayer.visible = true;
                 this.localPlayer.allowMove();
             }
@@ -176,17 +210,20 @@ export class game extends Phaser.Scene {
         const minDistance = Phaser.Math.Distance.Between(
             closest.body.center.x,
             closest.body.center.y,
-            x, //this.localPlayer.x,
-            y //this.localPlayer.y
+            this.localPlayer.x,
+            this.localPlayer.y
         );
 
         // 시각적으로 가까운 오브젝트와의 선 표시, 나중에 지우면되는코드
-        this.graphics.clear().lineStyle(1, 0xff3300).lineBetween(
-            closest.body.center.x,
-            closest.body.center.y,
-            x, //this.localPlayer.x,
-            y //this.localPlayer.y
-        );
+        this.graphics
+            .clear()
+            .lineStyle(1, 0xff3300)
+            .lineBetween(
+                closest.body.center.x,
+                closest.body.center.y,
+                this.localPlayer.x,
+                this.localPlayer.y
+            );
 
         // 30px 이하로 가까이 있을때 상호작용 표시 로직
         if (minDistance < 30) {
@@ -236,8 +273,7 @@ export class game extends Phaser.Scene {
                         .then(({ isSucceeded }) => {
                             if (isSucceeded) {
                                 console.log("숨기 성공");
-                                this.localPlayer.stopMove();
-                                this.localPlayer.visible = false; // 화면에 사용자 안보임
+                                this.gameRepository.getMe().setIsHiding(true);
                                 this.text.showTextHide(
                                     this,
                                     closest.body.x - 20,
@@ -312,6 +348,8 @@ export class game extends Phaser.Scene {
                 closest.body.y - 20
             );
         }
+        // 맵축소
+        this.createMapWall();
     }
 
     // 맵타일단위를 pix로 변환
@@ -325,5 +363,64 @@ export class game extends Phaser.Scene {
             otherPlayerSprite.updatePosition();
             otherPlayerSprite.move(otherPlayerSprite.getHeadDir());
         }
+    }
+
+    // 벽 만드는 함수: 시작점과 끝점 받아서 직사각형 모양으로 타일 깔기
+    createMapWall() {
+
+        const currentSafeZone = this.gameRepository.getCurrentSafeZone();
+        if (!currentSafeZone) {
+            return;
+        } // 없으면 리턴 
+
+        if (
+            // 중복좌표 안나오니 이전 x좌표 하나만 체크
+            this.lastWallPos.x !== currentSafeZone[0]
+        ) {
+            const [startX, startY, endX, endY] = currentSafeZone;
+            console.log("Update! :", currentSafeZone, "vs", this.lastWallPos);
+
+            //나누는 수 숫자만 바꿔서 타일사이즈 조정가능
+            const tileSize = (endX - startX)/10 
+
+            // 위쪽 벽
+            for (let x = startX; x < endX; x += tileSize) {
+                this.createWallTile(x, startY, tileSize);
+            }
+            // 왼쪽 벽
+            for (let y = startY + tileSize; y < endY; y += tileSize) {
+                this.createWallTile(startX, y, tileSize);
+            
+                // 아래쪽 벽
+            for (let x = startX+tileSize; x < endX; x += tileSize) {
+                this.createWallTile(x, endY-tileSize, tileSize);
+            }
+            }
+            // 오른쪽 벽
+            for (let y = startY + tileSize; y < endY; y += tileSize) {
+                this.createWallTile(endX-tileSize, y, tileSize);
+            }
+
+            // 현재 맵의 경계를 저장
+            this.lastWallPos = {
+                x: startX,
+            };
+        }
+    }
+    createWallTile(x, y,tileSize) {
+        const color = 0xffffff; // 검은색
+        const alpha = 0.01; // 반투명도 (0: 완전 투명, 1: 완전 불투명)
+        const width = tileSize;
+        const height = tileSize;
+
+        const graphics = this.add.graphics(); //스타일 넣은 그래픽 생성
+        graphics.fillStyle(color, alpha);
+        graphics.fillRect(0, 0, width, height);
+
+        graphics.generateTexture("wallTile", width, height); // 텍스쳐 만듦
+
+        this.mapWalls
+            .create(x, y, "wallTile") // 타일 만듦
+            .setDisplaySize(width, height);
     }
 }
