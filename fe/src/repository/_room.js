@@ -89,7 +89,12 @@ export default class RoomRepository {
         });
     }
 
-    endSubscribe() {
+    clear() {
+        this.#joinedPlayers = [];
+        this.#endSubscribe();
+    }
+
+    #endSubscribe() {
         clearInterval(this.#joinedPlayerIntervalId);
     }
 
