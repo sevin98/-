@@ -56,29 +56,39 @@ export default function WaitingRoom() {
 
         // UserProfile의 초기화에 성공하면
         ensureAndGetUserProfile().then(async () => {
-            const { roomSubscriptionInfo, playerSubscriptionInfo } = (
-                await axios.post(`/api/rooms/${roomNumber}/join`, {
+            axios
+                .post(`/api/rooms/${roomNumber}/join`, {
                     password: roomPassword,
                 })
-            ).data;
+                .then((resp) => {
+                    const { roomSubscriptionInfo, playerSubscriptionInfo } =
+                        resp.data;
 
-            // 방 진입, 방/플레이어 채널 구독 요청
-            roomRepository.startSubscribeRoom(roomSubscriptionInfo);
-            roomRepository.startSubscribePlayer(playerSubscriptionInfo);
+                    // 방 진입, 방/플레이어 채널 구독 요청
+                    roomRepository.startSubscribeRoom(roomSubscriptionInfo);
+                    roomRepository.startSubscribePlayer(playerSubscriptionInfo);
 
-            // 주기적으로 플레이어 목록과 게임 시작 시각을 업데이트
-            const updateDataIntervalId = setInterval(() => {
-                setJoinedPlayers(roomRepository.getJoinedPlayers());
+                    // 주기적으로 플레이어 목록과 게임 시작 시각을 업데이트
+                    const updateDataIntervalId = setInterval(() => {
+                        setJoinedPlayers(roomRepository.getJoinedPlayers());
 
-                // 게임 시작 시간이 정해졌고, 아직 카운트다운을 시작하지 않았다면
-                if (roomRepository.getGameStartsAt() && !isCountdownStarted) {
-                    // 카운트다운 시작
-                    setIsCountdownStarted(true);
-                    startCountdown(roomRepository.getGameStartsAt());
-                } else if (isCountdownStarted) {
-                    clearInterval(updateDataIntervalId);
-                }
-            }, 10);
+                        // 게임 시작 시간이 정해졌고, 아직 카운트다운을 시작하지 않았다면
+                        if (
+                            roomRepository.getGameStartsAt() &&
+                            !isCountdownStarted
+                        ) {
+                            // 카운트다운 시작
+                            setIsCountdownStarted(true);
+                            startCountdown(roomRepository.getGameStartsAt());
+                        } else if (isCountdownStarted) {
+                            clearInterval(updateDataIntervalId);
+                        }
+                    }, 10);
+                })
+                .catch((error) => {
+                    roomRepository.clear();
+                    navigate(LOGIN_FORM_ROUTE_PATH);
+                });
         });
 
         return () => {
