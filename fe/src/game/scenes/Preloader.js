@@ -33,6 +33,16 @@ export class Preloader extends Scene {
             "assets/object/interactionEffect.png"
         );
 
+        // 화살표 이미지 로드
+        this.load.image("DOWN_LEFT", "image/donw_left.png");
+        this.load.image("DOWN_RIGHT", "image/down_right.png");
+        this.load.image("UP_LEFT", "image/up_left.png");
+        this.load.image("UP_RIGHT", "image/up_right.png");
+        this.load.image("UP", "image/up.png");
+        this.load.image("LEFT", "image/left.png");
+        this.load.image("RIGHT", "image/right.png");
+        this.load.image("DOWN", "image/down.png");
+
     }
     create() {
         this.scene.start("game");     
