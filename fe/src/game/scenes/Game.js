@@ -46,7 +46,7 @@ export class game extends Phaser.Scene {
 
         // playercam 정의, zoomTo: 300ms 동안 1.5배 zoom
         const playercam = this.cameras.main;
-        // playercam.zoomTo(1.2,300)
+        playercam.zoomTo(3, 300);
 
         // 로컬플레이어 객체 생성, 카메라 follow
         const me = this.gameRepository.getMe();
