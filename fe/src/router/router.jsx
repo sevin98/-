@@ -8,6 +8,9 @@ import WaitingRoom, {
     WAITING_ROOM_ROUTE_PATH,
 } from "../pages/WaitingRoom/WaitingRoom";
 import PhaserGame, { PHASER_GAME_ROUTE_PATH } from "../game/PhaserGame";
+import GameResult, {
+    RESULT_ROOM_ROUTE_PATH,
+} from "../pages/GameResult/GameResult";
 
 const Router = createBrowserRouter([
     {
@@ -39,6 +42,10 @@ const Router = createBrowserRouter([
         path: PHASER_GAME_ROUTE_PATH,
         element: <PhaserGame />,
         // errorElement:<NotFound />
+    },
+    {
+        path: RESULT_ROOM_ROUTE_PATH,
+        element: <GameResult />,
     },
 ]);
 
