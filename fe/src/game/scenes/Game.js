@@ -27,14 +27,6 @@ export class game extends Phaser.Scene {
     }
 
     preload() {
-        //블록 이미지 로드
-        this.load.image("mapWallGolden", "rpgui/img/border-image-golden.png");
-        this.load.image(
-            "mapWallGoldenBorder",
-            "rpgui/img/border-image-golden2.png"
-        );
-        this.load.image("mapWallBorder", "rpgui/img/border-image.png");
-        //
         this.load.image("racoon", "assets/character/image.png");
         this.cursors = this.input.keyboard.createCursorKeys();
         this.headDir = 2; //under direction
@@ -367,60 +359,77 @@ export class game extends Phaser.Scene {
 
     // 벽 만드는 함수: 시작점과 끝점 받아서 직사각형 모양으로 타일 깔기
     createMapWall() {
-
         const currentSafeZone = this.gameRepository.getCurrentSafeZone();
         if (!currentSafeZone) {
             return;
-        } // 없으면 리턴 
+        } // 없으면 리턴
 
         if (
-            // 중복좌표 안나오니 이전 x좌표 하나만 체크
-            this.lastWallPos.x !== currentSafeZone[0]
+            this.lastWallPos.x !== currentSafeZone[0] ||
+            this.lastWallPos.y !== currentSafeZone[1]
         ) {
+            this.mapWalls.clear(); // 이전 맵 없애기
             const [startX, startY, endX, endY] = currentSafeZone;
-            console.log("Update! :", currentSafeZone, "vs", this.lastWallPos);
-
-            //나누는 수 숫자만 바꿔서 타일사이즈 조정가능
-            const tileSize = (endX - startX)/10 
+            const tileSize = 32; // 타일의 크기를 고정된 값으로 설정 (예: 32x32 픽셀)
 
             // 위쪽 벽
-            for (let x = startX; x < endX; x += tileSize) {
-                this.createWallTile(x, startY, tileSize);
+            for (let y = 0; y < startY; y += tileSize) {
+                for (let x = 0; x < 1600; x += tileSize) {
+                    this.createFogTile(x, y, tileSize);
+                }
             }
+
+            // 아래쪽 벽
+            for (let y = endY; y < 1600; y += tileSize) {
+                for (let x = 0; x < 1600; x += tileSize) {
+                    this.createFogTile(x, y, tileSize);
+                }
+            }
+
             // 왼쪽 벽
-            for (let y = startY + tileSize; y < endY; y += tileSize) {
-                this.createWallTile(startX, y, tileSize);
-            
-                // 아래쪽 벽
-            for (let x = startX+tileSize; x < endX; x += tileSize) {
-                this.createWallTile(x, endY-tileSize, tileSize);
+            for (let x = 0; x < startX; x += tileSize) {
+                for (let y = startY; y < endY; y += tileSize) {
+                    this.createFogTile(x, y, tileSize);
+                }
             }
-            }
+
             // 오른쪽 벽
-            for (let y = startY + tileSize; y < endY; y += tileSize) {
-                this.createWallTile(endX-tileSize, y, tileSize);
+            for (let x = endX; x < 1600; x += tileSize) {
+                for (let y = startY; y < endY; y += tileSize) {
+                    this.createFogTile(x, y, tileSize);
+                }
             }
 
             // 현재 맵의 경계를 저장
             this.lastWallPos = {
                 x: startX,
+                y: startY,
             };
         }
     }
-    createWallTile(x, y,tileSize) {
-        const color = 0xffffff; // 검은색
-        const alpha = 0.01; // 반투명도 (0: 완전 투명, 1: 완전 불투명)
+
+    createFogTile(x, y, tileSize) {
+        const color = 0xffffff;
+        const alpha = 0.4;
         const width = tileSize;
         const height = tileSize;
 
-        const graphics = this.add.graphics(); //스타일 넣은 그래픽 생성
+        const graphics = this.add.graphics();
         graphics.fillStyle(color, alpha);
         graphics.fillRect(0, 0, width, height);
 
-        graphics.generateTexture("wallTile", width, height); // 텍스쳐 만듦
+        graphics.generateTexture("fogTile", width, height);
 
-        this.mapWalls
-            .create(x, y, "wallTile") // 타일 만듦
+        const fogTile = this.mapWalls
+            .create(x, y, "fogTile")
             .setDisplaySize(width, height);
+
+        // 안개 타일 애니메이션 효과
+        this.tweens.add({
+            targets: fogTile,
+            alpha: { from: 0, to: alpha },
+            duration: 1000,
+            ease: "Linear",
+        });
     }
 }
