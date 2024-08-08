@@ -25,6 +25,8 @@ const INTERACT_SEEK_FAIL = "INTERACT_SEEK_FAIL";
 const INTERACT_HIDE_SUCCESS = "INTERACT_HIDE_SUCCESS";
 // 플레이어의 숨기 요청 실패
 const INTERACT_HIDE_FAIL = "INTERACT_HIDE_FAIL";
+// 방향 힌트 이벤트 수신
+const DIRECTION_HINT = "DIRECTION_HINT";
 
 // 사용자가 현재 참여하고 있는 방에 대한 정보를 담는 레포지토리
 export default class RoomRepository {
@@ -143,6 +145,9 @@ export default class RoomRepository {
             case INTERACT_SEEK_FAIL:
                 this.#handleSeekRequestFailedEvent(requestId, result);
                 break;
+            case DIRECTION_HINT:
+                this.#handleDirectionHintEvent(requestId, result);
+                break;
         }
     }
 
@@ -217,6 +222,11 @@ export default class RoomRepository {
     #handleSeekRequestFailedEvent(requestId, result) {
         console.log("찾기 실패:", result);
         asyncResponses.set(requestId, result);
+    }
+    #handleDirectionHintEvent(requestId, result) {
+        console.log("위치 힌트 정보입니다.");
+        console.log(result.data);
+        console.log(result.direction);
     }
 
     // 방 번호 반환
