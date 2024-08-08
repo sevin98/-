@@ -395,7 +395,14 @@ export class game extends Phaser.Scene {
             const [startX, startY, endX, endY] = currentSafeZone;
             console.log("Update! :", currentSafeZone, "vs", this.lastWallPos);
 
-            const tileSize = (endX - startX)/5 //나누는 수 숫자만 바꾸면 됨
+            const tileSize = (endX - startX)/8 //나누는 수 숫자만 바꾸면 됨
+            // let tileSize
+            // if (this.lastWallPos > 0){
+                // tileSize = startX-this.lastWallPos.x//그 뒤는 빈공간없이 전부 덮게? 
+            // } else{
+                // tileSize = (endX - startX) / 20; // 처음 타일 너비는 40-50? 
+            // }
+
             // 위쪽 벽
             for (let x = startX; x < endX; x += tileSize) {
                 this.createWallTile(x, startY, tileSize);
@@ -429,7 +436,7 @@ export class game extends Phaser.Scene {
         const width = tileSize;
         const height = tileSize;
 
-        const graphics = this.add.graphics();
+        const graphics = this.add.graphics(); //스타일 넣은 그래픽 생성
         graphics.fillStyle(color, alpha);
         graphics.fillRect(0, 0, width, height);
 
