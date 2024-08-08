@@ -255,7 +255,8 @@ export class game extends Phaser.Scene {
             const objectId = closest.getData("id");
 
             // 숨을 차례이면 숨기 요청
-            if (this.gameRepository.getMe().isHidingTeam()) {
+            const me = this.gameRepository.getMe();
+            if (me.isHidingTeam()) {
                 // 단, 레디 페이즈에만 숨을 수 있음
                 if (this.gameRepository.getCurrentPhase() !== Phase.READY) {
                     console.log("READY 페이즈만 숨을 수 있습니다.");
@@ -265,7 +266,7 @@ export class game extends Phaser.Scene {
                         .then(({ isSucceeded }) => {
                             if (isSucceeded) {
                                 console.log("숨기 성공");
-                                this.gameRepository.getMe().setIsHiding(true);
+                                me.setIsHiding(true);
                                 this.text.showTextHide(
                                     this,
                                     closest.body.x - 20,
@@ -284,7 +285,7 @@ export class game extends Phaser.Scene {
                     console.log("MAIN 페이즈에만 탐색할 수 있습니다.");
                 }
                 // 찾을 수 있는 횟수가 남아 있어야 함
-                else if (!this.gameRepository.getMe().canSeek()) {
+                else if (!me.canSeek()) {
                     console.log("탐색 횟수가 부족합니다.");
                 } else {
                     this.gameRepository
@@ -317,7 +318,7 @@ export class game extends Phaser.Scene {
 
         //탐색- 찾는팀,상호작용이펙트,스페이스다운
         if (
-            this.gameRepository.getMe().isSeekingTeam() &&
+            me.isSeekingTeam() &&
             this.interactionEffect &&
             this.m_cursorKeys.space.isDown
         ) {
