@@ -115,7 +115,7 @@ export default function WaitingRoom() {
     };
 
     const startCountdown = (gameStartsAt) => {
-        setCountdownMessage(<h2>게임이 곧 시작됩니다!</h2>);
+        setCountdownMessage("게임이 곧 시작됩니다!");
 
         // 매우 짧은 주기로 남은 시간을 초 단위로 계산하여 줄여 나감
         const leftSecondsToStart = Math.ceil(
