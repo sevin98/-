@@ -34,14 +34,14 @@ export class Preloader extends Scene {
         );
 
         // 화살표 이미지 로드
-        this.load.image("DOWN_LEFT", "image/donw_left.png");
-        this.load.image("DOWN_RIGHT", "image/down_right.png");
-        this.load.image("UP_LEFT", "image/up_left.png");
-        this.load.image("UP_RIGHT", "image/up_right.png");
-        this.load.image("UP", "image/up.png");
-        this.load.image("LEFT", "image/left.png");
-        this.load.image("RIGHT", "image/right.png");
-        this.load.image("DOWN", "image/down.png");
+        this.load.image("DOWN_LEFT", "assets/object/donw_left.png");
+        this.load.image("DOWN_RIGHT", "assets/object/down_right.png");
+        this.load.image("UP_LEFT", "assets/object/up_left.png");
+        this.load.image("UP_RIGHT", "assets/object/up_right.png");
+        this.load.image("UP", "assets/object/up.png");
+        this.load.image("LEFT", "assets/object/left.png");
+        this.load.image("RIGHT", "assets/object/right.png");
+        this.load.image("DOWN", "assets/object/down.png");
 
     }
     create() {
