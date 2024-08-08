@@ -33,7 +33,9 @@ export class HandlePlayerMove {
     }
 
     canMove() {
-        const currentPhase = this.gameRepository.getCurrentPhase();
+        const currentPhase = this.roomRepository
+            .getGameRepository()
+            .getCurrentPhase();
         return (
             (this.gameRepository.getMe().isHidingTeam() &&
                 currentPhase === Phase.READY) ||
@@ -144,8 +146,10 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
         this.body.setSize(28, 28);
 
         this.roomRepository = getRoomRepository();
-        this.gameRepository = this.roomRepository.getGameRepository();
-        this.isRacoon = this.gameRepository.getMe().isRacoonTeam();
+        this.isRacoon = this.roomRepository
+            .getGameRepository()
+            .getMe()
+            .isRacoonTeam();
 
         // this.gameRepository.getMe().setSprite(this);
 
@@ -347,13 +351,13 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
     }
 
     isHidingTeam() {
-        return this.gameRepository.getMe().isHidingTeam();
+        return this.roomRepository.getGameRepository().getMe().isHidingTeam();
     }
     setIsHidingTeam() {
-        this.gameRepository.getMe().setIsHidingTeam();
+        this.roomRepository.getGameRepository().getMe().setIsHidingTeam();
     }
     setDead() {
-        this.gameRepository.getMe().setDead();
+        this.roomRepository.getGameRepository().getMe().setDead();
     }
 
     reflectFromWall(direction) {

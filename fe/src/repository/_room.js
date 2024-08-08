@@ -26,9 +26,6 @@ const INTERACT_HIDE_SUCCESS = "INTERACT_HIDE_SUCCESS";
 // 플레이어의 숨기 요청 실패
 const INTERACT_HIDE_FAIL = "INTERACT_HIDE_FAIL";
 
-// 게임 상태의 초기화를 보장하기 위한 뮤텍스
-const gameInitializationMutex = new Mutex();
-
 // 사용자가 현재 참여하고 있는 방에 대한 정보를 담는 레포지토리
 export default class RoomRepository {
     #roomNumber;
@@ -124,16 +121,15 @@ export default class RoomRepository {
 
         // 초기화 이벤트가 아닌 경우, 초기화가 완료될 때까지 대기
         if (!this.#isInitialized && type !== INITIALIZE_PLAYER) {
-            await gameInitializationMutex.acquire();
+            while (!this.#isInitialized) {
+                await new Promise((resolve) => setTimeout(resolve, 100));
+            }
         }
 
         switch (type) {
             // 초기화 수행 후
             case INITIALIZE_PLAYER:
                 this.#handleInitializePlayerEvent(requestId, result);
-                // 락 해제
-                this.#isInitialized = true;
-                gameInitializationMutex.release();
                 break;
             case INTERACT_HIDE_SUCCESS:
                 this.#handleHideRequestSuccessEvent(requestId, result);
@@ -200,6 +196,7 @@ export default class RoomRepository {
     #handleInitializePlayerEvent(requestId, result) {
         this.#gameRepository.initializePlayer(result.data);
         asyncResponses.set(requestId, result);
+        this.#isInitialized = true;
     }
 
     #handleHideRequestSuccessEvent(requestId, result) {
