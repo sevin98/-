@@ -2,7 +2,6 @@ package com.ssafy.a410.room.controller;
 
 import com.ssafy.a410.common.exception.ErrorDetail;
 import com.ssafy.a410.common.exception.ResponseException;
-import com.ssafy.a410.game.domain.Message;
 import com.ssafy.a410.game.domain.player.Player;
 import com.ssafy.a410.room.controller.dto.*;
 import com.ssafy.a410.room.domain.Room;
@@ -13,11 +12,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -55,21 +55,20 @@ public class RoomController {
         return ResponseEntity.ok(tokens);
     }
 
-    // 랜덤으로 방에 입장하기 위한 토큰들을 반환하고, 방이 존재하지 않는다면 NO_CONTENT를 반환한다.
+    // 랜덤으로 입장할 수 있는 방의 id를 반환하고, 방이 존재하지 않는다면 NO_CONTENT를 반환한다.
     @PostMapping("/api/rooms/join")
-    public ResponseEntity<JoinRandomRoomResp> joinRandomRoom(Principal principal){
+    public ResponseEntity<JoinRandomRoomResp> joinRandomRoom(Principal principal) {
 
         List<Room> rooms = roomService.findAvailableRooms();
-        if(rooms.isEmpty())
+        if (rooms.isEmpty())
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 
         Collections.shuffle(rooms);
         Room room = rooms.get(0);
         String roomId = room.getRoomNumber();
 
-        Player player = roomService.joinRoomWithPassword(roomId, principal.getName(), null);
+        JoinRandomRoomResp tokens = roomService.getJoinRandomRoomId(roomId);
 
-        JoinRandomRoomResp tokens = roomService.getJoinRandomRoomSubscriptionTokens(roomId, player.getId());
         return ResponseEntity.ok(tokens);
     }
 

@@ -29,7 +29,7 @@ public interface RoomService {
 
     JoinRoomResp getJoinRoomSubscriptionTokens(String roomId, String playerId);
 
-    JoinRandomRoomResp getJoinRandomRoomSubscriptionTokens(String roomId, String playerId);
+    JoinRandomRoomResp getJoinRandomRoomId(String roomId);
 
     Optional<Room> findRoomByPlayerId(String playerId);
 

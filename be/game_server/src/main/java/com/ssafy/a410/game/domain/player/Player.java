@@ -7,7 +7,6 @@ import com.ssafy.a410.game.domain.Pos;
 import com.ssafy.a410.game.domain.game.Game;
 import com.ssafy.a410.game.domain.game.Item;
 import com.ssafy.a410.game.domain.game.message.EliminationMessage;
-import com.ssafy.a410.game.domain.game.message.EliminationOutOfSafeZoneMessage;
 import com.ssafy.a410.game.service.MessageBroadcastService;
 import com.ssafy.a410.room.domain.Room;
 import com.ssafy.a410.socket.domain.Subscribable;
@@ -140,18 +139,17 @@ public class Player extends Subscribable {
         this.isEliminated = true;
         MessageBroadcastService broadcastService = room.getPlayingGame().getBroadcastService();
         Game game = room.getPlayingGame();
-        broadcastService.unicastTo(this, new EliminationMessage(id));
-        broadcastService.broadcastTo(game, new EliminationMessage(id));
+        String team = game.getPlayerTeam(this);
+        EliminationMessage message = new EliminationMessage(this.id, team);
+        broadcastService.unicastTo(this, message);
+        broadcastService.broadcastTo(game, message);
         // eliminate 당한시간 기록
         this.eliminationTime = LocalDateTime.now();
     }
 
     public void eliminateOutOfSafeZone() {
         this.isEliminated = true;
-        MessageBroadcastService broadcastService = room.getPlayingGame().getBroadcastService();
-        Game game = room.getPlayingGame();
-        broadcastService.unicastTo(this, new EliminationOutOfSafeZoneMessage(id));
-        broadcastService.broadcastTo(game, new EliminationOutOfSafeZoneMessage(id));
+
         // eliminate 당한시간 기록
         this.eliminationTime = LocalDateTime.now();
     }
@@ -237,17 +235,17 @@ public class Player extends Subscribable {
         double directionX = target.getPos().getX() - this.pos.getX();
         double directionY = target.getPos().getY() - this.pos.getY();
 
-        // ArithmeticException 방지위한 오차설정
+        // ArithmeticException 방지 위한 오차 설정
         final double TOLERANCE = 0.01;
 
-        if (Math.abs(directionX) < TOLERANCE && directionY > 0) return DirectionArrow.UP;
-        if (Math.abs(directionX) < TOLERANCE && directionY < 0) return DirectionArrow.DOWN;
+        if (Math.abs(directionX) < TOLERANCE && directionY > 0) return DirectionArrow.DOWN;
+        if (Math.abs(directionX) < TOLERANCE && directionY < 0) return DirectionArrow.UP;
         if (directionX > 0 && Math.abs(directionY) < TOLERANCE) return DirectionArrow.RIGHT;
         if (directionX < 0 && Math.abs(directionY) < TOLERANCE) return DirectionArrow.LEFT;
-        if (directionX > 0 && directionY > 0) return DirectionArrow.UP_RIGHT;
-        if (directionX > 0 && directionY < 0) return DirectionArrow.DOWN_RIGHT;
-        if (directionX < 0 && directionY > 0) return DirectionArrow.UP_LEFT;
-        if (directionX < 0 && directionY < 0) return DirectionArrow.DOWN_LEFT;
+        if (directionX > 0 && directionY > 0) return DirectionArrow.DOWN_RIGHT;
+        if (directionX > 0 && directionY < 0) return DirectionArrow.UP_RIGHT;
+        if (directionX < 0 && directionY > 0) return DirectionArrow.DOWN_LEFT;
+        if (directionX < 0 && directionY < 0) return DirectionArrow.UP_LEFT;
 
         throw new ResponseException(ErrorDetail.UNDEFINED_DIRECTION);
     }
