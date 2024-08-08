@@ -141,6 +141,9 @@ export class game extends Phaser.Scene {
         // 로컬플레이어 포지션 트래킹 , 이후 위치는 x,y,headDir로 접근
         const me = this.gameRepository.getMe();
         const { x, y, headDir } = me.getPosition();
+        if (this.hintImage) {
+            this.hintImage.setPosition(this.localPlayer.x, this.localPlayer.y - 20);
+        }
 
         // 숨는 팀인 경우
         if (me.isHidingTeam()) {
@@ -181,6 +184,22 @@ export class game extends Phaser.Scene {
                 // 화면에 보이게 하고 움직임 허가
                 this.localPlayer.visible = true;
                 this.localPlayer.allowMove();
+                if (!this.hintImage) {
+                    this.hintImage = this.add.image(this.localPlayer.x, this.localPlayer.y - 20, 'DOWN');
+                    this.hintImage.setScale(0.05);
+                
+                    // 3초 후에 이미지를 제거
+                    this.time.addEvent({
+                        delay: 3000, // 3초 후
+                        callback: () => {
+                            if (this.hintImage) {
+                                this.hintImage.destroy();
+                                this.hintImage = null;
+                            }
+                        },
+                        callbackScope: this
+                    });
+                }
             }
         }
 
