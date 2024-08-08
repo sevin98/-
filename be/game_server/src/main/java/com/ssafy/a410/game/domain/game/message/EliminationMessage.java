@@ -8,7 +8,12 @@ import java.util.Map;
 
 @Getter
 public class EliminationMessage extends GameControlMessage {
-    public EliminationMessage(String playerId) {
-        super(GameControlType.ELIMINATION, Map.of("playerId", playerId));
+    private final String playerId;
+    private final String team;
+
+    public EliminationMessage(String playerId, String team) {
+        super(GameControlType.ELIMINATION, Map.of("playerId", playerId, "team", team));
+        this.playerId = playerId;
+        this.team = team;
     }
 }

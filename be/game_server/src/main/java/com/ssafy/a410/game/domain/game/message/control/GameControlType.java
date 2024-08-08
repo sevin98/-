@@ -11,5 +11,4 @@ public enum GameControlType {
     GAME_END, // 게임 종료
     ELIMINATION_OUT_OF_SAFE_ZONE, // 안전 구역 밖에서의 탈락
     DIRECTION_HINT, // MUSHROOM 사용 시 , 메인페이즈가 시작 될 때 제공되는 방향 힌트
-
 }
