@@ -71,7 +71,8 @@ export default class GameRepository {
     #me;
     #nextPhaseChangeAt;
     #currentPhaseFinishAfterMilliSec;
-    #currentSafeZone; // 세
+    #currentSafeZone;
+    #isGameEnd = false;
 
     #isInitialized = false;
 
@@ -123,7 +124,7 @@ export default class GameRepository {
                 this.#handlePhaseChangeEvent(data);
                 break;
             case GAME_END:
-                console.log(`게임 종료`);
+                this.#handleGameEndEvent(data);
                 break;
             case INTERACT_HIDE_SUCCESS:
                 this.#handleInteractHideSuccessEvent(data);
@@ -238,6 +239,18 @@ export default class GameRepository {
             this.#racoonTeam.setIsHidingTeam(!this.#racoonTeam.isHidingTeam());
             this.#foxTeam.setIsHidingTeam(!this.#foxTeam.isHidingTeam());
         }
+    }
+
+    #handleGameEndEvent() {
+        this.#setIsEnd();
+    }
+
+    #setIsEnd() {
+        this.#isGameEnd = true;
+    }
+
+    getIsEnd() {
+        return this.#isGameEnd;
     }
 
     #setTeamPlayersVisibility(team, isVisible) {

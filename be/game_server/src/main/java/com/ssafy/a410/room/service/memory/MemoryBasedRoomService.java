@@ -186,13 +186,9 @@ public class MemoryBasedRoomService implements RoomService {
     }
 
     @Override
-    public JoinRandomRoomResp getJoinRandomRoomSubscriptionTokens(String roomId, String playerId) {
-        Room room = getRoomById(roomId);
-        Player player = room.getPlayerWith(playerId);
+    public JoinRandomRoomResp getJoinRandomRoomId(String roomId) {
         return new JoinRandomRoomResp(
-                roomId,
-                new SubscriptionInfoResp(room),
-                new SubscriptionInfoResp(player)
+                roomId
         );
     }
 
