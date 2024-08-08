@@ -6,6 +6,8 @@ import com.ssafy.a410.common.constant.MilliSecOf;
 import com.ssafy.a410.common.exception.ResponseException;
 import com.ssafy.a410.common.exception.UnhandledException;
 import com.ssafy.a410.game.domain.game.Game;
+import com.ssafy.a410.game.domain.game.message.control.GameControlMessage;
+import com.ssafy.a410.game.domain.game.message.control.GameControlType;
 import com.ssafy.a410.game.domain.player.Player;
 import com.ssafy.a410.game.service.MessageBroadcastService;
 import com.ssafy.a410.room.domain.message.control.GameStartInfo;
@@ -182,10 +184,15 @@ public class Room extends Subscribable {
     }
 
     public void notifyDisconnection(Player player) {
-        RoomControlMessage message = new RoomControlMessage(
 
-                RoomControlType.PLAYER_DISCONNECTED,
-                RoomMemberInfo.getAllInfoListFrom(this)
+        Game game = this.playingGame;
+        if (game == null) throw new ResponseException(PLAYER_NOT_IN_ROOM);
+
+        String team = game.getPlayerTeam(player);
+
+        GameControlMessage message = new GameControlMessage(
+                GameControlType.PLAYER_DISCONNECTED,
+                Map.of("playerId", player.getId(), "team", team, "roomInfo", RoomMemberInfo.getAllInfoListFrom(this))
         );
         broadcastService.broadcastTo(this, message);
     }
