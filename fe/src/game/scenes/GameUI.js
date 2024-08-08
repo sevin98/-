@@ -109,7 +109,11 @@ export default class GameUI extends Phaser.Scene {
             }
         }
 
-        this.updateProgressBar();
+        if (this.gameRepository.getIsEnd()) {
+            this.progressBar.width = 0;
+        } else {
+            this.updateProgressBar();
+        }
     }
 
     showTopCenterMessage(data) {
