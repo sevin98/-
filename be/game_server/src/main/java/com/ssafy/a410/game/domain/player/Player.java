@@ -7,7 +7,6 @@ import com.ssafy.a410.game.domain.Pos;
 import com.ssafy.a410.game.domain.game.Game;
 import com.ssafy.a410.game.domain.game.Item;
 import com.ssafy.a410.game.domain.game.message.EliminationMessage;
-import com.ssafy.a410.game.domain.game.message.EliminationOutOfSafeZoneMessage;
 import com.ssafy.a410.game.service.MessageBroadcastService;
 import com.ssafy.a410.room.domain.Room;
 import com.ssafy.a410.socket.domain.Subscribable;
@@ -140,18 +139,17 @@ public class Player extends Subscribable {
         this.isEliminated = true;
         MessageBroadcastService broadcastService = room.getPlayingGame().getBroadcastService();
         Game game = room.getPlayingGame();
-        broadcastService.unicastTo(this, new EliminationMessage(id));
-        broadcastService.broadcastTo(game, new EliminationMessage(id));
+        String team = game.getPlayerTeam(this);
+        EliminationMessage message = new EliminationMessage(this.id, team);
+        broadcastService.unicastTo(this, message);
+        broadcastService.broadcastTo(game, message);
         // eliminate 당한시간 기록
         this.eliminationTime = LocalDateTime.now();
     }
 
     public void eliminateOutOfSafeZone() {
         this.isEliminated = true;
-        MessageBroadcastService broadcastService = room.getPlayingGame().getBroadcastService();
-        Game game = room.getPlayingGame();
-        broadcastService.unicastTo(this, new EliminationOutOfSafeZoneMessage(id));
-        broadcastService.broadcastTo(game, new EliminationOutOfSafeZoneMessage(id));
+
         // eliminate 당한시간 기록
         this.eliminationTime = LocalDateTime.now();
     }
