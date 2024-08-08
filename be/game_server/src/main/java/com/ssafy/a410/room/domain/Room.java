@@ -137,6 +137,12 @@ public class Room extends Subscribable {
 
     // 게임을 시작할 준비가 되었는지 확인
     public boolean isReadyToStartGame() {
+
+        // 최소 시작인원은 2명 이상이여야함
+        if(players.size()<= 1){
+            return false;
+        }
+
         // 참가한 인원의 과반수 이상이 레디 상태여야 함
         long readyCount = players.values().stream().filter(Player::isReadyToStart).count();
         return readyCount > players.size() / 2;

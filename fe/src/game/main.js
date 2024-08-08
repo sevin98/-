@@ -1,10 +1,9 @@
-import Phaser, { Physics } from 'phaser'
-import {MainMenu}  from './scenes/MainMenu'
-import {Preloader} from './scenes/Preloader'
-import {game} from './scenes/Game'
-import GameUI from './scenes/GameUI'
-import { useEffect } from 'react'
-
+import Phaser, { Physics } from "phaser";
+import { MainMenu } from "./scenes/MainMenu";
+import { Preloader } from "./scenes/Preloader";
+import { game } from "./scenes/Game";
+import GameUI from "./scenes/GameUI";
+import { useEffect } from "react";
 
 const config = {
     type: Phaser.AUTO,
@@ -13,7 +12,7 @@ const config = {
     parent: "game-container",
     backgroundColor: "#028af8",
     scale: {
-        mode: Phaser.Scale.FIT,
+        mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH,
         // zoom:1,
     },
@@ -28,9 +27,7 @@ const config = {
 };
 
 const StartGame = (parent) => {
-
     return new Phaser.Game({ ...config, parent });
-
-}
+};
 
 export default StartGame;
