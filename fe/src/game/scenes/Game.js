@@ -26,6 +26,8 @@ export class game extends Phaser.Scene {
         this.gameRepository = this.roomRepository.getGameRepository();
 
         this.lastWallPos = {};
+        this.hintImages = {};
+        this.shownHintForCurrentPhase = false;
     }
 
     preload() {
@@ -50,7 +52,7 @@ export class game extends Phaser.Scene {
 
         // playercam 정의, zoomTo: 300ms 동안 1.5배 zoom
         const playercam = this.cameras.main;
-        // playercam.zoomTo(1.2,300)
+        playercam.zoomTo(3, 300);
 
         // 로컬플레이어 객체 생성, 카메라 follow
         const me = this.gameRepository.getMe();
@@ -149,6 +151,13 @@ export class game extends Phaser.Scene {
         // 로컬플레이어 포지션 트래킹 , 이후 위치는 x,y,headDir로 접근
         const me = this.gameRepository.getMe();
         const { x, y, headDir } = me.getPosition();
+        if (this.hintImages) {
+            for (let direction in this.hintImages) {
+                if (this.hintImages[direction]) {
+                    this.hintImages[direction].setPosition(this.localPlayer.x, this.localPlayer.y - 20);
+                }
+            }
+        }
 
         // 숨는 팀인 경우
         if (me.isHidingTeam()) {
@@ -183,12 +192,37 @@ export class game extends Phaser.Scene {
                 // 화면에 보이게 하고 움직임 제한
                 this.localPlayer.visible = true;
                 this.localPlayer.disallowMove();
+                this.shownHintForCurrentPhase = false;
             }
             // 메인 페이즈에
             else if (this.gameRepository.getCurrentPhase() === Phase.MAIN) {
                 // 화면에 보이게 하고 움직임 허가
                 this.localPlayer.visible = true;
                 this.localPlayer.allowMove();
+
+                if (!this.shownHintForCurrentPhase) {
+                    const directionHints = this.roomRepository.getDirectionHints();
+                    directionHints.forEach((direction) => {
+                        if (!this.hintImages[direction]) {
+                            this.hintImages[direction] = this.add.image(this.localPlayer.x, this.localPlayer.y - 20, direction);
+                            this.hintImages[direction].setScale(0.03);
+    
+                            // 1.5초 후에 이미지를 제거
+                            this.time.addEvent({
+                                delay: 1500,
+                                callback: () => {
+                                    if (this.hintImages[direction]) {
+                                        this.hintImages[direction].destroy();
+                                        this.hintImages[direction] = null;
+                                    }
+                                },
+                                callbackScope: this
+                            });
+                        }
+                    });
+
+                    this.shownHintForCurrentPhase = true;
+                }
             }
         }
 
@@ -263,7 +297,8 @@ export class game extends Phaser.Scene {
             const objectId = closest.getData("id");
 
             // 숨을 차례이면 숨기 요청
-            if (this.gameRepository.getMe().isHidingTeam()) {
+            const me = this.gameRepository.getMe();
+            if (me.isHidingTeam()) {
                 // 단, 레디 페이즈에만 숨을 수 있음
                 if (this.gameRepository.getCurrentPhase() !== Phase.READY) {
                     console.log("READY 페이즈만 숨을 수 있습니다.");
@@ -273,7 +308,7 @@ export class game extends Phaser.Scene {
                         .then(({ isSucceeded }) => {
                             if (isSucceeded) {
                                 console.log("숨기 성공");
-                                this.gameRepository.getMe().setIsHiding(true);
+                                me.setIsHiding(true);
                                 this.text.showTextHide(
                                     this,
                                     closest.body.x - 20,
@@ -292,7 +327,7 @@ export class game extends Phaser.Scene {
                     console.log("MAIN 페이즈에만 탐색할 수 있습니다.");
                 }
                 // 찾을 수 있는 횟수가 남아 있어야 함
-                else if (!this.gameRepository.getMe().canSeek()) {
+                else if (!me.canSeek()) {
                     console.log("탐색 횟수가 부족합니다.");
                 } else {
                     this.gameRepository
@@ -325,7 +360,7 @@ export class game extends Phaser.Scene {
 
         //탐색- 찾는팀,상호작용이펙트,스페이스다운
         if (
-            this.gameRepository.getMe().isSeekingTeam() &&
+            me.isSeekingTeam() &&
             this.interactionEffect &&
             this.m_cursorKeys.space.isDown
         ) {

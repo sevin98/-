@@ -30,6 +30,8 @@ const ELIMINATION = "ELIMINATION";
 const PLAYER_DISCONNECTED = "PLAYER_DISCONNECTED";
 // 안전 구역 업데이트 이벤트
 const SAFE_ZONE_UPDATE = "SAFE_ZONE_UPDATE";
+// 안전구역밖으로 나간 플레이어 게임 탈락 이벤트
+const ELIMINATION_OUT_OF_SAFE_ZONE = "ELIMINATION_OUT_OF_SAFE_ZONE";
 
 // 화면 가리기 명령 이벤트
 const COVER_SCREEN = "COVER_SCREEN";
@@ -71,9 +73,11 @@ export default class GameRepository {
     #me;
     #nextPhaseChangeAt;
     #currentPhaseFinishAfterMilliSec;
-    #currentSafeZone; // 세
+    #currentSafeZone;
+    #isGameEnd = false;
 
     #isInitialized = false;
+    #currentEliminatedPlayerAndTeam;
 
     constructor(room, roomNumber, gameSubscriptionInfo, startsAfterMilliSec) {
         this.#room = room;
@@ -123,7 +127,7 @@ export default class GameRepository {
                 this.#handlePhaseChangeEvent(data);
                 break;
             case GAME_END:
-                console.log(`게임 종료`);
+                this.#handleGameEndEvent(data);
                 break;
             case INTERACT_HIDE_SUCCESS:
                 this.#handleInteractHideSuccessEvent(data);
@@ -138,15 +142,22 @@ export default class GameRepository {
                 this.#handleInteractSeekFailEvent(data);
                 break;
             case ELIMINATION:
+                this.#handleCurrentEliminatedPlayerAndTeam(data);
                 console.log(`플레이어 ${data.playerId}님이 탈락하셨습니다.`);
                 break;
             case PLAYER_DISCONNECTED:
+                this.#handleCurrentEliminatedPlayerAndTeam(data);
                 console.log(`플레이어 ${data.playerId}님이 이탈하셨습니다.`);
                 break;
             case SAFE_ZONE_UPDATE:
                 //맵축소
                 this.#handleSafeZoneUpdateEvent(data);
                 console.log(`안전 지역이 변경되었습니다.`);
+                break;
+            case ELIMINATION_OUT_OF_SAFE_ZONE:
+                //맵축소
+                this.#handleSafeZoneUpdateEvent(data);
+                console.log(`플레이어 ${data.playerId}님이 이탈하셨습니다.`);
                 break;
             default:
                 console.error("Received unknown message:", message);
@@ -238,6 +249,18 @@ export default class GameRepository {
             this.#racoonTeam.setIsHidingTeam(!this.#racoonTeam.isHidingTeam());
             this.#foxTeam.setIsHidingTeam(!this.#foxTeam.isHidingTeam());
         }
+    }
+
+    #handleGameEndEvent() {
+        this.#setIsEnd();
+    }
+
+    #setIsEnd() {
+        this.#isGameEnd = true;
+    }
+
+    getIsEnd() {
+        return this.#isGameEnd;
     }
 
     #setTeamPlayersVisibility(team, isVisible) {
@@ -499,5 +522,16 @@ export default class GameRepository {
     //맵축소
     getCurrentSafeZone() {
         return this.#currentSafeZone;
+    }
+
+    //ui업데이트
+    #handleCurrentEliminatedPlayerAndTeam(data){
+        const currentPlayerAndTeam = data;
+        this.#currentEliminatedPlayerAndTeam = currentPlayerAndTeam;
+        console.log(data)
+    }
+
+    getCurrentEliminatedPlayerAndTeam() {
+        return this.#currentEliminatedPlayerAndTeam;
     }
 }
