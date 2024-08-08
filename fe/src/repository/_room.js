@@ -99,10 +99,18 @@ export default class RoomRepository {
         const UPDATE_INTERVAL = 500;
 
         this.#joinedPlayerIntervalId = setInterval(async () => {
-            const { joinedPlayers } = (
-                await axios.get(`/api/rooms/${this.#roomNumber}/joined-players`)
-            ).data;
-            this.#updatePlayers(joinedPlayers);
+            axios
+                .get(`/api/rooms/${this.#roomNumber}/joined-players`)
+                .then((resp) => {
+                    const { joinedPlayers } = resp.data;
+                    this.#updatePlayers(joinedPlayers);
+                })
+                .catch((error) => {
+                    console.log(
+                        "존재하지 않는 방에 대한 참가자 조회 요청 감지"
+                    );
+                    clearInterval(this.#joinedPlayerIntervalId);
+                });
         }, UPDATE_INTERVAL);
     }
 
