@@ -36,6 +36,7 @@ export default class RoomRepository {
     #joinedPlayers = [];
     #gameRepository;
     #gameStartsAt;
+    #directionHints = [];
 
     #joinedPlayerIntervalId;
 
@@ -227,6 +228,11 @@ export default class RoomRepository {
         console.log("위치 힌트 정보입니다.");
         console.log(result.data);
         console.log(result.direction);
+        // TODO : #directionHints에 data 꺼내서 넣기
+    }
+
+    getDirectionHints() {
+        return this.#directionHints;
     }
 
     // 방 번호 반환
