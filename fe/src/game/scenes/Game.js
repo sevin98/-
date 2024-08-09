@@ -9,6 +9,8 @@ import { isFirstPress } from "../../util/keyStroke";
 import { getRoomRepository } from "../../repository";
 import { Phase } from "../../repository/_game";
 
+import eventBus from "../EventBus"; //씬 간 소통위한 이벤트리스너 호출
+
 export class game extends Phaser.Scene {
     //cursor = this.cursor.c
     //cursors = Phaser.Input.Keyboard.KeyboardPlugin;
@@ -36,6 +38,8 @@ export class game extends Phaser.Scene {
     }
 
     create() {
+        this.m_cursorKeys = this.input.keyboard.createCursorKeys();
+
         this.text = new TextGroup(this); // 팝업텍스트 객체
 
         this.graphics = this.add.graphics().setDepth(1000); //선만들기 위한 그래픽
@@ -127,16 +131,18 @@ export class game extends Phaser.Scene {
             loop: true, // 여러번 실행
         });
 
-        //game-ui 씬
-        this.scene.run("game-ui");
-        this.m_cursorKeys = this.input.keyboard.createCursorKeys();
-
         //작아지는 맵은 제일 위에 위치해야함!!
         this.mapWalls = this.physics.add.staticGroup();
         //플레이어와 충돌처리
         this.physics.add.collider(this.localPlayer, this.mapWalls, () => {
             console.log("작아지는 벽과 충돌");
         });
+
+
+        //game-ui 씬
+        this.scene.run("game-ui");
+        // 이벤트리스너
+
     }
 
     update() {
@@ -403,6 +409,7 @@ export class game extends Phaser.Scene {
             this.lastWallPos.x !== currentSafeZone[0] ||
             this.lastWallPos.y !== currentSafeZone[1]
         ) {
+            console.log('맵이 줄어듭니다')
             this.mapWalls.clear(); // 이전 맵 없애기
             const [startX, startY, endX, endY] = currentSafeZone;
             const tileSize = 32; // 타일의 크기를 고정된 값으로 설정 (예: 32x32 픽셀)
