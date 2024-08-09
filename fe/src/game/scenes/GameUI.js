@@ -4,6 +4,8 @@ import uiControlQueue, { MESSAGE_TYPE } from "../../util/UIControlQueue";
 import { getRoomRepository } from "../../repository";
 import { Phase } from "../../repository/_game";
 
+import eventBus from "../EventBus";
+
 export default class GameUI extends Phaser.Scene {
     static progressBarAssetPrefix = "progress-bar-01-";
 
@@ -15,12 +17,15 @@ export default class GameUI extends Phaser.Scene {
                 this.gameRepository = getRoomRepository().getGameRepository();
                 clearInterval(gameRepositoryTrial);
             }
-        }, 50);
+        }, 60);
     }
 
     preload() {
-        this.load.image("racoonhead", "assets/object/racoonhead.png");
-        this.load.image("foxhead", "assets/object/foxhead.png");
+        this.load.image("foxHeadAlive", "assets/object/foxHeadAlive.png");
+        this.load.image("foxHeadDead", "assets/object/foxHeadDead.png");
+        this.load.image("racoonHeadAlive", "assets/object/racoonHeadAlive.png");
+        this.load.image("racoonHeadDead", "assets/object/racoonHeadDead.png");
+        this.load.image("failed", "assets/object/failed.png");
 
         this.load.image(
             "timer-progress-bar-background",
@@ -29,41 +34,82 @@ export default class GameUI extends Phaser.Scene {
     }
 
     create() {
-        //묶음으로 UI 만드는 법.
-        // this.hearts = this.add.group({
-        //     classType : Phaser.GameObjects.Image
-        // })
-        //key : 사용될 이미지, setXY : 위치 좌표(stepX는 UI 객체간 거리), quantity : UI 갯수
-        // this.hearts.createMultiple({
-        //     key : 'cattemp',
-        //     setXY : {
-        //         x: 10,
-        //         y: 10,
-        //         stepX : 70
-        //     },
-        //     quantity : 3
-        // })
-        // this.movingTeam= this.add.group({
-        //     classType : Phaser.GameObjects.Image
-        // })
-        // this.movingTeam.createMultiple({
-        //     key : 'racoonhead',
-        //     setXY : {
-        //         x: 100,
-        //         y: 50,
-        //         stepX : 0
-        //     },
-        //     quantity : 1
-        // })
+        //초기화
+        this.prevPlayer = null;
+        this.racoonNum = 4;
+        this.foxNum = 4;
 
+        this.groupRacoon = this.add.group();
+        this.groupFox = this.add.group();
+
+        this.groupFox.add;
         this.add
             .image(
-                this.cameras.main.width / 2,
-                this.cameras.main.height + 10,
-                "timer-progress-bar-background"
+                (this.cameras.main.width * 9) / 10,
+                (this.cameras.main.height * 1) / 6,
+                "foxHeadAlive"
             )
-            .setOrigin(0.5, 1)
-            .setDisplaySize(this.cameras.main.width * 0.75, 60);
+            .setDisplaySize(80, 80),
+            this.add
+                .image(
+                    (this.cameras.main.width * 9) / 10,
+                    (this.cameras.main.height * 2) / 6,
+                    "foxHeadAlive"
+                )
+                .setDisplaySize(80, 80),
+            this.add
+                .image(
+                    (this.cameras.main.width * 9) / 10,
+                    (this.cameras.main.height * 3) / 6,
+                    "foxHeadAlive"
+                )
+                .setDisplaySize(80, 80),
+            this.add
+                .image(
+                    (this.cameras.main.width * 9) / 10,
+                    (this.cameras.main.height * 4) / 6,
+                    "foxHeadAlive"
+                )
+                .setDisplaySize(80, 80),
+            //라쿤 그룹에 추가
+            this.groupRacoon.add;
+        this.add
+            .image(
+                this.cameras.main.width / 10,
+                (this.cameras.main.height * 1) / 6,
+                "racoonHeadAlive"
+            )
+            .setDisplaySize(80, 80),
+            this.add
+                .image(
+                    this.cameras.main.width / 10,
+                    (this.cameras.main.height * 2) / 6,
+                    "racoonHeadAlive"
+                )
+                .setDisplaySize(80, 80),
+            this.add
+                .image(
+                    this.cameras.main.width / 10,
+                    (this.cameras.main.height * 3) / 6,
+                    "racoonHeadAlive"
+                )
+                .setDisplaySize(80, 80),
+            this.add
+                .image(
+                    this.cameras.main.width / 10,
+                    (this.cameras.main.height * 4) / 6,
+                    "racoonHeadAlive"
+                )
+                .setDisplaySize(80, 80),
+            //프로그래스 바
+            (this.groupTimer = this.add
+                .image(
+                    this.cameras.main.width / 2,
+                    this.cameras.main.height + 10,
+                    "timer-progress-bar-background"
+                )
+                .setOrigin(0.6, 1)
+                .setDisplaySize(this.cameras.main.width * 0.76, 60));
 
         // Add progress bar(red rectangle) on bar background
         this.progressBar = this.add
@@ -71,10 +117,11 @@ export default class GameUI extends Phaser.Scene {
                 this.cameras.main.width * 0.192,
                 this.cameras.main.height * 0.978,
                 this.getProgressBarFullWidth(),
-                25,
+                26,
                 "0xFFB22C"
             )
-            .setOrigin(0, 0.5);
+            .setOrigin(0, 0.6);
+
     }
 
     updateProgressBar() {
@@ -99,6 +146,9 @@ export default class GameUI extends Phaser.Scene {
     }
 
     update() {
+        //ui 이미지 추가 
+        this.updateImage();
+
         if (uiControlQueue.hasGameUiControlMessage()) {
             const message = uiControlQueue.getGameUiControlMessage();
             switch (message.type) {
@@ -116,6 +166,172 @@ export default class GameUI extends Phaser.Scene {
             this.updateProgressBar();
         }
     }
+
+    updateImage() {
+        if (!this.gameRepository.getCurrentEliminatedPlayerAndTeam()) {
+            return;
+        }
+
+        const EliminatedPlayerAndTeam =
+            this.gameRepository.getCurrentEliminatedPlayerAndTeam();
+        const prevPlayer = this.prevPlayer; // 이전에 탈락한플레이어, create에서 null로 초기화되어있음
+        const nowPlayer = EliminatedPlayerAndTeam.playerId; // 현재 탈락한 플레이어
+
+        //새로운 플레이어 찾을떄마다 이미지 덮어서 로드
+        // 죽은 이미지 && failed 이미지 
+        if (prevPlayer !== nowPlayer) {
+            if (EliminatedPlayerAndTeam.team === "RACOON") {
+                if (this.racoonNum === 4) {
+                    console.log("첫 번째 너구리 탈락");
+                    this.groupRacoon.add;
+                    this.add
+                        .image(
+                            this.cameras.main.width / 10 - 3,
+                            (this.cameras.main.height * 1 + 3) / 6,
+                            "racoonHeadDead"
+                        )
+                        .setDisplaySize(80, 80);
+                    this.add
+                        .image(
+                            this.cameras.main.width / 10 - 3,
+                            (this.cameras.main.height * 1 + 3) / 6,
+                            "failed"
+                        )
+                        .setDisplaySize(80, 80);
+                    this.racoonNum--;
+                } else if (this.racoonNum === 3) {
+                    console.log("두 번째 너구리 탈락");
+                    this.groupRacoon.add;
+                    this.add
+                        .image(
+                            this.cameras.main.width / 10 - 3,
+                            (this.cameras.main.height * 2 + 3) / 6,
+                            "racoonHeadDead"
+                        )
+                        .setDisplaySize(80, 80);
+                    this.add
+                        .image(
+                            this.cameras.main.width / 10 - 3,
+                            (this.cameras.main.height * 2 + 3) / 6,
+                            "failed"
+                        )
+                        .setDisplaySize(80, 80);
+                    this.racoonNum--;
+                } else if (this.racoonNum === 2) {
+                    console.log("세 번째 너구리 탈락");
+                    this.groupRacoon.add;
+                    this.add
+                        .image(
+                            this.cameras.main.width / 10 - 3,
+                            (this.cameras.main.height * 3 + 3) / 6,
+                            "racoonHeadAlive"
+                        )
+                    this.add
+                        .image(
+                            this.cameras.main.width / 10 - 3,
+                            (this.cameras.main.height * 3 + 3) / 6,
+                            "failed"
+                        )
+                        .setDisplaySize(80, 80);
+                    this.racoonNum--;
+                } else {
+                    console.log("마지막 너구리 탈락");
+                    this.groupRacoon.add;
+                    this.add
+                        .image(
+                            this.cameras.main.width / 10 - 3,
+                            (this.cameras.main.height * 4 + 3) / 6,
+                            "racoonHeadAlive"
+                        )
+                        .setDisplaySize(80, 80);
+                    this.add
+                        .image(
+                            this.cameras.main.width / 10 - 3,
+                            (this.cameras.main.height * 4 + 3) / 6,
+                            "failed"
+                        )
+                        .setDisplaySize(80, 80);
+                }
+            } else {
+                if (this.foxNum === 4) {
+                    console.log("첫 번째 여우 탈락");
+                    this.groupFox.add;
+                    this.add
+                        .image(
+                            (this.cameras.main.width * 9) / 10,
+                            (this.cameras.main.height * 1) / 6,
+                            "foxHeadDead"
+                        )
+                        .setDisplaySize(80, 80);
+                    this.add
+                        .image(
+                            (this.cameras.main.width * 9) / 10,
+                            (this.cameras.main.height * 1) / 6,
+                            "failed"
+                        )
+                        .setDisplaySize(80, 80);
+                    this.foxNum--;
+                } else if (this.foxNum === 3) {
+                    console.log("두 번째 여우 탈락");
+                    this.groupFox.add;
+                    this.add
+                        .image(
+                            (this.cameras.main.width * 9) / 10,
+                            (this.cameras.main.height * 2) / 6,
+                            "foxHeadDead"
+                        )
+                        .setDisplaySize(80, 80);
+                    this.add
+                        .image(
+                            (this.cameras.main.width * 9) / 10,
+                            (this.cameras.main.height * 2) / 6,
+                            "failed"
+                        )
+                        .setDisplaySize(80, 80);
+                    this.foxNum--;
+                } else if (this.racoonNum === 2) {
+                    console.log("세 번째 여우 탈락");
+                    this.groupFox.add;
+                    this.add
+                        .image(
+                            (this.cameras.main.width * 9) / 10,
+                            (this.cameras.main.height * 3) / 6,
+                            "foxHeadDead"
+                        )
+                        .setDisplaySize(80, 80);
+                    this.add
+                        .image(
+                            (this.cameras.main.width * 9) / 10,
+                            (this.cameras.main.height * 3) / 6,
+                            "failed"
+                        )
+                        .setDisplaySize(80, 80);
+                    this.foxNum--;
+                } else {
+                    console.log("마지막 여우 탈락");
+                    this.groupFox.add;
+                    this.add
+                        .image(
+                            (this.cameras.main.width * 9) / 10,
+                            (this.cameras.main.height * 4) / 6,
+                            "foxHeadDead"
+                        )
+                        .setDisplaySize(80, 80);
+                    this.add
+                        .image(
+                            (this.cameras.main.width * 9) / 10,
+                            (this.cameras.main.height * 4) / 6,
+                            "failed"
+                        )
+                        .setDisplaySize(80, 80);
+                }
+            }
+            //기존의플레이어 업데이트
+            this.prevPlayer = nowPlayer;
+        }
+    }
+
+    ///
 
     showTopCenterMessage(data) {
         const { phase, finishAfterMilliSec } = data;
@@ -162,7 +378,7 @@ export default class GameUI extends Phaser.Scene {
                 },
             }
         );
-        text.setOrigin(0.5, 0.5);
+        text.setOrigin(0.6, 0.6);
         this.tweens.add({
             targets: text,
             alpha: 0,
