@@ -8,6 +8,7 @@ import com.ssafy.a410.common.exception.UnhandledException;
 import com.ssafy.a410.game.domain.Pos;
 import com.ssafy.a410.game.domain.game.item.ItemUseReq;
 import com.ssafy.a410.game.domain.game.message.DirectionHintMessage;
+import com.ssafy.a410.game.domain.game.message.EliminationOutOfSafeZoneMessage;
 import com.ssafy.a410.game.domain.game.message.control.*;
 import com.ssafy.a410.game.domain.game.message.control.item.ItemApplicationFailedMessage;
 import com.ssafy.a410.game.domain.game.message.control.item.ItemAppliedMessage;
@@ -28,6 +29,9 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.ssafy.a410.common.exception.ErrorDetail.PLAYER_NOT_IN_ROOM;
@@ -35,7 +39,11 @@ import static com.ssafy.a410.common.exception.ErrorDetail.PLAYER_NOT_IN_ROOM;
 @Getter
 @Slf4j
 public class Game extends Subscribable implements Runnable {
-    private static final int TOTAL_ROUND = 3;
+
+    private static final int SAFE_ZONE_REDUCE_AMOUNT = 100;
+    private static final int SAFE_ZONE_REDUCE_DURATION = 10;
+
+    private static final int TOTAL_ROUND = 5;
     // 게임 맵
     private final GameMap gameMap;
     // 플레이어들이 속해 있는 방
@@ -50,6 +58,8 @@ public class Game extends Subscribable implements Runnable {
     private final UserService userService;
     // 현재 게임이 머물러 있는 상태(단계)
     private Phase currentPhase;
+
+    private int round;
 
     public Game(Room room, MessageBroadcastService broadcastService, UserService userService) {
         this.room = room;
@@ -75,7 +85,7 @@ public class Game extends Subscribable implements Runnable {
     private void initialize() {
         // 초기화 시작 (게임 진입 불가)
         this.currentPhase = Phase.INITIALIZING;
-
+        this.round = 0;
         // 랜덤으로 플레이어 편 나누기
         randomAssignPlayersToTeam();
         // 나눠진 각 팀 플레이어들의 초기 위치 지정
@@ -153,7 +163,8 @@ public class Game extends Subscribable implements Runnable {
     @Override
     public void run() {
         initializeGame();
-        for (int round = 1; round <= TOTAL_ROUND && !isGameFinished(); round++) {
+        for (round = 1; round <= TOTAL_ROUND && !isGameFinished(); round++) {
+
             // 라운드 변경 알림
             log.debug("Room {} round {} start =======================================", room.getRoomNumber(), round);
             broadcastService.broadcastTo(this, new RoundChangeControlMessage(round, TOTAL_ROUND));
@@ -168,8 +179,8 @@ public class Game extends Subscribable implements Runnable {
 
             log.debug("Room {} END Phase start --------------------------------------", room.getRoomNumber());
             runEndPhase();
+            reduceSafeZoneWithElimination();
             resetSeekCount();
-
             exitPlayers();
             resetHPObjects();
             swapTeam();
@@ -296,18 +307,19 @@ public class Game extends Subscribable implements Runnable {
     // 준비 페이즈 동안 안 숨은 플레이어들을 찾아서 탈락 처리한다.
     private void eliminateUnhidePlayers() {
         Map<String, Player> hidingTeamPlayers = hidingTeam.getPlayers();
+        Map<String, HPObject> hpObjects = gameMap.getHpObjects();
 
-        // 현재 게임 맵에서 숨은 상태에 있는 플레이어들을 나타냄
-        Set<String> hpObjectKeys = gameMap.getHpObjects().keySet();
-
-        // 숨는 역할 팀의 모든 플레이어에 대해 반복
-        for (Map.Entry<String, Player> entry : hidingTeamPlayers.entrySet()) {
-            String playerId = entry.getKey();
-            Player player = entry.getValue();
-
-            // 만약 플레이어는 숨지 않았을 경우
-            if (!hpObjectKeys.contains(playerId)) {
-                // 플레이어 탈락 처리
+        // 안 숨은 플레이어를 찾는 2중 반복문
+        for (Player player : hidingTeamPlayers.values()) {
+            boolean isHide = false;
+            for (HPObject hpObject : hpObjects.values()) {
+                if (hpObject.getPlayer() == player) {
+                    isHide = true;
+                    break;
+                }
+            }
+            // 안 숨었을 경우 탈락 처리
+            if (!isHide) {
                 player.eliminate();
             }
         }
@@ -405,9 +417,12 @@ public class Game extends Subscribable implements Runnable {
 
     // player는 현재 사용하지 않지만, 후에 "player가 나갔습니다" 를 뿌려줄까봐 유지함
     public void notifyDisconnection(Player player) {
+
+        String team = this.getPlayerTeam(player);
+
         GameControlMessage message = new GameControlMessage(
                 GameControlType.PLAYER_DISCONNECTED,
-                RoomMemberInfo.getAllInfoListFrom(this.getRoom())
+                Map.of("playerId", player.getId(), "team", team, "roomInfo", RoomMemberInfo.getAllInfoListFrom(this.getRoom()))
         );
         broadcastService.broadcastTo(this, message);
     }
@@ -644,5 +659,47 @@ public class Game extends Subscribable implements Runnable {
         sortedStats.put("FOX", foxTeamStats);
 
         return sortedStats;
+    }
+
+    private void sendSafeZoneUpdate() {
+        List<Integer> corners = gameMap.getSafeZoneCorners();
+        broadcastService.broadcastTo(this, new SafeZoneUpdateMessage(corners));
+    }
+
+    private void reduceSafeZoneWithElimination() {
+
+        // 맵 축소
+        gameMap.reduceSafeArea(TOTAL_ROUND, round);
+        // 안전구역 알림
+        sendSafeZoneUpdate();
+
+        // 10초 후 안전구역 바깥에 있는 플레이어들 탈락처리 메소드 예약
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+        scheduler.schedule(this::eliminatePlayersOutsideSafeZone, SAFE_ZONE_REDUCE_DURATION, TimeUnit.SECONDS);
+    }
+
+    // 안전구역 바깥에 있는 플레이어들 탈락처리
+    private void eliminatePlayersOutsideSafeZone() {
+        List<Player> allPlayers = new ArrayList<>(room.getPlayers().values());
+
+        for (Player player : allPlayers) {
+            if (!gameMap.isInSafeZone(player)) {
+                player.eliminateOutOfSafeZone();
+                String team = getPlayerTeam(player);
+                EliminationOutOfSafeZoneMessage message = new EliminationOutOfSafeZoneMessage(player.getId(), team);
+                broadcastService.broadcastTo(this, message);
+                broadcastService.unicastTo(player, message);
+            }
+        }
+    }
+
+    public String getPlayerTeam(Player player) {
+        if (hidingTeam.has(player)) {
+            return hidingTeam.getCharacter() == Team.Character.RACOON ? "RACOON" : "FOX";
+        } else if (seekingTeam.has(player)) {
+            return seekingTeam.getCharacter() == Team.Character.RACOON ? "RACOON" : "FOX";
+        } else {
+            throw new ResponseException(PLAYER_NOT_IN_ROOM);
+        }
     }
 }
