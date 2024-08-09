@@ -157,7 +157,9 @@ export default class GameRepository {
             case ELIMINATION_OUT_OF_SAFE_ZONE:
                 //맵축소
                 this.#handleCurrentEliminatedPlayerAndTeam(data);
-                console.log(`플레이어 ${data.playerId}님이 안전구역을 벗어나 탈락하셨습니다.`);
+                console.log(
+                    `플레이어 ${data.playerId}님이 안전구역을 벗어나 탈락하셨습니다.`
+                );
                 break;
             default:
                 console.error("Received unknown message:", message);
@@ -525,12 +527,21 @@ export default class GameRepository {
     }
 
     //ui업데이트
-    #handleCurrentEliminatedPlayerAndTeam(data){
-        const currentPlayerAndTeam = data;
-        this.#currentEliminatedPlayerAndTeam = currentPlayerAndTeam;
+    #handleCurrentEliminatedPlayerAndTeam(data) {
+        const { playerId, team } = data;
+        this.#setDeadPlayerWithId(playerId, team);
     }
 
     getCurrentEliminatedPlayerAndTeam() {
         return this.#currentEliminatedPlayerAndTeam;
+    }
+
+    #setDeadPlayerWithId(playerId, teamCharacter) {
+        const team =
+            teamCharacter === "RACOON" ? this.#racoonTeam : this.#foxTeam;
+        const player = team
+            .getPlayers()
+            .find((player) => player.getPlayerId() === playerId);
+        player.setDead();
     }
 }

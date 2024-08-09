@@ -52,6 +52,10 @@ export class Player {
         this.#isDead = true;
     }
 
+    getIsdead() {
+        return this.#isDead;
+    }
+
     isRacoonTeam() {
         return this.#team.getCharacter().toLowerCase() === "racoon";
     }
