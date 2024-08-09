@@ -1,45 +1,46 @@
 import React, { useState, useEffect } from "react";
 import { RouterProvider } from "react-router-dom";
 import router from "../src/router/router";
+import axios from "../src/network/AxiosClient";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Popup from "./components/Popup"; // Popup 컴포넌트 import
-// import { LOBBY_ROUTE_PATH } from "../Lobby/Lobby";
+import Popup from "./components/Popup";
+import { LOBBY_ROUTE_PATH } from "../src/pages/Lobby/Lobby";
+import { ROOM_JOIN_ROUTE_PATH } from "./pages/Lobby/RoomJoin";
 
 function App() {
     const [isPopupVisible, setPopupVisible] = useState(false);
+    const [roomNumber, setRoomNumber] = useState(null);
 
     useEffect(() => {
-        const handlePhaseFinished = () => {
+        const handlePhaseGameEnd = (event) => {
+            const roomNumber = event.detail.roomNumber;
+            setRoomNumber(roomNumber);
             setPopupVisible(true);
         };
 
-        window.addEventListener("phaseFinished", handlePhaseFinished);
+        window.addEventListener("GAME_END", handlePhaseGameEnd);
 
         return () => {
-            window.removeEventListener("phaseFinished", handlePhaseFinished);
+            window.removeEventListener("GAME_END", handlePhaseGameEnd);
         };
     }, []);
 
-    const handleExit = async (e) => {
+    const handleReturnToWaitingRoom = async (e) => {
+        navigate(ROOM_JOIN_ROUTE_PATH);
+        setPopupVisible(false);
+    };
+
+    const handleReturnToLobby = async () => {
         try {
-            const res = await axios.post(`/api/rooms/${roomNumber}/leave`, {
-                password: roomPassword,
-            });
+            const res = await axios.post(`/api/rooms/${roomNumber}/leave`);
 
             if (res.status === 200) {
-                // navigate(LOBBY_ROUTE_PATH);
+                navigate(LOBBY_ROUTE_PATH);
             }
         } catch (error) {
             console.log(error);
         }
-        setPopupVisible(false);
-    };
-
-    const handleReturnToLobby = () => {
-        // 방으로 돌아가기 로직 구현
-        console.log("Return to Lobby");
-        // 필요한 추가 방으로 돌아가기 로직
         setPopupVisible(false);
     };
 
@@ -49,7 +50,7 @@ function App() {
             <ToastContainer />
             <Popup
                 visible={isPopupVisible}
-                onExit={handleExit}
+                onExit={handleReturnToWaitingRoom}
                 onReturnToLobby={handleReturnToLobby}
             />
         </div>
