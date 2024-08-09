@@ -18,6 +18,14 @@ export default class GameUI extends Phaser.Scene {
                 clearInterval(gameRepositoryTrial);
             }
         }, 60);
+
+        // 화면에 표시되어 있는 각 팀 플레이어 수
+        this.drawnRacoonHeads = 0;
+        this.drawnFoxHeads = 0;
+
+        // 화면에 표시되어 있는 각 팀 죽은 플레이어 수
+        this.deadRacoonHeads = 0;
+        this.deadFoxHeads = 0;
     }
 
     preload() {
@@ -33,83 +41,44 @@ export default class GameUI extends Phaser.Scene {
         );
     }
 
+    #getNumOfRacoons() {
+        return this.gameRepository.getRacoonTeam().getPlayers().length;
+    }
+
+    #getNumOfDeadRacoons() {
+        return this.gameRepository
+            .getRacoonTeam()
+            .getPlayers()
+            .filter((player) => player.getIsdead()).length;
+    }
+
+    #getNumOfFoxes() {
+        return this.gameRepository.getFoxTeam().getPlayers().length;
+    }
+
+    #getNumOfDeadFoxes() {
+        return this.gameRepository
+            .getFoxTeam()
+            .getPlayers()
+            .filter((player) => player.getIsdead()).length;
+    }
+
     create() {
         //초기화
         this.prevPlayer = null;
-        this.racoonNum = 4;
-        this.foxNum = 4;
 
         this.groupRacoon = this.add.group();
         this.groupFox = this.add.group();
 
-        this.groupFox.add;
-        this.add
+        //프로그래스 바
+        this.groupTimer = this.add
             .image(
-                (this.cameras.main.width * 9) / 10,
-                (this.cameras.main.height * 1) / 6,
-                "foxHeadAlive"
+                this.cameras.main.width / 2,
+                this.cameras.main.height + 10,
+                "timer-progress-bar-background"
             )
-            .setDisplaySize(80, 80),
-            this.add
-                .image(
-                    (this.cameras.main.width * 9) / 10,
-                    (this.cameras.main.height * 2) / 6,
-                    "foxHeadAlive"
-                )
-                .setDisplaySize(80, 80),
-            this.add
-                .image(
-                    (this.cameras.main.width * 9) / 10,
-                    (this.cameras.main.height * 3) / 6,
-                    "foxHeadAlive"
-                )
-                .setDisplaySize(80, 80),
-            this.add
-                .image(
-                    (this.cameras.main.width * 9) / 10,
-                    (this.cameras.main.height * 4) / 6,
-                    "foxHeadAlive"
-                )
-                .setDisplaySize(80, 80),
-            //라쿤 그룹에 추가
-            this.groupRacoon.add;
-        this.add
-            .image(
-                this.cameras.main.width / 10,
-                (this.cameras.main.height * 1) / 6,
-                "racoonHeadAlive"
-            )
-            .setDisplaySize(80, 80),
-            this.add
-                .image(
-                    this.cameras.main.width / 10,
-                    (this.cameras.main.height * 2) / 6,
-                    "racoonHeadAlive"
-                )
-                .setDisplaySize(80, 80),
-            this.add
-                .image(
-                    this.cameras.main.width / 10,
-                    (this.cameras.main.height * 3) / 6,
-                    "racoonHeadAlive"
-                )
-                .setDisplaySize(80, 80),
-            this.add
-                .image(
-                    this.cameras.main.width / 10,
-                    (this.cameras.main.height * 4) / 6,
-                    "racoonHeadAlive"
-                )
-                .setDisplaySize(80, 80),
-            //프로그래스 바
-            (this.groupTimer = this.add
-                .image(
-                    this.cameras.main.width / 2,
-                    this.cameras.main.height + 10,
-                    "timer-progress-bar-background"
-                )
-                .setOrigin(0.6, 1)
-                .setDisplaySize(this.cameras.main.width * 0.76, 60));
+            .setOrigin(0.6, 1)
+            .setDisplaySize(this.cameras.main.width * 0.76, 60);
 
         // Add progress bar(red rectangle) on bar background
         this.progressBar = this.add
@@ -121,7 +90,6 @@ export default class GameUI extends Phaser.Scene {
                 "0xFFB22C"
             )
             .setOrigin(0, 0.6);
-
     }
 
     updateProgressBar() {
@@ -146,7 +114,7 @@ export default class GameUI extends Phaser.Scene {
     }
 
     update() {
-        //ui 이미지 추가 
+        //ui 이미지 추가
         this.updateImage();
 
         if (uiControlQueue.hasGameUiControlMessage()) {
@@ -168,170 +136,89 @@ export default class GameUI extends Phaser.Scene {
     }
 
     updateImage() {
-        if (!this.gameRepository.getCurrentEliminatedPlayerAndTeam()) {
-            return;
+        // 화면에 아직 그려지지 않은 기본 머리 스프라이트만 새로 그려줌
+        if (this.drawnFoxHeads < this.#getNumOfFoxes()) {
+            for (
+                let num = this.drawnFoxHeads + 1;
+                num <= this.#getNumOfFoxes();
+                num++
+            ) {
+                this.add
+                    .image(
+                        (this.cameras.main.width * 9) / 10,
+                        (this.cameras.main.height * num) / 6,
+                        "foxHeadAlive"
+                    )
+                    .setDisplaySize(80, 80);
+            }
+            // 머리 개수 갱신
+            this.drawnFoxHeads = this.#getNumOfFoxes();
+        }
+        if (this.drawnRacoonHeads < this.#getNumOfRacoons()) {
+            for (
+                let num = this.drawnRacoonHeads + 1;
+                num <= this.#getNumOfRacoons();
+                num++
+            ) {
+                this.add
+                    .image(
+                        this.cameras.main.width / 10,
+                        (this.cameras.main.height * num) / 6,
+                        "racoonHeadAlive"
+                    )
+                    .setDisplaySize(80, 80);
+            }
+            this.drawnRacoonHeads = this.#getNumOfRacoons();
         }
 
-        const EliminatedPlayerAndTeam =
-            this.gameRepository.getCurrentEliminatedPlayerAndTeam();
-        const prevPlayer = this.prevPlayer; // 이전에 탈락한플레이어, create에서 null로 초기화되어있음
-        const nowPlayer = EliminatedPlayerAndTeam.playerId; // 현재 탈락한 플레이어
-
-        //새로운 플레이어 찾을떄마다 이미지 덮어서 로드
-        // 죽은 이미지 && failed 이미지 
-        if (prevPlayer !== nowPlayer) {
-            if (EliminatedPlayerAndTeam.team === "RACOON") {
-                if (this.racoonNum === 4) {
-                    console.log("첫 번째 너구리 탈락");
-                    this.groupRacoon.add;
-                    this.add
-                        .image(
-                            this.cameras.main.width / 10 - 3,
-                            (this.cameras.main.height * 1 + 3) / 6,
-                            "racoonHeadDead"
-                        )
-                        .setDisplaySize(80, 80);
-                    this.add
-                        .image(
-                            this.cameras.main.width / 10 - 3,
-                            (this.cameras.main.height * 1 + 3) / 6,
-                            "failed"
-                        )
-                        .setDisplaySize(80, 80);
-                    this.racoonNum--;
-                } else if (this.racoonNum === 3) {
-                    console.log("두 번째 너구리 탈락");
-                    this.groupRacoon.add;
-                    this.add
-                        .image(
-                            this.cameras.main.width / 10 - 3,
-                            (this.cameras.main.height * 2 + 3) / 6,
-                            "racoonHeadDead"
-                        )
-                        .setDisplaySize(80, 80);
-                    this.add
-                        .image(
-                            this.cameras.main.width / 10 - 3,
-                            (this.cameras.main.height * 2 + 3) / 6,
-                            "failed"
-                        )
-                        .setDisplaySize(80, 80);
-                    this.racoonNum--;
-                } else if (this.racoonNum === 2) {
-                    console.log("세 번째 너구리 탈락");
-                    this.groupRacoon.add;
-                    this.add
-                        .image(
-                            this.cameras.main.width / 10 - 3,
-                            (this.cameras.main.height * 3 + 3) / 6,
-                            "racoonHeadAlive"
-                        )
-                    this.add
-                        .image(
-                            this.cameras.main.width / 10 - 3,
-                            (this.cameras.main.height * 3 + 3) / 6,
-                            "failed"
-                        )
-                        .setDisplaySize(80, 80);
-                    this.racoonNum--;
-                } else {
-                    console.log("마지막 너구리 탈락");
-                    this.groupRacoon.add;
-                    this.add
-                        .image(
-                            this.cameras.main.width / 10 - 3,
-                            (this.cameras.main.height * 4 + 3) / 6,
-                            "racoonHeadAlive"
-                        )
-                        .setDisplaySize(80, 80);
-                    this.add
-                        .image(
-                            this.cameras.main.width / 10 - 3,
-                            (this.cameras.main.height * 4 + 3) / 6,
-                            "failed"
-                        )
-                        .setDisplaySize(80, 80);
-                }
-            } else {
-                if (this.foxNum === 4) {
-                    console.log("첫 번째 여우 탈락");
-                    this.groupFox.add;
-                    this.add
-                        .image(
-                            (this.cameras.main.width * 9) / 10,
-                            (this.cameras.main.height * 1) / 6,
-                            "foxHeadDead"
-                        )
-                        .setDisplaySize(80, 80);
-                    this.add
-                        .image(
-                            (this.cameras.main.width * 9) / 10,
-                            (this.cameras.main.height * 1) / 6,
-                            "failed"
-                        )
-                        .setDisplaySize(80, 80);
-                    this.foxNum--;
-                } else if (this.foxNum === 3) {
-                    console.log("두 번째 여우 탈락");
-                    this.groupFox.add;
-                    this.add
-                        .image(
-                            (this.cameras.main.width * 9) / 10,
-                            (this.cameras.main.height * 2) / 6,
-                            "foxHeadDead"
-                        )
-                        .setDisplaySize(80, 80);
-                    this.add
-                        .image(
-                            (this.cameras.main.width * 9) / 10,
-                            (this.cameras.main.height * 2) / 6,
-                            "failed"
-                        )
-                        .setDisplaySize(80, 80);
-                    this.foxNum--;
-                } else if (this.racoonNum === 2) {
-                    console.log("세 번째 여우 탈락");
-                    this.groupFox.add;
-                    this.add
-                        .image(
-                            (this.cameras.main.width * 9) / 10,
-                            (this.cameras.main.height * 3) / 6,
-                            "foxHeadDead"
-                        )
-                        .setDisplaySize(80, 80);
-                    this.add
-                        .image(
-                            (this.cameras.main.width * 9) / 10,
-                            (this.cameras.main.height * 3) / 6,
-                            "failed"
-                        )
-                        .setDisplaySize(80, 80);
-                    this.foxNum--;
-                } else {
-                    console.log("마지막 여우 탈락");
-                    this.groupFox.add;
-                    this.add
-                        .image(
-                            (this.cameras.main.width * 9) / 10,
-                            (this.cameras.main.height * 4) / 6,
-                            "foxHeadDead"
-                        )
-                        .setDisplaySize(80, 80);
-                    this.add
-                        .image(
-                            (this.cameras.main.width * 9) / 10,
-                            (this.cameras.main.height * 4) / 6,
-                            "failed"
-                        )
-                        .setDisplaySize(80, 80);
-                }
+        // 죽은 머리 스프라이트만 새로 그려줌
+        if (this.deadFoxHeads < this.#getNumOfDeadFoxes()) {
+            for (
+                let num = this.deadFoxHeads + 1;
+                num <= this.#getNumOfDeadFoxes();
+                num++
+            ) {
+                this.add
+                    .image(
+                        this.cameras.main.width * 0.9,
+                        (this.cameras.main.height * num) / 6,
+                        "foxHeadDead"
+                    )
+                    .setDisplaySize(80, 80);
+                this.add
+                    .image(
+                        this.cameras.main.width * 0.9,
+                        (this.cameras.main.height * num) / 6,
+                        "failed"
+                    )
+                    .setDisplaySize(80, 80);
             }
-            //기존의플레이어 업데이트
-            this.prevPlayer = nowPlayer;
+            this.deadFoxHeads = this.#getNumOfDeadFoxes();
+        }
+
+        if (this.deadRacoonHeads < this.#getNumOfDeadRacoons()) {
+            for (
+                let num = this.deadRacoonHeads + 1;
+                num <= this.#getNumOfDeadRacoons();
+                num++
+            ) {
+                this.add
+                    .image(
+                        this.cameras.main.width / 10 - 3,
+                        (this.cameras.main.height * num + 3) / 6,
+                        "racoonHeadDead"
+                    )
+                    .setDisplaySize(80, 80);
+                this.add
+                    .image(
+                        this.cameras.main.width / 10 - 3,
+                        (this.cameras.main.height * num + 3) / 6,
+                        "failed"
+                    )
+                    .setDisplaySize(80, 80);
+            }
         }
     }
-
-    ///
 
     showTopCenterMessage(data) {
         const { phase, finishAfterMilliSec } = data;
