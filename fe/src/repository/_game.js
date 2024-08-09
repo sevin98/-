@@ -59,7 +59,7 @@ export class Phase {
     // 다음 라운드를 위해 기존의 게임 상태를 정리하고 있는 상태
     static END = "END";
     // 게임이 끝난 상태
-    static FINISHED = "FINISHED";
+    static GAME_END = "GAME_END";
 }
 
 export default class GameRepository {
@@ -250,13 +250,18 @@ export default class GameRepository {
             // 한 라운드가 끝나면 역할 반전
             this.#racoonTeam.setIsHidingTeam(!this.#racoonTeam.isHidingTeam());
             this.#foxTeam.setIsHidingTeam(!this.#foxTeam.isHidingTeam());
-        } else if (this.#currentPhase === Phase.FINISHED) {
-            window.dispatchEvent(new CustomEvent('phaseFinished'))
+        } else if (this.#currentPhase === Phase.GAME_END) {
+            this.#setIsEnd();
         }
     }
 
     #handleGameEndEvent() {
         this.#setIsEnd();
+        window.dispatchEvent(new CustomEvent('GAME_END', {
+            detail: {
+                roomNumber: this.#roomNumber
+            }
+        }));
     }
 
     #setIsEnd() {
