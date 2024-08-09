@@ -100,7 +100,7 @@ public class MemoryBasedRoomService implements RoomService {
             throw new ResponseException(PLAYER_NOT_IN_ROOM);
         }
         room.kick(player);
-        room.notifyDisconnection(player);
+        room.notifyDisconnection(new Room.DisconnectedPlayerInfo(player));
 
         if (room.getPlayers().isEmpty())
             rooms.remove(room.getRoomNumber());
@@ -166,6 +166,14 @@ public class MemoryBasedRoomService implements RoomService {
         }
 
         return roomsWithLessThanEightPlayers;
+    }
+
+    @Override
+    public Room getRoomHasDisconnectedPlayerInfoWithId(String playerId) {
+        return rooms.values().stream()
+                .filter(room -> room.hasDisconnectedPlayerWithId(playerId))
+                .findFirst()
+                .orElse(null);
     }
 
 
