@@ -207,6 +207,7 @@ export class game extends Phaser.Scene {
                 this.localPlayer.visible = true;
                 this.localPlayer.disallowMove();
                 this.shownHintForCurrentPhase = false;
+                this.roomRepository.setDirectionHints();
             }
             // 메인 페이즈에
             else if (this.gameRepository.getCurrentPhase() === Phase.MAIN) {
@@ -237,9 +238,9 @@ export class game extends Phaser.Scene {
 
                             this.hintImages[direction].setScale(0.04);
     
-                            // 1.5초 후에 이미지를 제거
+                            // 2.5초 후에 이미지를 제거
                             this.time.addEvent({
-                                delay: 1500,
+                                delay: 2500,
                                 callback: () => {
                                     if (this.hintImages[direction]) {
                                         this.hintImages[direction].destroy();
