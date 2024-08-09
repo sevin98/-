@@ -6,8 +6,7 @@
     height: 100%;
     padding-top: 3%;
     background-image: url("/image/pixel-background.png");
-    background-size: 100%;
-    /* 또는 100% 100%로 유지할 수 있습니다 */
+    background-size: 100% 100%;
     background-repeat: repeat-x;
     /* 수평으로 반복 */
     animation: scroll-background 100s linear infinite;
