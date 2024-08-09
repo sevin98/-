@@ -2,6 +2,7 @@ package com.ssafy.a410.game.domain.game;
 
 import com.ssafy.a410.auth.model.entity.UserProfileEntity;
 import com.ssafy.a410.auth.service.UserService;
+import com.ssafy.a410.common.constant.MilliSecOf;
 import com.ssafy.a410.common.exception.ErrorDetail;
 import com.ssafy.a410.common.exception.ResponseException;
 import com.ssafy.a410.common.exception.UnhandledException;
@@ -114,15 +115,15 @@ public class Game extends Subscribable implements Runnable {
         }
 
         // 각팀에 모자란 인원 만큼 봇으로 채워넣기
-        for (int i = 0; i < 4 - hidingTeam.getPlayers().size(); i++) {
-            Player bot = createBot();
-            hidingTeam.addPlayer(bot);
-        }
-
-        for (int i = 0; i < 4 - seekingTeam.getPlayers().size(); i++) {
-            Player bot = createBot();
-            seekingTeam.addPlayer(bot);
-        }
+//        for(int i = 0 ; i < 4 - hidingTeam.getPlayers().size(); i ++){
+//            Player bot = createBot();
+//            hidingTeam.addPlayer(bot);
+//        }
+//
+//        for(int i = 0 ; i < 4 - seekingTeam.getPlayers().size(); i ++){
+//            Player bot = createBot();
+//            seekingTeam.addPlayer(bot);
+//        }
     }
 
     private Player createBot() {
@@ -162,16 +163,24 @@ public class Game extends Subscribable implements Runnable {
 
     @Override
     public void run() {
+        log.info("방 {} 게임 초기화", room.getRoomNumber());
         initializeGame();
-        for (round = 1; round <= TOTAL_ROUND && !isGameFinished(); round++) {
 
+        // 클라이언트가 초기화 할 시간 주기
+        try {
+            Thread.sleep(2L * MilliSecOf.SECONDS);
+        } catch (InterruptedException e) {
+            throw new UnhandledException("Game start interrupted");
+        }
+
+        for (int round = 1; round <= TOTAL_ROUND && !isEnd(); round++) {
             // 라운드 변경 알림
             log.debug("Room {} round {} start =======================================", room.getRoomNumber(), round);
             broadcastService.broadcastTo(this, new RoundChangeControlMessage(round, TOTAL_ROUND));
 
             log.debug("Room {} READY Phase start ------------------------------------", room.getRoomNumber());
             runReadyPhase();
-            hideBotPlayers();
+//            hideBotPlayers();
             eliminateUnhidePlayers();
 
             log.debug("Room {} MAIN Phase start -------------------------------------", room.getRoomNumber());
@@ -185,6 +194,16 @@ public class Game extends Subscribable implements Runnable {
             resetHPObjects();
             swapTeam();
         }
+
+        // 루프 안에서 게임 승패가 갈리지 않은 경우
+        if (this.currentPhase != Phase.FINISHED) {
+            // 게임이 끝났을 때
+            log.debug("Room {} Game finished --------------------------------------", room.getRoomNumber());
+            // 종료 처리 및 승패 판정
+            setGameFinished();
+            checkForVictory();
+        }
+
         room.endGame();
         resetAllItems();
         runFinishedPhase();
@@ -200,9 +219,11 @@ public class Game extends Subscribable implements Runnable {
     }
 
     // 게임의 승패가 결정되었는지 확인
-    private boolean isGameFinished() {
-        // TODO : Implement game finish logic
-        return hidingTeam.isEmpty() && seekingTeam.isEmpty();
+    private boolean isEnd() {
+        boolean hasRestPlayers = !hidingTeam.isEmpty() || !seekingTeam.isEmpty();
+        boolean isRacoonTeamAllEliminated = getRacoonTeam().isAllPlayerEliminated();
+        boolean isFoxTeamAllEliminated = getFoxTeam().isAllPlayerEliminated();
+        return (this.currentPhase == Phase.FINISHED) || !hasRestPlayers || (isRacoonTeamAllEliminated || isFoxTeamAllEliminated);
     }
 
     private void initializeGame() {
@@ -219,14 +240,11 @@ public class Game extends Subscribable implements Runnable {
             Team playerTeam = hidingTeam.has(player) ? hidingTeam : seekingTeam;
             PlayerInitializeMessage message = new PlayerInitializeMessage(info, playerTeam);
             broadcastService.unicastTo(player, message);
-        }
 
-        // 같은 팀 플레이어들의 초기 위치를 전송
-        for (Player player : hidingTeam.getPlayers().values()) {
-            broadcastService.broadcastTo(hidingTeam, new PlayerPositionMessage(new PlayerPosition(player)));
-        }
-        for (Player player : seekingTeam.getPlayers().values()) {
-            broadcastService.broadcastTo(seekingTeam, new PlayerPositionMessage(new PlayerPosition(player)));
+            // 양 팀에 소속된 플레이어들에게 최초 위치는 송신
+            PlayerPositionMessage positionMessage = new PlayerPositionMessage(info);
+            broadcastService.broadcastTo(hidingTeam, positionMessage);
+            broadcastService.broadcastTo(seekingTeam, positionMessage);
         }
     }
 
@@ -250,7 +268,7 @@ public class Game extends Subscribable implements Runnable {
 
         // 제한 시간이 끝날 때까지 루프 반복
         final long TIME_TO_SWITCH = System.currentTimeMillis() + Phase.READY.getDuration();
-        while (!isTimeToSwitch(TIME_TO_SWITCH) && !isGameFinished()) {
+        while (!isTimeToSwitch(TIME_TO_SWITCH) && !isEnd()) {
             // 현 시점까지 들어와 있는 요청까지만 처리
             final int NUM_OF_MESSAGES = hidingTeamRequests.size();
             for (int cnt = 0; cnt < NUM_OF_MESSAGES; cnt++) {
@@ -258,6 +276,18 @@ public class Game extends Subscribable implements Runnable {
                 Player player = hidingTeam.getPlayerWithId(request.getPlayerId());
                 request.handle(player, hidingTeam, this, broadcastService);
             }
+
+            // 봇 플레이어들의 위치 전송
+//            for (Player player : hidingTeam.getPlayers().values()) {
+//                if (player.isBot()) {
+                    // 현재 위치를 기준으로 랜덤하게 옆으로 위치 옮겨주기
+//                    player.setX(player.getPos().getX() + 0.0001);
+//                    player.setY(player.getPos().getY() + 0.0001);
+//                    // 방향 랜덤 지정
+//                    player.setDirection(PlayerDirection.values()[(int) (Math.random() * 4)]);
+//                    broadcastService.broadcastTo(hidingTeam, new PlayerPositionMessage(new PlayerPosition(player)));
+//                }
+//            }
         }
     }
 
@@ -319,11 +349,12 @@ public class Game extends Subscribable implements Runnable {
                 }
             }
             // 안 숨었을 경우 탈락 처리
-            if (!isHide) {
+            if (!isHide && !player.isEliminated()) {
                 player.eliminate();
             }
         }
     }
+
 
 
     private void runMainPhase() {
@@ -348,7 +379,7 @@ public class Game extends Subscribable implements Runnable {
 
         // 제한 시간이 끝날 때까지 루프 반복
         final long TIME_TO_SWITCH = System.currentTimeMillis() + Phase.MAIN.getDuration();
-        while (!isTimeToSwitch(TIME_TO_SWITCH) && !isGameFinished()) {
+        while (!isTimeToSwitch(TIME_TO_SWITCH) && !isEnd()) {
             // 현 시점까지 들어와 있는 요청까지만 처리
             final int NUM_OF_MESSAGES = seekingTeamRequests.size();
             for (int cnt = 0; cnt < NUM_OF_MESSAGES; cnt++) {
@@ -356,6 +387,19 @@ public class Game extends Subscribable implements Runnable {
                 Player player = seekingTeam.getPlayerWithId(request.getPlayerId());
                 request.handle(player, seekingTeam, this, broadcastService);
             }
+
+            // 봇 플레이어들의 위치 전송
+//            for (Player player : seekingTeam.getPlayers().values()) {
+//                if (player.isBot()) {
+                    // 현재 위치를 기준으로 랜덤하게 옆으로 위치 옮겨주기
+//                    player.setX(player.getPos().getX() + 0.0001);
+//                    player.setY(player.getPos().getY() + 0.0001);
+//                    player.setDirection(PlayerDirection.values()[(int) (Math.random() * 4)]);
+//                    PlayerPositionMessage message = new PlayerPositionMessage(new PlayerPosition(player));
+//                    broadcastService.broadcastTo(seekingTeam, message);
+//                    broadcastService.broadcastTo(hidingTeam, message);
+//                }
+//            }
         }
     }
 
@@ -466,6 +510,13 @@ public class Game extends Subscribable implements Runnable {
             // 숨는 팀의 승리
             endGame(hidingTeam);
         }
+        // 승패가 결정나지 않았는데 게임 시간이 끝났다면
+        // WARNING : endGame 안에서 Phase.FINISHED로 업데이트 되기 때문에
+        // 아래 코드는 if가 아니라 else if로 작성된 것이므로 수정 시 고려해야 함
+        else if (this.getCurrentPhase() == Phase.FINISHED) {
+            // 숨는 팀의 승리
+            endGame(hidingTeam);
+        }
     }
 
     // 팀원이 전부 Eliminated되었는지 확인
@@ -480,13 +531,14 @@ public class Game extends Subscribable implements Runnable {
 
     private void endGame(Team winningTeam) {
         // 승리 팀을 알리고, 게임을 종료하고, 결과를 저장하는 등
-        GameInfo gameInfo = new GameInfo(this);
-        broadcastService.broadcastTo(this, gameInfo);
+        broadcastService.broadcastTo(this, new GameEndMessage());
 
         // 승패팀을 찾아서 전적을 업데이트 시켜준다.
         Team losingTeam = (winningTeam == hidingTeam) ? seekingTeam : hidingTeam;
         updatePlayerStats(winningTeam, losingTeam);
 
+        // 게임 종료 처리
+        this.setGameFinished();
         room.endGame();
     }
 
@@ -701,5 +753,9 @@ public class Game extends Subscribable implements Runnable {
         } else {
             throw new ResponseException(PLAYER_NOT_IN_ROOM);
         }
+    }
+
+    public void setGameFinished() {
+        this.currentPhase = Phase.FINISHED;
     }
 }

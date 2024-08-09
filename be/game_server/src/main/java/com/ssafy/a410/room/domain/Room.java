@@ -174,7 +174,6 @@ public class Room extends Subscribable {
             throw new UnhandledException("Game start interrupted");
         }
 
-        log.info("방 {}의 게임이 시작되었습니다.", roomNumber);
         gameThread = new Thread(playingGame);
         gameThread.start();
     }
@@ -190,7 +189,6 @@ public class Room extends Subscribable {
     }
 
     public void notifyDisconnection(Player player) {
-
         Game game = this.playingGame;
         if (game == null) throw new ResponseException(PLAYER_NOT_IN_ROOM);
 

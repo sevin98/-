@@ -23,7 +23,6 @@ export class HandlePlayerMove {
 
         this.roomRepository = getRoomRepository();
         this.gameRepository = this.roomRepository.getGameRepository();
-        // const { x, y, direction } = this.gameRepository.getPosition();
     }
 
     freezePlayerMovement() {
@@ -34,7 +33,9 @@ export class HandlePlayerMove {
     }
 
     canMove() {
-        const currentPhase = this.gameRepository.getCurrentPhase();
+        const currentPhase = this.roomRepository
+            .getGameRepository()
+            .getCurrentPhase();
         return (
             (this.gameRepository.getMe().isHidingTeam() &&
                 currentPhase === Phase.READY) ||
@@ -122,11 +123,12 @@ export class HandlePlayerMove {
         }
     }
 }
-// gameplayer class
-export default class gamePlayer extends Phaser.Physics.Arcade.Sprite {
+export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
     static PLAYER_SPEED = 200;
     static moveX = [0, 1, 0, -1];
     static moveY = [-1, 0, 1, 0];
+
+    #canMove = true;
 
     constructor(scene, x, y, texture) {
         super(scene, x, y, texture);
@@ -144,8 +146,12 @@ export default class gamePlayer extends Phaser.Physics.Arcade.Sprite {
         this.body.setSize(28, 28);
 
         this.roomRepository = getRoomRepository();
-        this.gameRepository = this.roomRepository.getGameRepository();
-        this.isRacoon = this.gameRepository.getMe().isRacoonTeam();
+        this.isRacoon = this.roomRepository
+            .getGameRepository()
+            .getMe()
+            .isRacoonTeam();
+
+        // this.gameRepository.getMe().setSprite(this);
 
         //racoon animation
         if (this.isRacoon) {
@@ -345,18 +351,18 @@ export default class gamePlayer extends Phaser.Physics.Arcade.Sprite {
     }
 
     isHidingTeam() {
-        return this.gameRepository.getMe().isHidingTeam();
+        return this.roomRepository.getGameRepository().getMe().isHidingTeam();
     }
     setIsHidingTeam() {
-        this.gameRepository.getMe().setIsHidingTeam();
+        this.roomRepository.getGameRepository().getMe().setIsHidingTeam();
     }
     setDead() {
-        this.gameRepository.getMe().setDead();
+        this.roomRepository.getGameRepository().getMe().setDead();
     }
 
     reflectFromWall(direction) {
-        this.x -= gamePlayer.moveX[direction] * gamePlayer.PLAYER_SPEED;
-        this.y -= gamePlayer.moveY[direction] * gamePlayer.PLAYER_SPEED;
+        this.x -= MyPlayerSprite.moveX[direction] * MyPlayerSprite.PLAYER_SPEED;
+        this.y -= MyPlayerSprite.moveY[direction] * MyPlayerSprite.PLAYER_SPEED;
     }
 
     stopMove(headDir) {
@@ -403,9 +409,10 @@ export default class gamePlayer extends Phaser.Physics.Arcade.Sprite {
         }
     }
     move(direction) {
+        if (!this.#canMove) return;
         switch (direction) {
             case Direction.Up:
-                this.setVelocityY(-1 * gamePlayer.PLAYER_SPEED);
+                this.setVelocityY(-1 * MyPlayerSprite.PLAYER_SPEED);
                 this.setVelocityX(0);
 
                 if (
@@ -421,7 +428,7 @@ export default class gamePlayer extends Phaser.Physics.Arcade.Sprite {
 
                 break;
             case Direction.Down:
-                this.setVelocityY(gamePlayer.PLAYER_SPEED);
+                this.setVelocityY(MyPlayerSprite.PLAYER_SPEED);
                 this.setVelocityX(0);
                 //this.y += Player.PLAYER_SPEED;
                 if (
@@ -437,7 +444,7 @@ export default class gamePlayer extends Phaser.Physics.Arcade.Sprite {
 
                 break;
             case Direction.Right:
-                this.setVelocityX(gamePlayer.PLAYER_SPEED);
+                this.setVelocityX(MyPlayerSprite.PLAYER_SPEED);
                 this.setVelocityY(0);
                 //this.x += Player.PLAYER_SPEED;
                 if (
@@ -452,7 +459,7 @@ export default class gamePlayer extends Phaser.Physics.Arcade.Sprite {
                     this.anims.play("fox-run-right");
                 break;
             case Direction.Left:
-                this.setVelocityX(-1 * gamePlayer.PLAYER_SPEED);
+                this.setVelocityX(-1 * MyPlayerSprite.PLAYER_SPEED);
                 this.setVelocityY(0);
                 //this.x -= Player.PLAYER_SPEED;
                 if (
@@ -468,5 +475,13 @@ export default class gamePlayer extends Phaser.Physics.Arcade.Sprite {
 
                 break;
         }
+    }
+
+    allowMove() {
+        this.#canMove = true;
+    }
+
+    disallowMove() {
+        this.#canMove = false;
     }
 }

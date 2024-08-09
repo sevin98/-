@@ -87,6 +87,9 @@ public class Team extends Subscribable {
     public Team getOpponentTeam() {
         return this.isHidingTeam() ? this.game.getSeekingTeam() : this.game.getHidingTeam();
     }
+    public boolean isAllPlayerEliminated() {
+        return players.values().stream().allMatch(Player::isEliminated);
+    }
 
     public enum Character {
         RACOON, FOX

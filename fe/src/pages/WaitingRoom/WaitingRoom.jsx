@@ -3,18 +3,20 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { hasFalsy } from "../../util/validation";
 import { getRoomRepository, userRepository } from "../../repository";
-import axios from "../../network/AxiosClient";
+import axios, { updateAxiosAccessToken } from "../../network/AxiosClient";
 import { getStompClient } from "../../network/StompClient";
 
 import { LOGIN_FORM_ROUTE_PATH } from "../LoginForm/LoginForm";
 import { PHASER_GAME_ROUTE_PATH } from "../../game/PhaserGame";
 import { LOBBY_ROUTE_PATH } from "../Lobby/Lobby";
 
-import PlayerGrid from "./PlayerGrid"; // 플레이어 슬롯 컴포넌트
-import ReadyButton from "./ReadyButton"; // 레디 버튼 컴포넌트
-import BackToLobbyButton from "./BackToLobbyButton"; // 뒤로가기 버튼 컴포넌트
-import ShareRoomCodeButton from "./ShareRoomCodeButton"; // 방 코드 공유 버튼 컴포넌트
-import ChatBox from "./ChatBox"; // 채팅창 컴포넌트
+import {
+    BackToLobbyButton,
+    ChatBox,
+    PlayerGrid,
+    ReadyButton,
+    ShareRoomCodeButton,
+} from "./WaitingRoomComponents"; //컴포넌트 import
 
 import { toast } from "react-toastify"; // react-toastify 추가
 import "./WaitingRoom.css"; // CSS 파일
@@ -32,62 +34,93 @@ export default function WaitingRoom() {
         navigate(LOGIN_FORM_ROUTE_PATH);
     }
 
-    const [userProfile, setUserProfile] = useState(
-        userRepository.getUserProfile()
-    );
-    if (!userProfile) {
-        // TODO : 로그인 되어 있지 않은 상태이면 게스트 로그인으로 참가시켜주기
-        console.error("유저 정보가 없습니다.");
-        navigate(LOGIN_FORM_ROUTE_PATH);
-    }
-
+    const [userProfile, setUserProfile] = useState(null);
     const [joinedPlayers, setJoinedPlayers] = useState([]);
     const [isPlayerReady, setIsPlayerReady] = useState(false); // 접속한 사용자의 레디 여부
 
     const [leftSecondsToStart, setLeftSecondsToStart] = useState(Infinity);
     const [countdownMessage, setCountdownMessage] = useState(""); // 카운트다운 완료 메시지 상태
-    const [gameStartsAt, setGameStartsAt] = useState(null); // 게임 시작 시각
-    let isCountdownStarted = false;
-
-    const roomRepository = getRoomRepository(roomNumber, roomPassword);
+    const [roomRepository, setRoomRepository] = useState(null);
+    let [isCountdownStarted, setIsCountdownStarted] = useState(false);
 
     useEffect(() => {
-        axios
-            .post(`/api/rooms/${roomNumber}/join`, { password: roomPassword })
-            .then(async (resp) => {
-                // 방 진입, 방/플레이어 채널 구독 요청
-                const { roomSubscriptionInfo, playerSubscriptionInfo } =
-                    resp.data;
-                roomRepository.startSubscribeRoom(roomSubscriptionInfo);
-                roomRepository.startSubscribePlayer(playerSubscriptionInfo);
-            })
-            .catch((error) => {
-                if (error.response.status === 404) {
-                    toast.error("해당하는 방이 없습니다.");
-                } else if (error.response.status === 401) {
-                    toast.error("비밀번호가 틀립니다.");
-                } else if (error.response.status === 409) {
-                    toast.error("이미 8명이 참가한 방입니다.");
-                } else {
-                    toast.error("방 참가 중 오류가 발생했습니다.");
-                }
-            });
+        setUserProfile(userRepository.getUserProfile());
+        setRoomRepository(getRoomRepository(roomNumber, roomPassword));
+    }, [roomNumber, roomPassword]);
 
-        
-    }, []);
-
-    // 방 정보 업데이트 주기 설정
-    const updateDataIntervalId = setInterval(() => {
-        setJoinedPlayers(roomRepository.getJoinedPlayers());
-        setGameStartsAt(roomRepository.getGameStartsAt());
-
-        // 게임 시작 시간이 정해졌고, 아직 카운트다운을 시작하지 않았다면
-        if (gameStartsAt && !isCountdownStarted) {
-            // 카운트다운 시작
-            isCountdownStarted = true;
-            startCountdown(gameStartsAt);
+    useEffect(() => {
+        // roomRepository가 정상적으로 초기화 되었을 때만 실행
+        if (!roomRepository) {
+            return;
         }
-    }, 10);
+
+        // UserProfile의 초기화에 성공하면
+        ensureAndGetUserProfile().then(async () => {
+            axios
+                .post(`/api/rooms/${roomNumber}/join`, {
+                    password: roomPassword,
+                })
+                .then((resp) => {
+                    const { roomSubscriptionInfo, playerSubscriptionInfo } =
+                        resp.data;
+
+                    // 방 진입, 방/플레이어 채널 구독 요청
+                    roomRepository.startSubscribeRoom(roomSubscriptionInfo);
+                    roomRepository.startSubscribePlayer(playerSubscriptionInfo);
+
+                    // 주기적으로 플레이어 목록과 게임 시작 시각을 업데이트
+                    const updateDataIntervalId = setInterval(() => {
+                        setJoinedPlayers(roomRepository.getJoinedPlayers());
+
+                        // 게임 시작 시간이 정해졌고, 아직 카운트다운을 시작하지 않았다면
+                        if (
+                            roomRepository.getGameStartsAt() &&
+                            !isCountdownStarted
+                        ) {
+                            // 카운트다운 시작
+                            setIsCountdownStarted(true);
+                            startCountdown(roomRepository.getGameStartsAt());
+                        } else if (isCountdownStarted) {
+                            clearInterval(updateDataIntervalId);
+                        }
+                    }, 10);
+                })
+                .catch((error) => {
+                    roomRepository.clear();
+                    navigate(LOGIN_FORM_ROUTE_PATH);
+                });
+        });
+
+        return () => {
+            roomRepository.clear();
+        };
+    }, [roomRepository]);
+
+    const ensureAndGetUserProfile = async () => {
+        if (userProfile) {
+            return userProfile;
+        } else {
+            try {
+                const resp = await axios.post("/api/auth/guest/sign-up");
+                const { accessToken, userProfile, webSocketConnectionToken } =
+                    resp.data;
+
+                // 인증 및 사용자 정보 초기화
+                updateAxiosAccessToken(accessToken);
+                userRepository.setUserProfile(userProfile);
+                setUserProfile(userProfile); // 상태 업데이트
+
+                // STOMP Client 초기화
+                getStompClient(webSocketConnectionToken);
+
+                return userProfile;
+            } catch (error) {
+                toast.error("게스트 로그인 실패");
+                navigate(LOGIN_FORM_ROUTE_PATH);
+                throw new Error("게스트 로그인 실패");
+            }
+        }
+    };
 
     const startCountdown = (gameStartsAt) => {
         setCountdownMessage("게임이 곧 시작됩니다!");
@@ -140,30 +173,23 @@ export default function WaitingRoom() {
 
     return (
         <div id="container" className="rpgui-cursor-default">
-            <div className="waiting-room">
-                {/* 왼쪽 위: 뒤로가기 버튼 */}
-                <BackToLobbyButton
-                    onClick={onBackToLobbyBtnClicked}
-                    isDisabled={isPlayerReady}
-                />
-
-                {/* 오른쪽 위: 방 코드 공유 버튼 */}
-                <ShareRoomCodeButton />
-
-                {/* 플레이어 슬롯 (가운데) */}
-                <PlayerGrid players={joinedPlayers} />
-
-                {/* 왼쪽 아래: 레디 버튼 */}
-                <ReadyButton
-                    onClick={onReadyBtnClicked}
-                    isReady={isPlayerReady}
-                />
-
-                {/* 오른쪽 아래: 채팅창 */}
-                <ChatBox
-                    leftSecondsToStart={leftSecondsToStart}
-                    countdownMessage={countdownMessage}
-                />
+            <div className="wrapper rpgui-content">
+                <div className="rpgui-container framed">
+                    <BackToLobbyButton
+                        onClick={onBackToLobbyBtnClicked}
+                        isDisabled={isPlayerReady}
+                    />
+                    <ShareRoomCodeButton />
+                    <PlayerGrid players={joinedPlayers} />
+                    <ReadyButton
+                        onClick={onReadyBtnClicked}
+                        isReady={isPlayerReady}
+                    />
+                    <ChatBox
+                        leftSecondsToStart={leftSecondsToStart}
+                        countdownMessage={countdownMessage}
+                    />
+                </div>
             </div>
         </div>
     );

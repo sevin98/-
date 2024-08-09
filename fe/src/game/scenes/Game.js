@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 
-import Player, { HandlePlayerMove } from "./Player";
-import OtherPlayer from "./OtherPlayer";
+import MyPlayerSprite, { HandlePlayerMove } from "./Player";
+import OtherPlayerSprite from "./OtherPlayer";
 import MapTile from "./MapTile";
 import TextGroup from "./TextGroup";
 
@@ -9,21 +9,14 @@ import { isFirstPress } from "../../util/keyStroke";
 import { getRoomRepository } from "../../repository";
 import { Phase } from "../../repository/_game";
 
+import eventBus from "../EventBus"; //씬 간 소통위한 이벤트리스너 호출
+
 export class game extends Phaser.Scene {
     //cursor = this.cursor.c
     //cursors = Phaser.Input.Keyboard.KeyboardPlugin;
     //fauna = Phaser.Physics.Arcade.Sprite;
     constructor() {
         super("game");
-        /// 임의로 포지션 넣은 코드, 이후 삭제
-        this.positions = [
-            [500, 400],
-            [500, 390],
-            [500, 380],
-            [500, 370],
-            [500, 360],
-            [500, 350],
-        ];
 
         this.MapTile = null;
         this.objects = null;
@@ -31,6 +24,10 @@ export class game extends Phaser.Scene {
 
         this.roomRepository = getRoomRepository();
         this.gameRepository = this.roomRepository.getGameRepository();
+
+        this.lastWallPos = {};
+        this.hintImages = {};
+        this.shownHintForCurrentPhase = false;
     }
 
     preload() {
@@ -41,6 +38,8 @@ export class game extends Phaser.Scene {
     }
 
     create() {
+        this.m_cursorKeys = this.input.keyboard.createCursorKeys();
+
         this.text = new TextGroup(this); // 팝업텍스트 객체
 
         this.graphics = this.add.graphics().setDepth(1000); //선만들기 위한 그래픽
@@ -53,15 +52,19 @@ export class game extends Phaser.Scene {
 
         // playercam 정의, zoomTo: 300ms 동안 1.5배 zoom
         const playercam = this.cameras.main;
-        // playercam.zoomTo(1.2,300)
+        playercam.zoomTo(3, 300);
 
         // 로컬플레이어 객체 생성, 카메라 follow
         const me = this.gameRepository.getMe();
         const { x, y, direction } = me.getPosition();
-        this.localPlayer = new Player(this, x, y, "fauna-idle-down", true);
-
-        // 잠깐 주석처리하고 카메라가 otherplayer를 따라가도록 바꿔놓음
-        // playercam.startFollow(this.localPlayer);
+        this.localPlayer = new MyPlayerSprite(
+            this,
+            x,
+            y,
+            "fauna-idle-down",
+            true
+        );
+        playercam.startFollow(this.localPlayer);
 
         //로컬플레이어와 layer의 충돌설정
         this.physics.add.collider(
@@ -101,34 +104,158 @@ export class game extends Phaser.Scene {
             console.log("숨을수있음");
         });
 
-        // 다른 플레이어 화면 구현
-        this.otherPlayer = new OtherPlayer(
-            this,
-            500,
-            500,
-            "fauna-idle-down",
-            1 // 임의의 id
-        );
-        //setinteval 대신 addevent 함수씀
+        // 다른 플레이어 스프라이트
+        this.otherPlayerSprites = [];
+        for (let player of this.gameRepository.getAllPlayers()) {
+            if (player.getPlayerId() === me.getPlayerId()) {
+                continue;
+            }
+
+            const otherPlayerSprite = new OtherPlayerSprite(
+                this,
+                player.getPosition().x,
+                player.getPosition().y,
+                "fauna-idle-down",
+                player.getPlayerId()
+            );
+            otherPlayerSprite.visible = true;
+            player.setSprite(otherPlayerSprite);
+            this.otherPlayerSprites.push(otherPlayerSprite);
+        }
+
+        // //setinteval 대신 addevent 함수씀
         this.time.addEvent({
-            delay: 500,
-            //500마다 mockingPosition함수 실행
-            callback: this.mockingPosition, // mockingPostion 이라는 함수 만듦
+            delay: 10,
+            callback: this.updateAnotherPlayerSpritePosition, // mockingPostion 이라는 함수 만듦
             callbackScope: this, // this를 현재 씬으로 지정
             loop: true, // 여러번 실행
         });
-        // camera가 otherplayer 따라가게만듦
-        this.cameras.main.startFollow(this.otherPlayer);
+
+        //작아지는 맵은 제일 위에 위치해야함!!
+        this.mapWalls = this.physics.add.staticGroup();
+        //플레이어와 충돌처리
+        this.physics.add.collider(this.localPlayer, this.mapWalls, () => {
+            console.log("작아지는 벽과 충돌");
+        });
+
 
         //game-ui 씬
         this.scene.run("game-ui");
-        this.m_cursorKeys = this.input.keyboard.createCursorKeys();
+        // 이벤트리스너
+
     }
 
     update() {
         // 로컬플레이어 포지션 트래킹 , 이후 위치는 x,y,headDir로 접근
         const me = this.gameRepository.getMe();
         const { x, y, headDir } = me.getPosition();
+        if (this.hintImages) {
+            for (let direction in this.hintImages) {
+                if (this.hintImages[direction]) {
+                    if(direction === "DOWN")
+                        this.hintImages[direction].setPosition(this.localPlayer.x, this.localPlayer.y + 20);
+                    if(direction === "UP")
+                        this.hintImages[direction].setPosition(this.localPlayer.x, this.localPlayer.y - 20, direction);
+                    if(direction === "LEFT")
+                        this.hintImages[direction].setPosition(this.localPlayer.x - 20, this.localPlayer.y, direction);
+                    if(direction === "RIGHT")
+                        this.hintImages[direction].setPosition(this.localPlayer.x + 20, this.localPlayer.y, direction);
+                    if(direction === "UP_LEFT")
+                        this.hintImages[direction].setPosition(this.localPlayer.x - 20, this.localPlayer.y - 20, direction);
+                    if(direction === "UP_RIGHT")
+                        this.hintImages[direction].setPosition(this.localPlayer.x + 20, this.localPlayer.y - 20, direction);
+                    if(direction === "DOWN_LEFT")
+                        this.hintImages[direction].setPosition(this.localPlayer.x - 20, this.localPlayer.y + 20, direction);
+                    if(direction === "DOWN_RIGHT")
+                        this.hintImages[direction].setPosition(this.localPlayer.x + 20, this.localPlayer.y + 20, direction);
+                }
+            }
+        }
+
+        // 숨는 팀인 경우
+        if (me.isHidingTeam()) {
+            // 레디 페이즈에
+            if (this.gameRepository.getCurrentPhase() === Phase.READY) {
+                // 숨었다고 처리 되었으나 화면에 보이고 있으면
+                if (me.isHiding() && this.localPlayer.visible) {
+                    // 화면에서 숨기고 움직임 제한
+                    this.localPlayer.visible = false;
+                    this.localPlayer.disallowMove();
+                }
+                // 아직 안숨었으면
+                else if (!me.isHiding()) {
+                    // 화면에 보이게 하고 움직임 허가
+                    this.localPlayer.visible = true;
+                    this.localPlayer.allowMove();
+                }
+                this.shownHintForCurrentPhase = false;
+            }
+            // 메인 페이즈에
+            else if (this.gameRepository.getCurrentPhase() === Phase.MAIN) {
+                // 화면에 안보이게 하고 움직임 제한
+                this.localPlayer.visible = false;
+                this.localPlayer.disallowMove();
+            }
+        }
+        // 찾는 팀인 경우
+        else {
+            // 항상 숨어 있지 않은 상태를 보장해주고
+            me.setIsHiding(false);
+            // 레디 페이즈에
+            if (this.gameRepository.getCurrentPhase() === Phase.READY) {
+                // 화면에 보이게 하고 움직임 제한
+                this.localPlayer.visible = true;
+                this.localPlayer.disallowMove();
+                this.shownHintForCurrentPhase = false;
+                this.roomRepository.setDirectionHints();
+            }
+            // 메인 페이즈에
+            else if (this.gameRepository.getCurrentPhase() === Phase.MAIN) {
+                // 화면에 보이게 하고 움직임 허가
+                this.localPlayer.visible = true;
+                this.localPlayer.allowMove();
+                console.log(this.shownHintForCurrentPhase);
+                if (!this.shownHintForCurrentPhase && this.roomRepository.getDirectionHints().length !== 0) {
+                    const directionHints = this.roomRepository.getDirectionHints();
+                    directionHints.forEach((direction) => {
+                        if (!this.hintImages[direction]) {
+                            if(direction === "DOWN")
+                                this.hintImages[direction] = this.add.image(this.localPlayer.x, this.localPlayer.y + 20, direction);
+                            if(direction === "UP")
+                                this.hintImages[direction] = this.add.image(this.localPlayer.x, this.localPlayer.y - 20, direction);
+                            if(direction === "LEFT")
+                                this.hintImages[direction] = this.add.image(this.localPlayer.x - 20, this.localPlayer.y, direction);
+                            if(direction === "RIGHT")
+                                this.hintImages[direction] = this.add.image(this.localPlayer.x + 20, this.localPlayer.y, direction);
+                            if(direction === "UP_LEFT")
+                                this.hintImages[direction] = this.add.image(this.localPlayer.x - 20, this.localPlayer.y - 20, direction);
+                            if(direction === "UP_RIGHT")
+                                this.hintImages[direction] = this.add.image(this.localPlayer.x + 20, this.localPlayer.y - 20, direction);
+                            if(direction === "DOWN_LEFT")
+                                this.hintImages[direction] = this.add.image(this.localPlayer.x - 20, this.localPlayer.y + 20, direction);
+                            if(direction === "DOWN_RIGHT")
+                                this.hintImages[direction] = this.add.image(this.localPlayer.x + 20, this.localPlayer.y + 20, direction);
+
+                            this.hintImages[direction].setScale(0.04);
+    
+                            // 2.5초 후에 이미지를 제거
+                            this.time.addEvent({
+                                delay: 2500,
+                                callback: () => {
+                                    if (this.hintImages[direction]) {
+                                        this.hintImages[direction].destroy();
+                                        this.hintImages[direction] = null;
+                                    }
+                                },
+                                callbackScope: this
+                            });
+                        }
+                    });
+
+                    this.shownHintForCurrentPhase = true;
+                }
+            }
+        }
 
         // player.js 에서 player 키조작이벤트 불러옴
         const playerMoveHandler = new HandlePlayerMove(
@@ -148,17 +275,20 @@ export class game extends Phaser.Scene {
         const minDistance = Phaser.Math.Distance.Between(
             closest.body.center.x,
             closest.body.center.y,
-            x, //this.localPlayer.x,
-            y //this.localPlayer.y
+            this.localPlayer.x,
+            this.localPlayer.y
         );
 
         // 시각적으로 가까운 오브젝트와의 선 표시, 나중에 지우면되는코드
-        this.graphics.clear().lineStyle(1, 0xff3300).lineBetween(
-            closest.body.center.x,
-            closest.body.center.y,
-            x, //this.localPlayer.x,
-            y //this.localPlayer.y
-        );
+        this.graphics
+            .clear()
+            .lineStyle(1, 0xff3300)
+            .lineBetween(
+                closest.body.center.x,
+                closest.body.center.y,
+                this.localPlayer.x,
+                this.localPlayer.y
+            );
 
         // 30px 이하로 가까이 있을때 상호작용 표시 로직
         if (minDistance < 30) {
@@ -198,7 +328,8 @@ export class game extends Phaser.Scene {
             const objectId = closest.getData("id");
 
             // 숨을 차례이면 숨기 요청
-            if (this.gameRepository.getMe().isHidingTeam()) {
+            const me = this.gameRepository.getMe();
+            if (me.isHidingTeam()) {
                 // 단, 레디 페이즈에만 숨을 수 있음
                 if (this.gameRepository.getCurrentPhase() !== Phase.READY) {
                     console.log("READY 페이즈만 숨을 수 있습니다.");
@@ -208,8 +339,7 @@ export class game extends Phaser.Scene {
                         .then(({ isSucceeded }) => {
                             if (isSucceeded) {
                                 console.log("숨기 성공");
-                                this.localPlayer.stopMove();
-                                this.localPlayer.visible = false; // 화면에 사용자 안보임
+                                me.setIsHiding(true);
                                 this.text.showTextHide(
                                     this,
                                     closest.body.x - 20,
@@ -228,7 +358,7 @@ export class game extends Phaser.Scene {
                     console.log("MAIN 페이즈에만 탐색할 수 있습니다.");
                 }
                 // 찾을 수 있는 횟수가 남아 있어야 함
-                else if (!this.gameRepository.getMe().canSeek()) {
+                else if (!me.canSeek()) {
                     console.log("탐색 횟수가 부족합니다.");
                 } else {
                     this.gameRepository
@@ -261,7 +391,7 @@ export class game extends Phaser.Scene {
 
         //탐색- 찾는팀,상호작용이펙트,스페이스다운
         if (
-            this.gameRepository.getMe().isSeekingTeam() &&
+            me.isSeekingTeam() &&
             this.interactionEffect &&
             this.m_cursorKeys.space.isDown
         ) {
@@ -284,6 +414,8 @@ export class game extends Phaser.Scene {
                 closest.body.y - 20
             );
         }
+        // 맵축소
+        this.createMapWall();
     }
 
     // 맵타일단위를 pix로 변환
@@ -292,14 +424,87 @@ export class game extends Phaser.Scene {
     }
 
     //constructor에 있는 임의의 position 배열에서 좌표 꺼내는 랜덤함수
-    mockingPosition() {
-        this.currentPos =
-            this.positions[Math.floor(Math.random() * this.positions.length)];
-        //headDir보이기
-        this.headDir = Math.floor(Math.random() * 4);
-        // otherPlayer의 포지션 변경
-        this.otherPlayer.x = this.currentPos[0];
-        this.otherPlayer.y = this.currentPos[1];
-        this.otherPlayer.move(this.headDir);
+    updateAnotherPlayerSpritePosition() {
+        for (let otherPlayerSprite of this.otherPlayerSprites) {
+            otherPlayerSprite.updatePosition();
+            otherPlayerSprite.move(otherPlayerSprite.getHeadDir());
+        }
+    }
+
+    // 벽 만드는 함수: 시작점과 끝점 받아서 직사각형 모양으로 타일 깔기
+    createMapWall() {
+        const currentSafeZone = this.gameRepository.getCurrentSafeZone();
+        if (!currentSafeZone) {
+            return;
+        } // 없으면 리턴
+
+        if (
+            this.lastWallPos.x !== currentSafeZone[0] ||
+            this.lastWallPos.y !== currentSafeZone[1]
+        ) {
+            console.log('맵이 줄어듭니다')
+            this.mapWalls.clear(); // 이전 맵 없애기
+            const [startX, startY, endX, endY] = currentSafeZone;
+            const tileSize = 32; // 타일의 크기를 고정된 값으로 설정 (예: 32x32 픽셀)
+
+            // 위쪽 벽
+            for (let y = 0; y < startY; y += tileSize) {
+                for (let x = 0; x < 1600; x += tileSize) {
+                    this.createFogTile(x, y, tileSize);
+                }
+            }
+
+            // 아래쪽 벽
+            for (let y = endY; y < 1600; y += tileSize) {
+                for (let x = 0; x < 1600; x += tileSize) {
+                    this.createFogTile(x, y, tileSize);
+                }
+            }
+
+            // 왼쪽 벽
+            for (let x = 0; x < startX; x += tileSize) {
+                for (let y = startY; y < endY; y += tileSize) {
+                    this.createFogTile(x, y, tileSize);
+                }
+            }
+
+            // 오른쪽 벽
+            for (let x = endX; x < 1600; x += tileSize) {
+                for (let y = startY; y < endY; y += tileSize) {
+                    this.createFogTile(x, y, tileSize);
+                }
+            }
+
+            // 현재 맵의 경계를 저장
+            this.lastWallPos = {
+                x: startX,
+                y: startY,
+            };
+        }
+    }
+
+    createFogTile(x, y, tileSize) {
+        const color = 0xffffff;
+        const alpha = 0.4;
+        const width = tileSize;
+        const height = tileSize;
+
+        const graphics = this.add.graphics();
+        graphics.fillStyle(color, alpha);
+        graphics.fillRect(0, 0, width, height);
+
+        graphics.generateTexture("fogTile", width, height);
+
+        const fogTile = this.mapWalls
+            .create(x, y, "fogTile")
+            .setDisplaySize(width, height);
+
+        // 안개 타일 애니메이션 효과
+        this.tweens.add({
+            targets: fogTile,
+            alpha: { from: 0, to: alpha },
+            duration: 1000,
+            ease: "Linear",
+        });
     }
 }

@@ -16,9 +16,6 @@ export class Preloader extends Scene {
             "assets/character/fox.png",
             "assets/character/fox.json"
         );
-        // this.load.image("blackSide", "assets/blacksideTemp.png");
-        //여기서부터 시작
-
 
         // map 이미지 로드 
         this.load.tilemapTiledJSON(
@@ -35,6 +32,16 @@ export class Preloader extends Scene {
             "interactionEffect",
             "assets/object/interactionEffect.png"
         );
+
+        // 화살표 이미지 로드
+        this.load.image("DOWN_LEFT", "assets/object/down_left.png");
+        this.load.image("DOWN_RIGHT", "assets/object/down_right.png");
+        this.load.image("UP_LEFT", "assets/object/up_left.png");
+        this.load.image("UP_RIGHT", "assets/object/up_right.png");
+        this.load.image("UP", "assets/object/up.png");
+        this.load.image("LEFT", "assets/object/left.png");
+        this.load.image("RIGHT", "assets/object/right.png");
+        this.load.image("DOWN", "assets/object/down.png");
 
     }
     create() {

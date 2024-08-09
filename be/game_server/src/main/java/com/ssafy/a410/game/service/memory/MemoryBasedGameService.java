@@ -52,14 +52,17 @@ public class MemoryBasedGameService implements GameService {
     @Override
     public void sharePosition(String roomId, String userProfileUuid, PlayerPositionReq req) {
         // 해당 방에 플레이어가 있는지 먼저 확인하고
-        Room targetRoom = roomService.getRoomById(roomId);
-        Player player = targetRoom.getPlayerWith(userProfileUuid);
-        Game game = targetRoom.playingGame;
+        try {
+            Room targetRoom = roomService.getRoomById(roomId);
+            Player player = targetRoom.getPlayerWith(userProfileUuid);
+            Game game = targetRoom.playingGame;
 
-        // 위치 공유 메시지를 생성하여 Enque
-        PlayerPosition playerPosition = new PlayerPosition(userProfileUuid, req);
-        PlayerPositionShareRequest request = new PlayerPositionShareRequest(userProfileUuid, playerPosition);
-        game.pushMessage(player, request);
+            // 위치 공유 메시지를 생성하여 Enque
+            PlayerPosition playerPosition = new PlayerPosition(userProfileUuid, req);
+            PlayerPositionShareRequest request = new PlayerPositionShareRequest(userProfileUuid, playerPosition);
+            game.pushMessage(player, request);
+        } catch (Exception e) {
+        }
     }
 
     @Override
