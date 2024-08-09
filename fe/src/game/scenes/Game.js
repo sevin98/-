@@ -173,6 +173,7 @@ export class game extends Phaser.Scene {
                     this.localPlayer.visible = true;
                     this.localPlayer.allowMove();
                 }
+                this.shownHintForCurrentPhase = false;
             }
             // 메인 페이즈에
             else if (this.gameRepository.getCurrentPhase() === Phase.MAIN) {
@@ -197,13 +198,29 @@ export class game extends Phaser.Scene {
                 // 화면에 보이게 하고 움직임 허가
                 this.localPlayer.visible = true;
                 this.localPlayer.allowMove();
-
-                if (!this.shownHintForCurrentPhase) {
+                console.log(this.shownHintForCurrentPhase);
+                if (!this.shownHintForCurrentPhase && this.roomRepository.getDirectionHints().length !== 0) {
                     const directionHints = this.roomRepository.getDirectionHints();
                     directionHints.forEach((direction) => {
                         if (!this.hintImages[direction]) {
-                            this.hintImages[direction] = this.add.image(this.localPlayer.x, this.localPlayer.y - 20, direction);
-                            this.hintImages[direction].setScale(0.03);
+                            if(direction === "DOWN")
+                                this.hintImages[direction] = this.add.image(this.localPlayer.x, this.localPlayer.y + 20, direction);
+                            if(direction === "UP")
+                                this.hintImages[direction] = this.add.image(this.localPlayer.x, this.localPlayer.y - 20, direction);
+                            if(direction === "LEFT")
+                                this.hintImages[direction] = this.add.image(this.localPlayer.x - 20, this.localPlayer.y, direction);
+                            if(direction === "RIGHT")
+                                this.hintImages[direction] = this.add.image(this.localPlayer.x + 20, this.localPlayer.y, direction);
+                            if(direction === "UP_LEFT")
+                                this.hintImages[direction] = this.add.image(this.localPlayer.x - 20, this.localPlayer.y - 20, direction);
+                            if(direction === "UP_RIGHT")
+                                this.hintImages[direction] = this.add.image(this.localPlayer.x + 20, this.localPlayer.y - 20, direction);
+                            if(direction === "DOWN_LEFT")
+                                this.hintImages[direction] = this.add.image(this.localPlayer.x - 20, this.localPlayer.y + 20, direction);
+                            if(direction === "DOWN_RIGHT")
+                                this.hintImages[direction] = this.add.image(this.localPlayer.x + 20, this.localPlayer.y + 20, direction);
+
+                            this.hintImages[direction].setScale(0.04);
     
                             // 1.5초 후에 이미지를 제거
                             this.time.addEvent({
