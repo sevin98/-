@@ -152,7 +152,22 @@ export class game extends Phaser.Scene {
         if (this.hintImages) {
             for (let direction in this.hintImages) {
                 if (this.hintImages[direction]) {
-                    this.hintImages[direction].setPosition(this.localPlayer.x, this.localPlayer.y - 20);
+                    if(direction === "DOWN")
+                        this.hintImages[direction].setPosition(this.localPlayer.x, this.localPlayer.y + 20);
+                    if(direction === "UP")
+                        this.hintImages[direction].setPosition(this.localPlayer.x, this.localPlayer.y - 20, direction);
+                    if(direction === "LEFT")
+                        this.hintImages[direction].setPosition(this.localPlayer.x - 20, this.localPlayer.y, direction);
+                    if(direction === "RIGHT")
+                        this.hintImages[direction].setPosition(this.localPlayer.x + 20, this.localPlayer.y, direction);
+                    if(direction === "UP_LEFT")
+                        this.hintImages[direction].setPosition(this.localPlayer.x - 20, this.localPlayer.y - 20, direction);
+                    if(direction === "UP_RIGHT")
+                        this.hintImages[direction].setPosition(this.localPlayer.x + 20, this.localPlayer.y - 20, direction);
+                    if(direction === "DOWN_LEFT")
+                        this.hintImages[direction].setPosition(this.localPlayer.x - 20, this.localPlayer.y + 20, direction);
+                    if(direction === "DOWN_RIGHT")
+                        this.hintImages[direction].setPosition(this.localPlayer.x + 20, this.localPlayer.y + 20, direction);
                 }
             }
         }
