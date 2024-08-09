@@ -142,9 +142,7 @@ export class game extends Phaser.Scene {
         //game-ui 씬
         this.scene.run("game-ui");
         // 이벤트리스너
-        this.input.on("pointerdown", () => {
-            eventBus.emit('remove-image')
-        });
+
     }
 
     update() {
@@ -411,6 +409,7 @@ export class game extends Phaser.Scene {
             this.lastWallPos.x !== currentSafeZone[0] ||
             this.lastWallPos.y !== currentSafeZone[1]
         ) {
+            console.log('맵이 줄어듭니다')
             this.mapWalls.clear(); // 이전 맵 없애기
             const [startX, startY, endX, endY] = currentSafeZone;
             const tileSize = 32; // 타일의 크기를 고정된 값으로 설정 (예: 32x32 픽셀)

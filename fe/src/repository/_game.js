@@ -77,7 +77,7 @@ export default class GameRepository {
     #isGameEnd = false;
 
     #isInitialized = false;
-    #currentEliminatedPlayerAndTeam;
+    #currentEliminatedPlayerAndTeam; //ui업데이트
 
     constructor(room, roomNumber, gameSubscriptionInfo, startsAfterMilliSec) {
         this.#room = room;
@@ -156,8 +156,8 @@ export default class GameRepository {
                 break;
             case ELIMINATION_OUT_OF_SAFE_ZONE:
                 //맵축소
-                this.#handleSafeZoneUpdateEvent(data);
-                console.log(`플레이어 ${data.playerId}님이 이탈하셨습니다.`);
+                this.#handleCurrentEliminatedPlayerAndTeam(data);
+                console.log(`플레이어 ${data.playerId}님이 안전구역을 벗어나 탈락하셨습니다.`);
                 break;
             default:
                 console.error("Received unknown message:", message);
@@ -528,7 +528,6 @@ export default class GameRepository {
     #handleCurrentEliminatedPlayerAndTeam(data){
         const currentPlayerAndTeam = data;
         this.#currentEliminatedPlayerAndTeam = currentPlayerAndTeam;
-        console.log(data)
     }
 
     getCurrentEliminatedPlayerAndTeam() {
