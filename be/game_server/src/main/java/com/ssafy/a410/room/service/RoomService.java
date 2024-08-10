@@ -36,4 +36,6 @@ public interface RoomService {
     void removeRoom(String roomId);
 
     List<Room> findAvailableRooms();
+
+    Room getRoomHasDisconnectedPlayerInfoWithId(String playerId);
 }
