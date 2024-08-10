@@ -1,11 +1,15 @@
 package com.ssafy.a410.socket.handler;
 
+import com.ssafy.a410.game.domain.game.Game;
 import com.ssafy.a410.game.domain.player.Player;
 import com.ssafy.a410.game.service.GameService;
+import com.ssafy.a410.room.domain.Room;
 import com.ssafy.a410.room.service.RoomService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class DisconnectHandler {
@@ -13,26 +17,35 @@ public class DisconnectHandler {
     private final RoomService roomService;
     private final GameService gameService;
 
-    public void handleDisconnect(String playerId) {
-        roomService.findRoomByPlayerId(playerId).ifPresent(room -> {
-            Player player = room.getPlayerWith(playerId);
-            room.kick(player);
+    public void disconnectAll(String playerId) {
+        // 아래 순서는 반드시 지켜져야 함!
+        this.gameHandleDisconnect(playerId);
+        this.handleDisconnect(playerId);
+    }
 
-            if (room.getPlayers().isEmpty())
-                roomService.removeRoom(room.getRoomNumber());
-            else
-                room.notifyDisconnection(player);
-        });
+    public void handleDisconnect(String playerId) {
+        Room room = roomService.getRoomHasDisconnectedPlayerInfoWithId(playerId);
+        if (room == null) {
+            room = roomService.findRoomByPlayerId(playerId)
+                    .orElseThrow(() -> new RuntimeException("Player not in room"));
+            room.kick(room.getPlayerWith(playerId));
+        }
+
+        room.notifyDisconnection(room.getDisconnectedPlayerInfo(playerId));
+        if (room.getPlayers().isEmpty())
+            roomService.removeRoom(room.getRoomNumber());
     }
 
     public void gameHandleDisconnect(String playerId) {
-        gameService.findGameByPlayerId(playerId).ifPresent(game -> {
-            Player player = game.getRoom().getPlayerWith(playerId);
-            game.kick(player);
-            // 게임에 플레이어가 남아있다면 나갔음을 알림
-            if (!game.getRoom().getPlayers().isEmpty())
-                game.notifyDisconnection(player);
-            game.checkForVictory();
-        });
+        Room room = roomService.getRoomHasDisconnectedPlayerInfoWithId(playerId);
+        if (room == null || room.getPlayingGame() == null) {
+            return;
+        }
+
+        Game game = room.getPlayingGame();
+        Player player = game.getRoom().getPlayerWith(playerId);
+
+        game.notifyDisconnection(player);
+        game.checkForVictory();
     }
 }
