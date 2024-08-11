@@ -3,7 +3,6 @@ import { useState, useEffect, useRef } from "react";
 import { PHASER_GAME_ROUTE_PATH } from "../../game/PhaserGame";
 
 import "./MusicPlayer.css";
-f;
 export const NORMAL_MUSIC = "/sounds/music/default_music.wav";
 export const FAST_MUSIC = "/sounds/music/fast_music.wav";
 
