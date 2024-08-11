@@ -145,6 +145,11 @@ export class game extends Phaser.Scene {
                 // 이벤트리스너
             });
         });
+
+        this.footstepSound = this.sound.add("footstep-sound", {
+            volume: 1,
+            loop: true,
+        });
     }
 
     update() {
@@ -347,7 +352,7 @@ export class game extends Phaser.Scene {
                     this.headDir,
                     this.moving
                 );
-                playerMoveHandler.update();
+                playerMoveHandler.update(this.footstepSound);
 
                 // 플레이어에서 물리적으로 가장 가까운 거리 찾는 객체
                 const closest = this.physics.closest(
