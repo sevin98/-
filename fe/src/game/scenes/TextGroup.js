@@ -73,7 +73,7 @@ export default class TextGroup extends Phaser.GameObjects.Group {
 
     showTextFind(scene, x, y) {
         //플레이어 화면의 중간에 띄울 예정
-        const text = scene.add.text(x, y, "찾았습니다!", this.styles.style2);
+        const text = scene.add.text(x, y, "찾았습니다!", this.styles.style3);
         this.add(text);
 
         scene.time.addEvent({
