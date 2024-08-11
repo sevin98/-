@@ -11,6 +11,7 @@ import PhaserGame, { PHASER_GAME_ROUTE_PATH } from "../game/PhaserGame";
 import GameResult, {
     RESULT_ROOM_ROUTE_PATH,
 } from "../pages/GameResult/GameResult";
+import RankingPage, { RANKING_PAGE_ROUTE_PATH } from "../pages/RankingPage/RankingPage";
 
 const Router = createBrowserRouter([
     {
@@ -46,6 +47,10 @@ const Router = createBrowserRouter([
     {
         path: RESULT_ROOM_ROUTE_PATH,
         element: <GameResult />,
+    },
+    {
+        path: RANKING_PAGE_ROUTE_PATH,
+        element: <RankingPage />,
     },
 ]);
 
