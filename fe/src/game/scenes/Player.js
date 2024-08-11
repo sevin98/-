@@ -346,7 +346,6 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
     async isHidingTeam() {
         const gameRepository = await this.roomRepository.getGameRepository();
         const me = await gameRepository.getMe();
-        console.log(">>>", this.isHidingTeam());
         return me.isHidingTeam();
     }
 
@@ -506,3 +505,4 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
         this.#canMove = false;
     }
 }
+

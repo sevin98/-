@@ -215,16 +215,13 @@ export class game extends Phaser.Scene {
                             // 화면에서 숨기고 움직임 제한
                             this.localPlayer.visible = false;
                             this.localPlayer.disallowMove();
-                            console.log(">>> c1");
                         }
                         // 아직 안숨었으면
                         else if (!me.isHiding()) {
                             // 화면에 보이게 하고 움직임 허가
                             this.localPlayer.visible = true;
                             this.localPlayer.allowMove();
-                            console.log(">>> c2");
                         } else {
-                            console.log(">>> ca");
                         }
                         this.shownHintForCurrentPhase = false;
                     }
@@ -233,7 +230,6 @@ export class game extends Phaser.Scene {
                         // 화면에 안보이게 하고 움직임 제한
                         this.localPlayer.visible = false;
                         this.localPlayer.disallowMove();
-                        console.log(">>> c3");
                     }
                 }
                 // 찾는 팀인 경우
@@ -247,14 +243,12 @@ export class game extends Phaser.Scene {
                         this.localPlayer.disallowMove();
                         this.shownHintForCurrentPhase = false;
                         this.roomRepository.setDirectionHints();
-                        console.log(">>> c4");
                     }
                     // 메인 페이즈에
                     else if (gameRepository.getCurrentPhase() === Phase.MAIN) {
                         // 화면에 보이게 하고 움직임 허가
                         this.localPlayer.visible = true;
                         this.localPlayer.allowMove();
-                        console.log(">>> c5");
 
                         if (
                             !this.shownHintForCurrentPhase &&
@@ -343,7 +337,6 @@ export class game extends Phaser.Scene {
                             this.shownHintForCurrentPhase = true;
                         }
                     } else {
-                        console.log(">>> cb");
                     }
                 }
 
