@@ -479,18 +479,24 @@ export default class GameRepository {
             }),
         });
 
-        const { status, data } = await asyncResponses.get(requestId);
-        if (status === INTERACT_SEEK_SUCCESS) {
-            this.#handleSeekSuccessResult(data);
-        } else {
-            this.#handleSeekFailResult(data);
-        }
+        const seekResult = await asyncResponses.get(requestId);
 
+        if (seekResult.type === "INTERACT_SEEK_SUCCESS") {
+            this.#handleSeekSuccessResult(seekResult.data);
+        } else {
+            this.#handleSeekFailResult(seekResult.data);
+        }
+        
         // TODO: 아이템 처리 필요
         return Promise.resolve({
-            isSucceeded: status === INTERACT_SEEK_SUCCESS,
+            isSucceeded: seekResult.type === INTERACT_SEEK_SUCCESS,
         });
     }
+
+
+
+
+
 
     // 찾기 성공 결과 반영
     #handleSeekSuccessResult(data) {
