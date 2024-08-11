@@ -91,7 +91,7 @@ export default class GameRepository {
                     this.startSubscribeGame(gameSubscriptionInfo);
                 })
                 .catch((e) => {});
-        }, 100);
+        }, 10);
     }
 
     startSubscribeGame(gameSubscriptionInfo) {
@@ -197,62 +197,65 @@ export default class GameRepository {
             `페이즈 변경: ${data.phase}, ${data.finishAfterMilliSec}ms 후 종료`
         );
 
-        if (
-            this.#currentPhase === Phase.READY ||
-            this.#currentPhase === Phase.MAIN
-        ) {
-            uiControlQueue.addPhaseChangeMessage(
-                this.#currentPhase,
-                data.finishAfterMilliSec
-            );
-        }
-
-        if (this.#currentPhase === Phase.READY) {
-            if (this.getMe().isHidingTeam()) {
-                console.log(
-                    `당신의 팀이 숨을 차례입니다. ${data.finishAfterMilliSec}ms 안에 숨지 못하면 탈락합니다.`
-                );
-
-                // 화면에 찾는 팀, 숨는 팀 플레이어들이 보이게 하기
-                this.#setTeamPlayersVisibility(this.getSeekingTeam(), true);
-                this.#setTeamPlayersVisibility(this.getHidingTeam(), true);
-            } else {
-                console.log(
-                    `당신의 팀이 찾을 차례입니다. ${data.finishAfterMilliSec}ms 후에 상대 팀을 찾을 수 있습니다.`
-                );
-
-                // 화면에 찾는 팀 플레이어들이 보이게 하기
-                this.#setTeamPlayersVisibility(this.getSeekingTeam(), true);
-                // 화면에 숨는 팀 플레이어들이 보이지 않게 하기
-                this.#setTeamPlayersVisibility(this.getHidingTeam(), false);
-            }
-        } else if (this.#currentPhase === Phase.MAIN) {
-            if (this.getMe().isHidingTeam()) {
-                console.log(
-                    `앞으로 ${data.finishAfterMilliSec}ms 동안 들키지 않으면 생존합니다.`
-                );
-
-                // 화면에 찾는 팀 플레이어들이 보이게 하기
-                this.#setTeamPlayersVisibility(this.getSeekingTeam(), true);
-                // 화면에 숨는 팀 플레이어들이 보이지 않게 하기
-                this.#setTeamPlayersVisibility(this.getHidingTeam(), false);
-            } else {
-                console.log(
-                    `앞으로 ${data.finishAfterMilliSec}ms 동안 상대 팀을 찾아야 합니다.`
-                );
-
-                // 화면에 찾는 팀 플레이어들이 보이게 하기
-                this.#setTeamPlayersVisibility(this.getSeekingTeam(), true);
-                // 화면에 숨는 팀 플레이어들이 보이지 않게 하기
-                this.#setTeamPlayersVisibility(this.getHidingTeam(), false);
-            }
-        } else if (this.#currentPhase === Phase.END) {
+        if (this.#currentPhase === Phase.END) {
             // 한 라운드가 끝나면 역할 반전
             this.#racoonTeam.setIsHidingTeam(!this.#racoonTeam.isHidingTeam());
             this.#foxTeam.setIsHidingTeam(!this.#foxTeam.isHidingTeam());
         } else if (this.#currentPhase === Phase.GAME_END) {
             this.#setIsEnd();
         }
+
+        this.getMe().then((me) => {
+            if (
+                this.#currentPhase === Phase.READY ||
+                this.#currentPhase === Phase.MAIN
+            ) {
+                uiControlQueue.addPhaseChangeMessage(
+                    this.#currentPhase,
+                    data.finishAfterMilliSec
+                );
+            }
+            if (this.#currentPhase === Phase.READY) {
+                if (me.isHidingTeam()) {
+                    console.log(
+                        `당신의 팀이 숨을 차례입니다. ${data.finishAfterMilliSec}ms 안에 숨지 못하면 탈락합니다.`
+                    );
+
+                    // 화면에 찾는 팀, 숨는 팀 플레이어들이 보이게 하기
+                    this.#setTeamPlayersVisibility(this.getSeekingTeam(), true);
+                    this.#setTeamPlayersVisibility(this.getHidingTeam(), true);
+                } else {
+                    console.log(
+                        `당신의 팀이 찾을 차례입니다. ${data.finishAfterMilliSec}ms 후에 상대 팀을 찾을 수 있습니다.`
+                    );
+
+                    // 화면에 찾는 팀 플레이어들이 보이게 하기
+                    this.#setTeamPlayersVisibility(this.getSeekingTeam(), true);
+                    // 화면에 숨는 팀 플레이어들이 보이지 않게 하기
+                    this.#setTeamPlayersVisibility(this.getHidingTeam(), false);
+                }
+            } else if (this.#currentPhase === Phase.MAIN) {
+                if (me.isHidingTeam()) {
+                    console.log(
+                        `앞으로 ${data.finishAfterMilliSec}ms 동안 들키지 않으면 생존합니다.`
+                    );
+
+                    // 화면에 찾는 팀 플레이어들이 보이게 하기
+                    this.#setTeamPlayersVisibility(this.getSeekingTeam(), true);
+                    // 화면에 숨는 팀 플레이어들이 보이지 않게 하기
+                    this.#setTeamPlayersVisibility(this.getHidingTeam(), false);
+                } else {
+                    console.log(
+                        `앞으로 ${data.finishAfterMilliSec}ms 동안 상대 팀을 찾아야 합니다.`
+                    );
+
+                    // 화면에 찾는 팀 플레이어들이 보이게 하기
+                    this.#setTeamPlayersVisibility(this.getSeekingTeam(), true);
+                    // 화면에 숨는 팀 플레이어들이 보이지 않게 하기
+                    this.#setTeamPlayersVisibility(this.getHidingTeam(), false);
+                }
+            }
+        });
     }
 
     #handleGameEndEvent() {
@@ -273,13 +276,19 @@ export default class GameRepository {
     }
 
     #setTeamPlayersVisibility(team, isVisible) {
+        console.log(
+            `팀 ${team.getCharacter()}의 플레이어 ${
+                team.getPlayers().length
+            }명을 ${isVisible ? "보이게" : "숨기게"} 합니다.`
+        );
         for (let player of team.getPlayers()) {
             // 내 플레이어의 가시성은 Game.js에서 별도 처리
             if (player.getPlayerId() === this.#me.getPlayerId()) {
                 continue;
             }
-            const sprite = player.getSprite();
-            sprite.visible = isVisible;
+            player.getSprite().then((sprite) => {
+                sprite.visible = isVisible;
+            });
         }
     }
 
@@ -394,7 +403,14 @@ export default class GameRepository {
 
     // 내 플레이어 정보
     getMe() {
-        return this.#me;
+        return new Promise((resolve) => {
+            const interval = setInterval(() => {
+                if (this.#me) {
+                    clearInterval(interval);
+                    resolve(this.#me);
+                }
+            }, 10);
+        });
     }
 
     // 해당 id를 가지는 플레이어를 찾아 반환
@@ -552,3 +568,4 @@ export default class GameRepository {
         player.setDead();
     }
 }
+
