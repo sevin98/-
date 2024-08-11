@@ -348,6 +348,7 @@ export default class GameUI extends Phaser.Scene {
             const width = camera.width;
             const height = camera.height;
             let x, y;
+            // 1,2는 fliped 이미지로 넣기 
             switch (seekFailCount) {
                 case 1:
                     (x = 20), (y = 20);
