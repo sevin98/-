@@ -139,7 +139,6 @@ export default function WaitingRoom() {
             if (leftSecondsToStart > curLeftSeconds) {
                 // 반영해주고
                 setLeftSecondsToStart(curLeftSeconds);
-
                 // 시작 시간이 되었으면
                 if (gameStartsAt <= Date.now()) {
                     // 카운트다운 종료하고 게임 시작

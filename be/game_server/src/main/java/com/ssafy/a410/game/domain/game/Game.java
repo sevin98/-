@@ -399,6 +399,7 @@ public class Game extends Subscribable implements Runnable {
 
     private void runEndPhase() {
         this.currentPhase = Phase.END;
+        log.info("Room {} END Phase start --------------------------------------", room.getRoomNumber());
         broadcastService.broadcastTo(this, new PhaseChangeControlMessage(Phase.END));
     }
 
