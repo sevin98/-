@@ -137,6 +137,62 @@ export default class GameUI extends Phaser.Scene {
             }
         );
         this.counterText.visible = false;
+
+        // 닭소리
+        this.surprisingChickenSound = this.sound.add("surprising-chicken", {
+            volume: 1,
+        });
+        this.initializeChickenHeads();
+    }
+
+    initializeChickenHeads() {
+        this.chickenHeads = [];
+
+        // 왼쪽 아래부터 반시계방향
+        const chickenHead1 = this.add.image(
+            100,
+            this.cameras.main.height - 200,
+            "chicken-head-1"
+        );
+        this.chickenHeads.push(chickenHead1);
+
+        const chickenHead2 = this.add.image(
+            this.cameras.main.width - 100,
+            this.cameras.main.height - 100,
+            "chicken-head-1"
+        );
+        chickenHead2.setFlipX(true);
+        chickenHead2.setScale(1.5);
+        this.chickenHeads.push(chickenHead2);
+
+        const chickenHead3 = this.add.image(
+            this.cameras.main.width - 200,
+            100,
+            "chicken-head-1"
+        );
+        chickenHead3.setFlipX(true);
+        chickenHead3.setFlipY(true);
+        chickenHead3.setRotation(1.0);
+        this.chickenHeads.push(chickenHead3);
+
+        const chickenHead4 = this.add.image(100, 200, "chicken-head-1");
+        chickenHead4.setRotation(2.0);
+        chickenHead4.setScale(1, 1);
+        this.chickenHeads.push(chickenHead4);
+
+        const chickenHead5 = this.add.image(
+            this.cameras.main.width / 2,
+            300,
+            "chicken-head-1"
+        );
+        chickenHead5.setFlipY(true);
+        chickenHead5.setScale(1.5);
+        this.chickenHeads.push(chickenHead5);
+
+        // 일단 모두 숨기기
+        this.chickenHeads.forEach((chickenHead) => {
+            chickenHead.visible = false;
+        });
     }
 
     updateProgressBar() {
@@ -221,6 +277,9 @@ export default class GameUI extends Phaser.Scene {
                             break;
                         case MESSAGE_TYPE.UPDATE_SEEK_COUNT_UI:
                             this.#updateSeekCountUi(message.data.restSeekCount);
+                            break;
+                        case MESSAGE_TYPE.SURPRISE_CHICKEN:
+                            this.doChickenSurprise();
                             break;
                         default:
                             break;
@@ -407,5 +466,25 @@ export default class GameUI extends Phaser.Scene {
     #updateSeekCountUi(restSeekCount) {
         this.counterText.text = `X ${restSeekCount}`;
     }
-}
 
+    doChickenSurprise() {
+        // 닭 울음 소리 재생하고
+        this.surprisingChickenSound.play();
+        // 3초 뒤에 사라지는 닭 머리들을 화면에 띄움
+        // 단, 랜덤하게 1~3개만 띄움
+        const numChickenHeadsToShow = Math.floor(Math.random() * 3) + 1;
+        for (let i = 0; i < numChickenHeadsToShow; i++) {
+            const chickenHead = this.chickenHeads[i];
+            chickenHead.visible = true;
+            this.tweens.add({
+                targets: chickenHead,
+                alpha: 0,
+                duration: 3000,
+                ease: "Power1",
+                onComplete: () => {
+                    chickenHead.visible = false;
+                },
+            });
+        }
+    }
+}

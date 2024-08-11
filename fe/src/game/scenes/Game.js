@@ -8,6 +8,7 @@ import TextGroup from "./TextGroup";
 import { isFirstPress } from "../../util/keyStroke";
 import { getRoomRepository } from "../../repository";
 import { Phase } from "../../repository/_game";
+import uiControlQueue from "../../util/UIControlQueue";
 
 import eventBus from "../EventBus"; //씬 간 소통위한 이벤트리스너 호출
 
@@ -458,6 +459,11 @@ export class game extends Phaser.Scene {
                                     }
                                 });
                         }
+
+                        // 50% 확률로 닭 출현
+                        if (Math.random() < 0.5) {
+                            uiControlQueue.addSurpriseChickenMessage();
+                        }
                     }
                 }
 
@@ -522,7 +528,9 @@ export class game extends Phaser.Scene {
                 this.lastWallPos.y !== currentSafeZone[1]
             ) {
                 console.log("맵이 줄어듭니다");
-                this.mapWalls.clear(); // 이전 맵 없애기
+                if (this.mapWalls) {
+                    this.mapWalls.clear(); // 이전 맵 없애기
+                }
                 const [startX, startY, endX, endY] = currentSafeZone;
                 const tileSize = 32; // 타일의 크기를 고정된 값으로 설정 (예: 32x32 픽셀)
 
@@ -588,4 +596,3 @@ export class game extends Phaser.Scene {
         });
     }
 }
-
