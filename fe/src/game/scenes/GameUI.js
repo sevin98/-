@@ -126,7 +126,7 @@ export default class GameUI extends Phaser.Scene {
         this.counterText = this.add.text(
             this.cameras.main.width - 70,
             this.cameras.main.height - 64,
-            `X ${this.DEFAULT_SEEK_COUNT}`,
+            `X ${GameUI.DEFAULT_SEEK_COUNT}`,
             {
                 fontSize: "30px",
                 color: "#ffffff",
@@ -351,7 +351,7 @@ export default class GameUI extends Phaser.Scene {
     #showSeekCountUi() {
         this.magnifierIcon.visible = true;
         this.counterText.visible = true;
-        this.counterText.text = `X ${this.DEFAULT_SEEK_COUNT}`;
+        this.counterText.text = `X ${GameUI.DEFAULT_SEEK_COUNT}`;
     }
 
     #updateSeekCountUi(restSeekCount) {
