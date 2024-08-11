@@ -9,6 +9,7 @@ import com.ssafy.a410.game.domain.game.Game;
 import com.ssafy.a410.game.domain.game.message.control.GameControlMessage;
 import com.ssafy.a410.game.domain.game.message.control.GameControlType;
 import com.ssafy.a410.game.domain.player.Player;
+import com.ssafy.a410.game.domain.team.Team;
 import com.ssafy.a410.game.service.MessageBroadcastService;
 import com.ssafy.a410.room.domain.message.control.GameStartInfo;
 import com.ssafy.a410.room.domain.message.control.RoomControlMessage;
@@ -41,6 +42,7 @@ public class Room extends Subscribable {
     private final MessageBroadcastService broadcastService;
     private final Map<String, Player> players;
     private final UserService userService;
+    private final Map<String, DisconnectedPlayerInfo> disconnectedPlayers = new ConcurrentHashMap<>();
     @Setter
     public Game playingGame;
     private Thread gameThread = null;
@@ -85,6 +87,7 @@ public class Room extends Subscribable {
             throw new ResponseException(PLAYER_NOT_IN_ROOM);
         } else {
             players.remove(player.getId());
+            addToDisconnectedPlayers(player);
         }
     }
 
@@ -139,7 +142,7 @@ public class Room extends Subscribable {
     public boolean isReadyToStartGame() {
 
         // 최소 시작인원은 2명 이상이여야함
-        if(players.size()<= 1){
+        if (players.size() <= 1) {
             return false;
         }
 
@@ -188,15 +191,11 @@ public class Room extends Subscribable {
         return "/topic/rooms/" + roomNumber;
     }
 
-    public void notifyDisconnection(Player player) {
-        Game game = this.playingGame;
-        if (game == null) throw new ResponseException(PLAYER_NOT_IN_ROOM);
-
-        String team = game.getPlayerTeam(player);
-
+    public void notifyDisconnection(DisconnectedPlayerInfo disconnectedPlayerInfo) {
         GameControlMessage message = new GameControlMessage(
                 GameControlType.PLAYER_DISCONNECTED,
-                Map.of("playerId", player.getId(), "team", team, "roomInfo", RoomMemberInfo.getAllInfoListFrom(this))
+                Map.of("playerId", disconnectedPlayerInfo.playerId, "team",
+                        disconnectedPlayerInfo.teamCharacter == null ? "" : disconnectedPlayerInfo.teamCharacter)
         );
         broadcastService.broadcastTo(this, message);
     }
@@ -213,5 +212,29 @@ public class Room extends Subscribable {
     public void reset() {
         this.playingGame = null;
         this.gameThread = null;
+    }
+
+    private void addToDisconnectedPlayers(Player player) {
+        disconnectedPlayers.put(player.getId(), new DisconnectedPlayerInfo(player));
+    }
+
+    public boolean hasDisconnectedPlayerWithId(String playerId) {
+        return disconnectedPlayers.containsKey(playerId);
+    }
+
+    public DisconnectedPlayerInfo getDisconnectedPlayerInfo(String playerId) {
+        return disconnectedPlayers.get(playerId);
+    }
+
+    public static class DisconnectedPlayerInfo {
+        private final Team.Character teamCharacter;
+        private final String playerId;
+
+        public DisconnectedPlayerInfo(Player player) {
+            this.playerId = player.getId();
+
+            Game playingGame = player.getRoom().getPlayingGame();
+            this.teamCharacter = playingGame == null ? null : playingGame.getTeamOf(player).getCharacter();
+        }
     }
 }

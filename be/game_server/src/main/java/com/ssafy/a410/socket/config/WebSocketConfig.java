@@ -2,6 +2,8 @@ package com.ssafy.a410.socket.config;
 
 import com.ssafy.a410.auth.service.JWTService;
 import com.ssafy.a410.auth.service.UserService;
+import com.ssafy.a410.socket.handler.CustomWebSocketHandlerDecoratorFactory;
+import com.ssafy.a410.socket.handler.DisconnectHandler;
 import com.ssafy.a410.socket.interceptor.ConnectionAuthHandshakingInterceptor;
 import com.ssafy.a410.socket.interceptor.DispatchingInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,7 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.config.annotation.WebSocketTransportRegistration;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 @Configuration
@@ -27,6 +30,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private JWTService jwtService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private DisconnectHandler disconnectHandler;
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
@@ -47,6 +52,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
         registration.interceptors(dispatchingInterceptor);
+    }
+
+    @Override
+    public void configureWebSocketTransport(WebSocketTransportRegistration registration) {
+        registration.addDecoratorFactory(new CustomWebSocketHandlerDecoratorFactory(disconnectHandler));
     }
 
     @Bean

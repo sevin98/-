@@ -45,11 +45,6 @@ public class DispatchingInterceptor implements ChannelInterceptor {
             if (!isHandled) {
                 return null;
             }
-        } else if (command.equals(StompCommand.DISCONNECT)) {
-            String clientId = accessor.getUser().getName();
-            log.debug("클라이언트 {}가 연결 해제되었습니다.", clientId);
-            disconnectHandler.gameHandleDisconnect(clientId);
-            disconnectHandler.handleDisconnect(clientId);
         }
 
         return ChannelInterceptor.super.preSend(message, channel);
