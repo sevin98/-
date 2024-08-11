@@ -32,6 +32,7 @@ export class game extends Phaser.Scene {
     preload() {
         this.load.image("racoon", "assets/character/image.png");
         this.load.image("success", "assets/object/success.png");
+        this.load.image("failed", "assets/object/failed.png");
 
         this.cursors = this.input.keyboard.createCursorKeys();
         this.headDir = 2; //under direction
@@ -487,7 +488,11 @@ export class game extends Phaser.Scene {
                                             closest.body.x - 40,
                                             closest.body.y - 40
                                         );
-                                        console.log('탐색 실패 횟수:',catchCount)
+                                        // 이미지 넣었다가 사라지기
+                                        this.showFailedImage(
+                                            closest.body.x + 10,
+                                            closest.body.y + 10
+                                        );
                                     }
                                 });
                         }
@@ -511,6 +516,23 @@ export class game extends Phaser.Scene {
     // 맞췄을떄 물체위에 동그라미(success) 이미지 넣는 함수
     showSuccessImage(x, y) {
         const image = this.add.image(x, y, "success");
+        image.setDepth(10); //
+        // 1초후에 이미지를 페이드 아웃하고 제거
+        this.time.delayedCall(3000, () => {
+            this.tweens.add({
+                targets: image,
+                alpha: 0,
+                duration: 100, // 페이드아웃 시간
+                ease: "Power2", // 천천히 사라지는 애니메이션
+                onComplete: () => {
+                    image.destroy();
+                },
+            });
+        });
+    }
+    // 맞췄을떄 물체위에 동그라미(success) 이미지 넣는 함수
+    showFailedImage(x, y) {
+        const image = this.add.image(x, y, "failed");
         image.setDepth(10); //
         // 1초후에 이미지를 페이드 아웃하고 제거
         this.time.delayedCall(3000, () => {
