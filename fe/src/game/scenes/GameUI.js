@@ -8,6 +8,7 @@ import eventBus from "../EventBus";
 
 export default class GameUI extends Phaser.Scene {
     static progressBarAssetPrefix = "progress-bar-01-";
+    static DEFAULT_SEEK_COUNT = 5;
 
     constructor() {
         super({ key: "game-ui" });
@@ -26,6 +27,10 @@ export default class GameUI extends Phaser.Scene {
         // 화면에 표시되어 있는 각 팀 죽은 플레이어 수
         this.deadRacoonHeads = 0;
         this.deadFoxHeads = 0;
+
+        // 화면에 표시되어 있는 남은 찾기 횟수
+        this.drawnMagnifier = 0;
+        this.isMagnifierVisible = false;
     }
 
     preload() {
@@ -39,6 +44,8 @@ export default class GameUI extends Phaser.Scene {
             "timer-progress-bar-background",
             `assets/ui/timer-progress-bar/background.png`
         );
+
+        this.load.image("magnifier-item", "assets/object/item/glassItem.png");
     }
 
     async #getNumOfRacoons() {
@@ -106,6 +113,27 @@ export default class GameUI extends Phaser.Scene {
                 "0xFFB22C"
             )
             .setOrigin(0, 0.6);
+
+        this.magnifierIcon = this.add
+            .image(
+                this.cameras.main.width - 100,
+                this.cameras.main.height - 50,
+                "magnifier-item"
+            )
+            .setDisplaySize(60, 60);
+        this.magnifierIcon.visible = false;
+
+        this.counterText = this.add.text(
+            this.cameras.main.width - 70,
+            this.cameras.main.height - 64,
+            `X ${this.DEFAULT_SEEK_COUNT}`,
+            {
+                fontSize: "30px",
+                color: "#ffffff",
+                fontFamily: "m6x11",
+            }
+        );
+        this.counterText.visible = false;
     }
 
     updateProgressBar() {
@@ -141,6 +169,15 @@ export default class GameUI extends Phaser.Scene {
                     switch (message.type) {
                         case MESSAGE_TYPE.TOP_CENTER_MESSAGE:
                             this.showTopCenterMessage(message.data);
+                            break;
+                        case MESSAGE_TYPE.HIDE_SEEK_COUNT_UI:
+                            this.#hideSeekCountUi();
+                            break;
+                        case MESSAGE_TYPE.SHOW_SEEK_COUNT_UI:
+                            this.#showSeekCountUi();
+                            break;
+                        case MESSAGE_TYPE.UPDATE_SEEK_COUNT_UI:
+                            this.#updateSeekCountUi(message.data.restSeekCount);
                             break;
                         default:
                             break;
@@ -305,4 +342,20 @@ export default class GameUI extends Phaser.Scene {
                 });
             });
     }
+
+    #hideSeekCountUi() {
+        this.magnifierIcon.visible = false;
+        this.counterText.visible = false;
+    }
+
+    #showSeekCountUi() {
+        this.magnifierIcon.visible = true;
+        this.counterText.visible = true;
+        this.counterText.text = `X ${this.DEFAULT_SEEK_COUNT}`;
+    }
+
+    #updateSeekCountUi(restSeekCount) {
+        this.counterText.text = `X ${restSeekCount}`;
+    }
 }
+

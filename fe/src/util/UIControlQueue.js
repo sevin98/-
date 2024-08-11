@@ -1,5 +1,8 @@
 export class MESSAGE_TYPE {
     static TOP_CENTER_MESSAGE = "TOP_CENTER_MESSAGE";
+    static HIDE_SEEK_COUNT_UI = "HIDE_SEEK_COUNT_UI";
+    static SHOW_SEEK_COUNT_UI = "SHOW_SEEK_COUNT_UI";
+    static UPDATE_SEEK_COUNT_UI = "UPDATE_SEEK_COUNT_UI";
 }
 
 class UIControlQueue {
@@ -26,6 +29,21 @@ class UIControlQueue {
             finishAfterMilliSec,
         });
     }
+
+    addHideSeekCountUiMessage() {
+        this.addGameUiControlMessage(MESSAGE_TYPE.HIDE_SEEK_COUNT_UI, {});
+    }
+
+    addShowSeekCountUiMessage() {
+        this.addGameUiControlMessage(MESSAGE_TYPE.SHOW_SEEK_COUNT_UI, {});
+    }
+
+    addUpdateSeekCountUiMessage(restSeekCount) {
+        this.addGameUiControlMessage(MESSAGE_TYPE.UPDATE_SEEK_COUNT_UI, {
+            restSeekCount,
+        });
+    }
 }
 
 export default new UIControlQueue();
+
