@@ -27,12 +27,12 @@ export default class OtherPlayerSprite extends Phaser.Physics.Arcade.Sprite {
         this.body.setSize(28, 28);
 
         this.roomRepository = getRoomRepository();
-        this.gameRepository = this.roomRepository.getGameRepository();
-
-        //id로 player초기화
-        this._player = this.gameRepository.getPlayerWithId(id);
-        this.isRacoon = this._player.isRacoonTeam();
-        this.setupAnimations();
+        this.roomRepository.getGameRepository().then((gameRepository) => {
+            //id로 player초기화
+            this._player = gameRepository.getPlayerWithId(id);
+            this.isRacoon = this._player.isRacoonTeam();
+            this.setupAnimations();
+        });
     }
 
     //애니메이션
