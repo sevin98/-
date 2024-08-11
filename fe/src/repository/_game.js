@@ -75,9 +75,10 @@ export default class GameRepository {
     #currentPhaseFinishAfterMilliSec;
     #currentSafeZone;
     #isGameEnd = false;
-
+    
     #isInitialized = false;
     #currentEliminatedPlayerAndTeam; //ui업데이트
+    #seekFailCatchCount = 0; // 기본값 0 
 
     constructor(room, roomNumber, gameSubscriptionInfo, startsAfterMilliSec) {
         this.#room = room;
@@ -489,7 +490,6 @@ export default class GameRepository {
         
         // TODO: 아이템 처리 필요
         return Promise.resolve({
-            isSucceeded: seekResult.type === INTERACT_SEEK_SUCCESS,
         });
     }
 
@@ -503,32 +503,37 @@ export default class GameRepository {
         const { foundPlayerId, objectId } = data;
         const restCatchCount = Player.MAX_SEEK_COUNT - data.catchCount;
         const requestedPlayerId = data.playerId;
-
         const foundPlayer = this.getPlayerWithId(foundPlayerId);
         const requestedPlayer = this.getPlayerWithId(requestedPlayerId);
-
+        
         // 찾은 플레이어를 죽은 상태로 변경
         foundPlayer.setDead();
         // 남은 시도 횟수 갱신
         requestedPlayer.setRestSeekCount(restCatchCount);
         // 찾은 횟수 갱신
         requestedPlayer.increaseCatchCount();
-
+        
         // TODO : HP에 뭔 짓을 해줘야 함?
     }
-
+    
     // 찾기 실패 결과 반영
     #handleSeekFailResult(data) {
         const { objectId } = data;
         const restCatchCount = Player.MAX_SEEK_COUNT - data.catchCount;
         const requestedPlayerId = data.playerId;
-
+        
         const requestedPlayer = this.getPlayerWithId(requestedPlayerId);
         // 남은 시도 횟수 갱신
         requestedPlayer.setRestSeekCount(restCatchCount);
 
+        this.#seekFailCatchCount= data.catchCount;
+
         // TODO : HP에 뭔 짓을 해줘야 함?
         // TODO : 아이템 처리 필요
+    }
+
+    getSeekFailCount(){
+        return this.#seekFailCatchCount; 
     }
 
     getNextPhaseChangeAt() {
@@ -566,5 +571,8 @@ export default class GameRepository {
             .find((player) => player.getPlayerId() === playerId);
         player.setDead();
     }
+
+
+
 }
 

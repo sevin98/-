@@ -3,8 +3,7 @@ import Phaser from "phaser";
 import uiControlQueue, { MESSAGE_TYPE } from "../../util/UIControlQueue";
 import { getRoomRepository } from "../../repository";
 import { Phase } from "../../repository/_game";
-
-import eventBus from "../EventBus";
+import { game } from "./Game";
 
 export default class GameUI extends Phaser.Scene {
     static progressBarAssetPrefix = "progress-bar-01-";
@@ -38,6 +37,15 @@ export default class GameUI extends Phaser.Scene {
         this.load.image(
             "timer-progress-bar-background",
             `assets/ui/timer-progress-bar/background.png`
+        );
+
+        this.load.image(
+            "chickenEffectImage",
+            "assets/object/chickenEffectImage.png"
+        );
+        this.load.image(
+            "chickenEffectPhoto",
+            "assets/object/chickenEffectPhoto.png"
         );
     }
 
@@ -80,6 +88,10 @@ export default class GameUI extends Phaser.Scene {
     }
 
     create() {
+        // 치킨 이펙트 관리할 배열, 초기 찾기 실패 횟수 
+        this.chickenEffects = [];
+        this.prevseekFailCount = 0; 
+
         //초기화
         this.prevPlayer = null;
 
@@ -135,17 +147,30 @@ export default class GameUI extends Phaser.Scene {
             .then((gameRepository) => {
                 //ui 이미지 추가
                 this.updateImage();
+                if (
+                    gameRepository.getMe().then((me) => {
+                        // 닭 보여주는 이벤트, 숨는팀이면 보이지않음
+                        this.showChickenEffect(
+                            me.isHidingTeam(),
+                            gameRepository.getSeekFailCount()
+                        );
+                    })
+                )
+                    if (uiControlQueue.hasGameUiControlMessage()) {
+                        // } else{
+                        // '찾는팀'
+                        // }
 
-                if (uiControlQueue.hasGameUiControlMessage()) {
-                    const message = uiControlQueue.getGameUiControlMessage();
-                    switch (message.type) {
-                        case MESSAGE_TYPE.TOP_CENTER_MESSAGE:
-                            this.showTopCenterMessage(message.data);
-                            break;
-                        default:
-                            break;
+                        const message =
+                            uiControlQueue.getGameUiControlMessage();
+                        switch (message.type) {
+                            case MESSAGE_TYPE.TOP_CENTER_MESSAGE:
+                                this.showTopCenterMessage(message.data);
+                                break;
+                            default:
+                                break;
+                        }
                     }
-                }
 
                 if (gameRepository.getIsEnd()) {
                     this.progressBar.width = 0;
@@ -153,6 +178,49 @@ export default class GameUI extends Phaser.Scene {
                     this.updateProgressBar();
                 }
             });
+    }
+
+    showChickenEffect(isHidingTeam, seekFailCount) {
+        // if (!this.chickenEffects) {
+        //     this.chickenEffects = [];
+        // }
+        if (isHidingTeam) {
+            // 전부 안보이게 하기 
+            this.chickenEffects.forEach((effect) => effect.setVisible(false));
+            return;
+        }
+        // 전부 보이게 만들기
+        // this.chickenEffects.forEach((effect) => effect.setVisible(true));
+        if (seekFailCount > this.prevseekFailCount) {
+            console.log("실패이펙트 함수 실행");
+            console.log("카메라 찾기");
+            const camera = this.cameras.main;
+            const width = camera.width;
+            const height = camera.height;
+            let x, y;
+            switch (seekFailCount) {
+                case 1:
+                    (x = 20), (y = 20);
+                    break;
+                case 2:
+                    (x = width - 20), (y = 20);
+                    break;
+                case 3:
+                    (x = 20), (y = height - 20);
+                    break;
+                default:
+                    x = width - 20;
+                    y = height - 20;
+            }
+            console.log("이미지추가");
+            const newEffect = this.add
+                .image(x, y, "chickenEffectImage")
+                .setOrigin(0.5);
+            // 배열에 추가 
+            this.chickenEffects.push(newEffect);
+            // 탐색 횟수 업데이트 
+            this.prevseekFailCount = seekFailCount;
+        }
     }
 
     async updateImage() {
