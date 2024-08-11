@@ -53,12 +53,10 @@ public class Game extends Subscribable implements Runnable {
     private final Queue<GamePlayerRequest> seekingTeamRequests;
     private final MessageBroadcastService broadcastService;
     private final UserService userService;
+    private final List<Item> availableItems;
     // 현재 게임이 머물러 있는 상태(단계)
     private Phase currentPhase;
-
     private int round;
-
-    private final List<Item> availableItems;
 
     public Game(Room room, MessageBroadcastService broadcastService, UserService userService, List<Item> availableItems) {
         this.room = room;
@@ -212,7 +210,8 @@ public class Game extends Subscribable implements Runnable {
             initializePlayerItems(player);
             PlayerPosition info = new PlayerPosition(player);
             Team playerTeam = hidingTeam.has(player) ? hidingTeam : seekingTeam;
-            PlayerInitializeMessage message = new PlayerInitializeMessage(info, playerTeam);
+            List<Item> initItems = player.getItems();
+            PlayerInitializeMessage message = new PlayerInitializeMessage(info, playerTeam, initItems);
             broadcastService.unicastTo(player, message);
         }
 
@@ -512,7 +511,7 @@ public class Game extends Subscribable implements Runnable {
         Duration durationOfItem = item.getDuration();
 
         // 플레이어에게 현재 적용된 아이템이 없다면 아이템을 적용시킨다.
-        if(player.getCurrentItem() == null) {
+        if (player.getCurrentItem() == null) {
             player.applyItem(item, durationOfItem, appliedById);
             broadcastService.broadcastTo(this, new ItemAppliedMessage(
                     room.getRoomNumber(),
@@ -524,7 +523,7 @@ public class Game extends Subscribable implements Runnable {
             ));
 
             // 이미 적용된 아이템이 있다면 아이템 적용 실패
-        }else{
+        } else {
             broadcastService.broadcastTo(this, new ItemApplicationFailedToPlayerMessage(
                     room.getRoomNumber(),
                     playerId,
