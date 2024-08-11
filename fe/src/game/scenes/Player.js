@@ -35,9 +35,12 @@ export class HandlePlayerMove {
         return this.localPlayer.canMove();
     }
 
-    update() {
+    update(footstepSound) {
         if (!this.canMove()) {
             this.freezePlayerMovement();
+            if (this.localPlayer.getIsFootstepSoundPlaying()) {
+                footstepSound.stop();
+            }
             return;
         }
 
@@ -48,35 +51,58 @@ export class HandlePlayerMove {
             this.m_cursorKeys.up.isUp
         ) {
             this.moving = 0;
-        }
-        if (this.m_cursorKeys.left.isDown) {
-            if ((this.moving == 1 && this.headDir == 3) || this.moving == 0) {
-                this.localPlayer.move(Direction.Left);
-                this.headDir = 3;
-                this.moving = 1;
+            if (this.localPlayer.getIsFootstepSoundPlaying()) {
+                footstepSound.stop();
+                this.localPlayer.setIsFootstepSoundPlaying(false);
+            }
+        } else {
+            if (!this.localPlayer.getIsFootstepSoundPlaying()) {
+                footstepSound.play();
+                this.localPlayer.setIsFootstepSoundPlaying(true);
+            }
+
+            if (this.m_cursorKeys.left.isDown) {
+                if (
+                    (this.moving == 1 && this.headDir == 3) ||
+                    this.moving == 0
+                ) {
+                    this.localPlayer.move(Direction.Left);
+                    this.headDir = 3;
+                    this.moving = 1;
+                }
+            }
+            if (this.m_cursorKeys.right.isDown) {
+                if (
+                    (this.moving == 1 && this.headDir == 1) ||
+                    this.moving == 0
+                ) {
+                    this.localPlayer.move(Direction.Right);
+                    this.headDir = 1;
+                    this.moving = 1;
+                }
+            }
+            if (this.m_cursorKeys.up.isDown) {
+                if (
+                    (this.moving == 1 && this.headDir == 0) ||
+                    this.moving == 0
+                ) {
+                    this.localPlayer.move(Direction.Up);
+                    this.headDir = 0;
+                    this.moving = 1;
+                }
+            }
+            if (this.m_cursorKeys.down.isDown) {
+                if (
+                    (this.moving == 1 && this.headDir == 2) ||
+                    this.moving == 0
+                ) {
+                    this.localPlayer.move(Direction.Down);
+                    this.headDir = 2;
+                    this.moving = 1;
+                }
             }
         }
-        if (this.m_cursorKeys.right.isDown) {
-            if ((this.moving == 1 && this.headDir == 1) || this.moving == 0) {
-                this.localPlayer.move(Direction.Right);
-                this.headDir = 1;
-                this.moving = 1;
-            }
-        }
-        if (this.m_cursorKeys.up.isDown) {
-            if ((this.moving == 1 && this.headDir == 0) || this.moving == 0) {
-                this.localPlayer.move(Direction.Up);
-                this.headDir = 0;
-                this.moving = 1;
-            }
-        }
-        if (this.m_cursorKeys.down.isDown) {
-            if ((this.moving == 1 && this.headDir == 2) || this.moving == 0) {
-                this.localPlayer.move(Direction.Down);
-                this.headDir = 2;
-                this.moving = 1;
-            }
-        }
+
         if (
             this.moving == 0 ||
             (this.moving == 1 &&
@@ -94,6 +120,7 @@ export class HandlePlayerMove {
         ) {
             this.moving = 0;
             this.localPlayer.stopMove(this.headDir);
+            footstepSound.stop();
         }
 
         this.roomRepository.getGameRepository().then((gameRepository) => {
@@ -123,6 +150,7 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
     static moveY = [-1, 0, 1, 0];
 
     #canMove = true;
+    #isFootstepSoundPlaying = false;
 
     constructor(scene, x, y, texture) {
         super(scene, x, y, texture);
@@ -503,6 +531,14 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
 
     disallowMove() {
         this.#canMove = false;
+    }
+
+    setIsFootstepSoundPlaying(isFootstepSoundPlaying) {
+        this.#isFootstepSoundPlaying = isFootstepSoundPlaying;
+    }
+
+    getIsFootstepSoundPlaying() {
+        return this.#isFootstepSoundPlaying;
     }
 }
 
