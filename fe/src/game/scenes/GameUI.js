@@ -97,20 +97,20 @@ export default class GameUI extends Phaser.Scene {
         this.groupTimer = this.add
             .image(
                 this.cameras.main.width / 2,
-                this.cameras.main.height + 10,
+                this.cameras.main.height,
                 "timer-progress-bar-background"
             )
-            .setOrigin(0.6, 1)
+            .setOrigin(0.5, 1)
             .setDisplaySize(this.cameras.main.width * 0.76, 60);
 
         // Add progress bar(red rectangle) on bar background
         this.progressBar = this.add
             .rectangle(
-                this.cameras.main.width * 0.192,
-                this.cameras.main.height * 0.978,
+                this.cameras.main.width * 0.184,
+                this.cameras.main.height - 27,
                 this.getProgressBarFullWidth(),
-                26,
-                "0xFFB22C"
+                29.5,
+                "0x00ff00"
             )
             .setOrigin(0, 0.6);
 
@@ -149,12 +149,52 @@ export default class GameUI extends Phaser.Scene {
                         gameRepository.getCurrentPhaseFinishAfterMilliSec();
                     this.progressBar.width =
                         this.getProgressBarFullWidth() * percentage;
+
+                    const color = this.interpolateColor(
+                        0xff0000, // Red
+                        0xffff00, // Yellow
+                        0x00ff00, // Green
+                        percentage
+                    );
+                    this.progressBar.fillColor = color;
                 }
             });
     }
 
+    interpolateColor(color1, color2, color3, factor) {
+        let r1, g1, b1, r2, g2, b2;
+
+        if (factor <= 0.5) {
+            // Interpolate between color1 (red) and color2 (yellow)
+            factor *= 2;
+            r1 = (color1 >> 16) & 0xff;
+            g1 = (color1 >> 8) & 0xff;
+            b1 = color1 & 0xff;
+
+            r2 = (color2 >> 16) & 0xff;
+            g2 = (color2 >> 8) & 0xff;
+            b2 = color2 & 0xff;
+        } else {
+            // Interpolate between color2 (yellow) and color3 (green)
+            factor = (factor - 0.5) * 2;
+            r1 = (color2 >> 16) & 0xff;
+            g1 = (color2 >> 8) & 0xff;
+            b1 = color2 & 0xff;
+
+            r2 = (color3 >> 16) & 0xff;
+            g2 = (color3 >> 8) & 0xff;
+            b2 = color3 & 0xff;
+        }
+
+        const r = Math.round(r1 + factor * (r2 - r1));
+        const g = Math.round(g1 + factor * (g2 - g1));
+        const b = Math.round(b1 + factor * (b2 - b1));
+
+        return (r << 16) | (g << 8) | b;
+    }
+
     getProgressBarFullWidth() {
-        return this.cameras.main.width * 0.62;
+        return this.cameras.main.width * 0.635;
     }
 
     update() {
