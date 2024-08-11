@@ -31,6 +31,9 @@ export default class GameUI extends Phaser.Scene {
         // 화면에 표시되어 있는 남은 찾기 횟수
         this.drawnMagnifier = 0;
         this.isMagnifierVisible = false;
+
+        // 중앙 상단 메시지가 떠있는지 여부
+        this.isTopCenterMessageVisible = false;
     }
 
     preload() {
@@ -326,6 +329,11 @@ export default class GameUI extends Phaser.Scene {
         getRoomRepository()
             .getGameRepository()
             .then((gameRepository) => {
+                if (this.isTopCenterMessageVisible) {
+                    return;
+                }
+                this.isTopCenterMessageVisible = true;
+
                 gameRepository.getMe().then((me) => {
                     if (phase === Phase.READY) {
                         if (me.isHidingTeam()) {
@@ -370,6 +378,7 @@ export default class GameUI extends Phaser.Scene {
                         }
                     );
                     text.setOrigin(0.6, 0.6);
+
                     this.tweens.add({
                         targets: text,
                         alpha: 0,
@@ -377,6 +386,7 @@ export default class GameUI extends Phaser.Scene {
                         ease: "Power1",
                         onComplete: () => {
                             text.destroy();
+                            this.isTopCenterMessageVisible = false;
                         },
                     });
                 });
