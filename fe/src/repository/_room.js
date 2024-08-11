@@ -90,7 +90,6 @@ export default class RoomRepository {
     }
 
     clear() {
-        this.#joinedPlayers = [];
         this.#endSubscribe();
     }
 
@@ -295,3 +294,4 @@ export default class RoomRepository {
         this.#gameStartsAt = Date.now() + startsAfterMilliSec;
     }
 }
+

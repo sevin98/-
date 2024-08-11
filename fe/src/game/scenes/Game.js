@@ -92,7 +92,6 @@ export class game extends Phaser.Scene {
                 // maptile에서 오브젝트 어레이 가져옴
                 const HPs = this.maptile.createHP();
                 HPs.forEach((HP) => {
-                    // console.log(`HP ID: ${HP.id}, X: ${HP.x}, Y: ${HP.y}`); // HP 객체의 id와 좌표를 출력
                     const X = this.tileToPixel(HP.x);
                     const Y = this.tileToPixel(HP.y);
                     let hpObject = this.group.create(X, Y, "oak");
@@ -100,9 +99,8 @@ export class game extends Phaser.Scene {
                     hpObject.setData("id", HP.id);
                     hpObject.setAlpha(0); //투명하게
                 });
-                this.physics.add.collider(this.localPlayer, this.group, () => {
-                    console.log("숨을수있음");
-                });
+
+                this.physics.add.collider(this.localPlayer, this.group);
 
                 // 다른 플레이어 스프라이트
                 this.otherPlayerSprites = [];
@@ -592,3 +590,4 @@ export class game extends Phaser.Scene {
         });
     }
 }
+

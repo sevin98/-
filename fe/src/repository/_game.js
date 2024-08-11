@@ -197,6 +197,12 @@ export default class GameRepository {
             `페이즈 변경: ${data.phase}, ${data.finishAfterMilliSec}ms 후 종료`
         );
 
+        if (this.#currentPhase === Phase.END) {
+            // 한 라운드가 끝나면 역할 반전
+            this.#racoonTeam.setIsHidingTeam(!this.#racoonTeam.isHidingTeam());
+            this.#foxTeam.setIsHidingTeam(!this.#foxTeam.isHidingTeam());
+        }
+
         this.getMe().then((me) => {
             if (
                 this.#currentPhase === Phase.READY ||
@@ -206,12 +212,6 @@ export default class GameRepository {
                     this.#currentPhase,
                     data.finishAfterMilliSec
                 );
-            } else if (this.#currentPhase === Phase.END) {
-                // 한 라운드가 끝나면 역할 반전
-                this.#racoonTeam.setIsHidingTeam(
-                    !this.#racoonTeam.isHidingTeam()
-                );
-                this.#foxTeam.setIsHidingTeam(!this.#foxTeam.isHidingTeam());
             }
             if (this.#currentPhase === Phase.READY) {
                 if (me.isHidingTeam()) {
@@ -279,8 +279,9 @@ export default class GameRepository {
             if (player.getPlayerId() === this.#me.getPlayerId()) {
                 continue;
             }
-            const sprite = player.getSprite();
-            sprite.visible = isVisible;
+            player.getSprite().then((sprite) => {
+                sprite.visible = isVisible;
+            });
         }
     }
 
@@ -560,3 +561,4 @@ export default class GameRepository {
         player.setDead();
     }
 }
+
