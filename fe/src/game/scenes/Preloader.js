@@ -47,10 +47,18 @@ export class Preloader extends Scene {
             "footstep-sound",
             "sounds/effect/minifantasy/16_human_walk_stone_2.wav"
         );
+
+        // 닭소리
+        this.load.audio(
+            "surprising-chicken",
+            "sounds/effect/custom/surprising-chicken.mp3"
+        );
+
+        // 닭 머리
+        this.load.image("chicken-head-1", "image/chicken-head-1.png");
     }
     create() {
         this.scene.start("game");
         // this.scene.start("MainMenu");
     }
 }
-

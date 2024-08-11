@@ -3,6 +3,7 @@ export class MESSAGE_TYPE {
     static HIDE_SEEK_COUNT_UI = "HIDE_SEEK_COUNT_UI";
     static SHOW_SEEK_COUNT_UI = "SHOW_SEEK_COUNT_UI";
     static UPDATE_SEEK_COUNT_UI = "UPDATE_SEEK_COUNT_UI";
+    static SURPRISE_CHICKEN = "SURPRISE_CHICKEN";
 }
 
 class UIControlQueue {
@@ -43,7 +44,10 @@ class UIControlQueue {
             restSeekCount,
         });
     }
+
+    addSurpriseChickenMessage() {
+        this.addGameUiControlMessage(MESSAGE_TYPE.SURPRISE_CHICKEN, {});
+    }
 }
 
 export default new UIControlQueue();
-
