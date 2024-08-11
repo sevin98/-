@@ -1,11 +1,12 @@
 package com.ssafy.a410.ranking.service;
 
-import com.ssafy.a410.auth.model.entity.UserProfileEntity;
-
-import java.util.List;
+import com.ssafy.a410.ranking.controller.dto.RankingResp;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface RankingService {
-    List<UserProfileEntity> getAllUsersSortedByWins();
-    List<UserProfileEntity> getAllUsersSortedByCatchCount();
-    List<UserProfileEntity> getAllUsersSortedBySurvivalTime();
+    Page<RankingResp> getAllUsersSortedByWins(Pageable pageable);
+    Page<RankingResp> getAllUsersSortedByCatchCount(Pageable pageable);
+    Page<RankingResp> getAllUsersSortedBySurvivalTime(Pageable pageable);
+    RankingResp getMyRanking(String userId);
 }
