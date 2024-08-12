@@ -79,6 +79,8 @@ export default class GameRepository {
     #isInitialized = false;
     #currentEliminatedPlayerAndTeam; //ui업데이트
     #initialItems;
+    #itemQ;
+    #itemW;
 
     constructor(room, roomNumber, gameSubscriptionInfo, startsAfterMilliSec) {
         this.#room = room;
@@ -338,6 +340,8 @@ export default class GameRepository {
         } = data;
         console.log(`내 정보 초기화: ${playerPositionInfo.playerId}`);
         this.#initialItems = items; // 초기 플레이어의 아이템 값
+        this.#itemQ = items[0]
+        this.#itemW = items[1]
         this.#me = new Player({
             playerId: playerPositionInfo.playerId,
             playerNickname: "me",
@@ -553,7 +557,7 @@ export default class GameRepository {
     //맵축소
     #handleSafeZoneUpdateEvent(data) {
         const safeZone = data; //[0, 0, 1600, 1600],
-        console.log('안전구역',safeZone)
+        console.log("안전구역", safeZone);
         this.#currentSafeZone = safeZone;
     }
     //맵축소
@@ -578,6 +582,35 @@ export default class GameRepository {
             .getPlayers()
             .find((player) => player.getPlayerId() === playerId);
         player.setDead();
+    }
+
+    // 아이템 사용 요청
+    async requestItemUse(item, targetId) {
+        console.log(`${item}을 ${targetId}에 사용요청`)
+        const requestId = uuid();
+        this.#stompClient.publish({
+            destination: `/ws/rooms/${this.#roomNumber}/game/use/item`,
+            body: JSON.stringify({
+                requestId,
+                item: item,
+                targetId: targetId,
+            }),
+        });
+
+        //아이템 코드 
+        const itemUseResult = await asyncResponses.get(requestId);
+        console.log('아이템사용결과',itemUseResult);
+        // return Promise.resolve({
+        //     isSucceeded: hideResult.type === INTERACT_HIDE_SUCCESS,
+        // });
+    }
+
+    // 로컬플레이어의 아이템 찾는 코드 
+    getItemQ() {
+        return this.#itemQ;
+    }
+    getItemW() {
+        return this.#itemW;
     }
 }
 

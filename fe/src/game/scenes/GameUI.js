@@ -107,10 +107,6 @@ export default class GameUI extends Phaser.Scene {
     create() {
         //초기 아이템 이미지 업데이트
         this.createInitialItems();
-
-        // 키 입력 이벤트 추가
-        this.input.keyboard.on("keydown-Q", this.pressQ);
-        this.input.keyboard.on("keydown-W", this.pressW);
         
         //초기화
         this.prevPlayer = null;
@@ -166,14 +162,7 @@ export default class GameUI extends Phaser.Scene {
         });
         this.initializeChickenHeads();
     }
-    pressQ(){
-        console.log('Q누름')
 
-    }
-    pressW(){
-        console.log('W누름')
-        
-    }
     // 아이템 이미지 화면에 렌더링 
     createInitialItemImage(itemName, itemIndex) {
 
@@ -204,7 +193,6 @@ export default class GameUI extends Phaser.Scene {
         switch (itemName) {
             // 바나나
             case "BANANA":
-                console.log("바나나 감지");
                 this.add.image(width, height, "banana").setScale(1.8);
                 box.fillRoundedRect(
                     width - boxSize / 2,
@@ -216,7 +204,6 @@ export default class GameUI extends Phaser.Scene {
                 break;
             // 벌통
             case "BEEHIVE":
-                console.log("벌통 감지");
                 this.add.image(width, height, "beeHive").setScale(1.8);
                 box.fillRoundedRect(
                     width - boxSize / 2,
@@ -228,7 +215,6 @@ export default class GameUI extends Phaser.Scene {
                 break;
             // 독버섯
             case "POISON_MUSHROOM":
-                console.log("독버섯 감지");
                 box.fillRoundedRect(
                     width - boxSize / 2,
                     height - boxSize / 2,
@@ -239,7 +225,6 @@ export default class GameUI extends Phaser.Scene {
                 break;
             // 고추
             case "RED_PEPPER":
-                console.log("매운고추 감지");
                 this.add.image(width, height, "pepper").setScale(1.8);
                 box.fillRoundedRect(
                     width - boxSize / 2,
@@ -251,7 +236,6 @@ export default class GameUI extends Phaser.Scene {
                 break;
             // 표고버섯
             case "MUSHROOM":
-                console.log("버섯 감지");
                 this.add.image(width, height, "mushroom").setScale(1.8);
                 box.fillRoundedRect(
                     width - boxSize / 2,
@@ -263,7 +247,6 @@ export default class GameUI extends Phaser.Scene {
                 break;
             // 나뭇잎
             case "LEAF":
-                console.log("나뭇잎 감지");
                 box.fillRoundedRect(
                     width - boxSize / 2,
                     height - boxSize / 2,
@@ -280,11 +263,10 @@ export default class GameUI extends Phaser.Scene {
         getRoomRepository()
             .getGameRepository()
             .then((gameRepository) => {
-                console.log(
-                    `async함수내 반환:${gameRepository.getInitialItems()}`
-                );
+                // console.log(
+                //     `async함수내 반환:${gameRepository.getInitialItems()}`
+                // );
                 const items = gameRepository.getInitialItems();
-
                 items.forEach((item, idx) => {
                     this.createInitialItemImage(item, idx);
                 });
@@ -408,11 +390,6 @@ export default class GameUI extends Phaser.Scene {
             .getGameRepository()
             .then((gameRepository) => {
                 this.updateImage();
-
-                // Q와  W 키 누를떄 서버에 확인 (한번만 누름)
-
-                // 서버 결과 확인 후 화면에서 없애기 
-
                 if (uiControlQueue.hasGameUiControlMessage()) {
                     const message = uiControlQueue.getGameUiControlMessage();
                     switch (message.type) {

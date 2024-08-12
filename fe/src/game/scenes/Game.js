@@ -10,8 +10,6 @@ import { getRoomRepository } from "../../repository";
 import { Phase } from "../../repository/_game";
 import uiControlQueue from "../../util/UIControlQueue";
 
-import eventBus from "../EventBus"; //씬 간 소통위한 이벤트리스너 호출
-
 export class game extends Phaser.Scene {
     //cursor = this.cursor.c
     //cursors = Phaser.Input.Keyboard.KeyboardPlugin;
@@ -42,6 +40,10 @@ export class game extends Phaser.Scene {
 
     create() {
         this.m_cursorKeys = this.input.keyboard.createCursorKeys();
+
+        // 키 입력 이벤트 추가
+        this.m_cursorKeys.Q = this.input.keyboard.addKey("Q");
+        this.m_cursorKeys.W = this.input.keyboard.addKey("W");
 
         this.text = new TextGroup(this); // 팝업텍스트 객체
 
@@ -472,7 +474,7 @@ export class game extends Phaser.Scene {
                         } else {
                             gameRepository
                                 .requestSeek(objectId)
-                                .then(({ isSucceeded, catchCount }) => {
+                                .then(({ isSucceeded }) => {
                                     if (isSucceeded) {
                                         console.log("탐색 성공");
                                         this.hpSeekSuccessSound.play();
@@ -488,7 +490,6 @@ export class game extends Phaser.Scene {
                                             closest.body.x + 10,
                                             closest.body.y + 10
                                         );
-                                        // console.log('탐색 성공 횟수':catchCount)
                                     } else {
                                         console.log("탐색 실패");
                                         this.hpSeekFailSound.play();
@@ -513,6 +514,16 @@ export class game extends Phaser.Scene {
                                 });
                         }
                     }
+                } else if (
+                    // 아이템 사용
+                    this.interactionEffect &&
+                    isFirstPress(
+                        this.m_cursorKeys.Q.keyCode,
+                        this.m_cursorKeys.Q.isDown
+                    )
+                ) {
+                    
+                    this.useItemQ();
                 }
             });
         });
@@ -521,6 +532,18 @@ export class game extends Phaser.Scene {
         this.createMapWall();
 
         //닭등장
+    }
+    // Q아이템 사용요청
+    async useItemQ() {
+        this.roomRepository.getGameRepository().then((gameRepository) => {
+            gameRepository.requestItemUse(gameRepository.getItemQ());
+        });
+    }
+    // W아이템 사용요청
+    async useItem() {
+        this.roomRepository.getGameRepository().then((gameRepository) => {
+            gameRepository.requestItemUse(gameRepository.getItemW());
+        });
     }
 
     // 맵타일단위를 pix로 변환
@@ -545,7 +568,7 @@ export class game extends Phaser.Scene {
             });
         });
     }
-    // 맞췄을떄 물체위에 동그라미(success) 이미지 넣는 함수
+    // 틀렸을때 물체위에 실패(failed) 이미지 넣는 함수
     showFailedImage(x, y) {
         const image = this.add.image(x, y, "failed");
         image.setDepth(10); //
