@@ -1,5 +1,11 @@
 import PropTypes from "prop-types";
-import { forwardRef, useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+    forwardRef,
+    useEffect,
+    useLayoutEffect,
+    useRef,
+    useState,
+} from "react";
 import StartGame from "./main";
 import eventBus from "./EventBus";
 import { useNavigate } from "react-router-dom";
@@ -42,7 +48,7 @@ export const PhaserGame = forwardRef(function PhaserGame(
                 ref.current.scene = currentScene;
             }
         });
-    
+
         return () => {
             if (game.current) {
                 game.current.destroy(true);
@@ -51,36 +57,90 @@ export const PhaserGame = forwardRef(function PhaserGame(
             eventBus.removeListener("current-scene-ready");
         };
     }, [currentActiveScene, ref]);
-    
+
     useEffect(() => {
         // 라우팅 이벤트 리스너 설정
         const handleRoutingEvent = (event) => {
-            const { path, roomNumber } = event.detail;
+            const { path, roomNumber, password } = event.detail;
             if (game.current) {
                 game.current.destroy(true);
                 game.current = undefined;
                 setIsGameDestroyed(true);
             }
 
-            // 방 나가기 결과에 상관없이 로비로 이동
-            axios.post(`/api/rooms/${roomNumber}/leave`).finally(() => {
-                navigate(path, { replace: true })
-            })
+            if (event.type === "phaser-route-lobby") {
+                // 방 나가기 결과에 상관없이 로비로 이동
+                axios.post(`/api/rooms/${roomNumber}/leave`).finally(() => {
+                    navigate(path, { replace: true });
+                });
+            } else if (event.type === "phaser-route-back-to-room") {
+                // 방으로 돌아가기 (비밀번호 필요)
+                const roomPath = `${path}?room-number=${roomNumber}&room-password=${password}`;
+                navigate(roomPath, { replace: true });
+            }
         };
-    
-        window.addEventListener("phaser-route", handleRoutingEvent);
-    
+
+        window.addEventListener("phaser-route-lobby", handleRoutingEvent);
+        window.addEventListener(
+            "phaser-route-back-to-room",
+            handleRoutingEvent
+        );
+
         return () => {
             if (game.current) {
                 game.current.destroy(true);
                 game.current = undefined;
                 setIsGameDestroyed(true);
             }
-            window.removeEventListener("phaser-route", handleRoutingEvent);
+            window.removeEventListener(
+                "phaser-route-lobby",
+                handleRoutingEvent
+            );
+            window.removeEventListener(
+                "phaser-route-back-to-room",
+                handleRoutingEvent
+            );
         };
     }, [navigate]);
 
-    return <div id="game-container"></div>;
+    return (
+        <div id="game-container">
+            <div
+                id="rpgui-modal"
+                className="rpgui-container framed"
+                style={{
+                    display: "none",
+                    position: "absolute",
+                    width: "500px",
+                    height: "400px",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    zIndex: 1000,
+                }}
+            >
+                <h3 className="rpgui-center">Game Over</h3>
+                {/* <div id="stats-text" className="rpgui-content">
+                    Loading stats...
+                </div> */}
+                <div
+                    className="rpgui-buttons"
+                    style={{ textAlign: "center", marginTop: "20px" }}
+                >
+                    <button id="lobby-button" className="rpgui-button">
+                        <h2>로비로</h2>
+                    </button>
+                    <button
+                        id="back-to-room-button"
+                        className="rpgui-button"
+                        style={{ marginLeft: "10px" }}
+                    >
+                        <h2>이전 방으로 돌아가기</h2>
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
 });
 
 export const PHASER_GAME_ROUTE_PATH = "/GameStart";
