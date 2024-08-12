@@ -4,6 +4,7 @@ export class MESSAGE_TYPE {
     static SHOW_SEEK_COUNT_UI = "SHOW_SEEK_COUNT_UI";
     static UPDATE_SEEK_COUNT_UI = "UPDATE_SEEK_COUNT_UI";
     static SURPRISE_CHICKEN = "SURPRISE_CHICKEN";
+    static PLAYER_DEAD = "PLAYER_DEAD";
 }
 
 class UIControlQueue {
@@ -47,6 +48,13 @@ class UIControlQueue {
 
     addSurpriseChickenMessage() {
         this.addGameUiControlMessage(MESSAGE_TYPE.SURPRISE_CHICKEN, {});
+    }
+
+    addDeadMessage(reasonType, data) {
+        this.addGameUiControlMessage(MESSAGE_TYPE.PLAYER_DEAD, {
+            reasonType,
+            data,
+        });
     }
 }
 

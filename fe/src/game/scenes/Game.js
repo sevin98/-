@@ -223,8 +223,13 @@ export class game extends Phaser.Scene {
                     }
                 }
 
+                // 죽었으면 무조건 숨기고 움직임 허용
+                if (me.isDead()) {
+                    this.localPlayer.visible = false;
+                    this.localPlayer.allowMove();
+                }
                 // 숨는 팀인 경우
-                if (me.isHidingTeam()) {
+                else if (me.isHidingTeam()) {
                     // 레디 페이즈에
                     if (gameRepository.getCurrentPhase() === Phase.READY) {
                         // 숨었다고 처리 되었으나 화면에 보이고 있으면
@@ -238,7 +243,6 @@ export class game extends Phaser.Scene {
                             // 화면에 보이게 하고 움직임 허가
                             this.localPlayer.visible = true;
                             this.localPlayer.allowMove();
-                        } else {
                         }
                         this.shownHintForCurrentPhase = false;
                     }
@@ -415,12 +419,14 @@ export class game extends Phaser.Scene {
                 }
                 // this.input.keyboard.enabled = false;
                 // 상호작용 표시가 있고, space 키 이벤트 있는 경우
+                // 죽어 있는 상태면 상호작용 불가
                 if (
                     this.interactionEffect &&
                     isFirstPress(
                         this.m_cursorKeys.space.keyCode,
                         this.m_cursorKeys.space.isDown
-                    )
+                    ) &&
+                    !me.isDead()
                 ) {
                     const objectId = closest.getData("id");
 
