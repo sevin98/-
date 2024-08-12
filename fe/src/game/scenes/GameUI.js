@@ -579,7 +579,7 @@ export default class GameUI extends Phaser.Scene {
                 messageText = `[${victimPlayerNickname}]님이 [${attackerNickname}]님에게 들켰습니다.`;
                 break;
             case PLAYER_ELIMINATION_REASON.FAILED_TO_HIDE:
-                messageText = `[${victimPlayerNickname}]님이 숨지 못했습니다.`;
+                messageText = `[${victimPlayerNickname}]님이 시간 안에 숨지 못했습니다.`;
                 break;
             case PLAYER_ELIMINATION_REASON.OUT_OF_SAFE_ZONE:
                 messageText = `[${victimPlayerNickname}]님이 금지 구역에 포함되었습니다.`;
