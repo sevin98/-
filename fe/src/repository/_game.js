@@ -147,7 +147,9 @@ export default class GameRepository {
                     PLAYER_ELIMINATION_REASON.FAILED_TO_HIDE,
                     data
                 );
-                console.log(`플레이어 ${data.playerId}님이 탈락하셨습니다.`);
+                console.log(
+                    `플레이어 ${data.playerId}님이 숨지 못해 탈락하셨습니다.`
+                );
                 break;
             case PLAYER_DISCONNECTED:
                 this.#handlePlayerDeath(
@@ -587,20 +589,20 @@ export default class GameRepository {
                 player.setDead();
                 data.victimPlayerNickname = player.getPlayerNickname();
             }
+
+            // 탐색에 의해 발견되어 탈락된 경우
+            if (reasonType === PLAYER_ELIMINATION_REASON.CAUGHT) {
+                // 탐색한 플레이어의 닉네임 추가
+                data.attackerNickname = this.getPlayerWithId(
+                    data.playerId
+                ).getPlayerNickname();
+                data.victimPlayerNickname = this.getPlayerWithId(
+                    data.foundPlayerId
+                ).getPlayerNickname();
+            }
+
+            // 사망 메시지 표시
+            uiControlQueue.addDeadMessage(reasonType, data);
         });
-
-        // 탐색에 의해 발견되어 탈락된 경우
-        if (reasonType === PLAYER_ELIMINATION_REASON.CAUGHT) {
-            // 탐색한 플레이어의 닉네임 추가
-            data.attackerNickname = this.getPlayerWithId(
-                data.playerId
-            ).getPlayerNickname();
-            data.victimPlayerNickname = this.getPlayerWithId(
-                data.foundPlayerId
-            ).getPlayerNickname();
-        }
-
-        // 사망 메시지 표시
-        uiControlQueue.addDeadMessage(reasonType, data);
     }
 }
