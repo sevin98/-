@@ -13,6 +13,7 @@ import uiControlQueue from "../../util/UIControlQueue";
 import eventBus from "../EventBus"; //씬 간 소통위한 이벤트리스너 호출
 import { LOBBY_ROUTE_PATH } from "../../pages/Lobby/Lobby";
 import axios from "../../network/AxiosClient";
+import { WAITING_ROOM_ROUTE_PATH } from "../../pages/WaitingRoom/WaitingRoom";
 
 export class game extends Phaser.Scene {
     //cursor = this.cursor.c
@@ -170,7 +171,6 @@ export class game extends Phaser.Scene {
     }
 
     update() {
-
         if (this.updatePaused) {
             return;
         }
@@ -523,7 +523,10 @@ export class game extends Phaser.Scene {
                         }
                     }
                 }
-                if (gameRepository.getIsEnd() === true && this.modalShown === false) {
+                if (
+                    gameRepository.getIsEnd() === true &&
+                    this.modalShown === false
+                ) {
                     this.showEndGameModal();
                     this.modalShown = true;
                 }
@@ -534,110 +537,42 @@ export class game extends Phaser.Scene {
         this.createMapWall();
 
         //닭등장
-
-        
     }
 
     showEndGameModal() {
         console.log("End Game Modal");
-        this.updatePaused = true;
-    
-        // 플레이어의 현재 위치를 가져옵니다.
-        const playerX = this.localPlayer.x;
-        const playerY = this.localPlayer.y;
-    
-        // 모달 크기 조정
-        const modalWidth = 200; // 모달의 너비
-        const modalHeight = 100; // 모달의 높이
-    
-        // 모달 배경
-        const modalBackground = this.add
-            .rectangle(playerX, playerY, modalWidth, modalHeight, 0x000000, 0.8)
-            .setDepth(2000);
-    
-        // 모달 텍스트
-        const modalText = this.add
-            .text(playerX, playerY - 20, "게임 종료!", {
-                fontSize: "20px",
-                color: "#ffffff",
-            })
-            .setDepth(2001)
-            .setOrigin(0.5);
-    
-        // stat 텍스트
-        const statsText = this.add
-            .text(playerX, playerY - 40, "결과를 불러오는 중...", {
-                fontSize: "14px",
-                color: "#ffffff",
-            })
-            .setDepth(2001)
-            .setOrigin(0.5);
 
-        // 버튼
-        const modalButton = this.add
-            .text(playerX, playerY + 20, "로비로", {
-                fontSize: "16px",
-                color: "#00ff00",
-                backgroundColor: "#333333",
-                padding: { left: 10, right: 10, top: 5, bottom: 5 },
-            })
-            .setDepth(2001)
-            .setOrigin(0.5)
-            .setInteractive()
-            .on("pointerdown", () => {
-                // 버튼 클릭 시 라우팅 이벤트 발생
-                window.dispatchEvent(
-                    new CustomEvent("phaser-route", {
-                        detail: {
-                            path: LOBBY_ROUTE_PATH,
-                            roomNumber: this.roomRepository.getRoomNumber()
-                        }
-                    })
-                );
-            });
-    
-        // 팝업 컨테이너 생성
-        this.modalContainer = this.add.container(0, 0, [
-            modalBackground,
-            modalText,
-            statsText,
-            modalButton,
-        ]);
+        // RPGUI 모달을 표시
+        document.getElementById("rpgui-modal").style.display = "block";
 
-        this.fetchEndGameStats(statsText);
-    
-        // 이벤트 클린업을 위해 씬이 종료될 때 모달을 제거
+        // 로비 버튼 클릭 이벤트
+        document.getElementById("lobby-button").onclick = () => {
+            window.dispatchEvent(
+                new CustomEvent("phaser-route-lobby", {
+                    detail: {
+                        path: LOBBY_ROUTE_PATH,
+                        roomNumber: this.roomRepository.getRoomNumber(),
+                    },
+                })
+            );
+        };
+
+        // 이전 방으로 돌아가기 버튼 클릭 이벤트
+        document.getElementById("back-to-room-button").onclick = () => {
+            window.dispatchEvent(
+                new CustomEvent("phaser-route-back-to-room", {
+                    detail: {
+                        path: WAITING_ROOM_ROUTE_PATH,
+                        roomNumber: this.roomRepository.getRoomNumber(),
+                        password: this.roomRepository.getRoomPassword(),
+                    },
+                })
+            );
+        };
+        // Phaser 씬이 종료될 때 모달을 숨기거나 제거
         this.events.once("shutdown", () => {
-            if (this.modalContainer) {
-                this.modalContainer.destroy(true);
-            }
+            document.getElementById("rpgui-modal").style.display = "none";
         });
-    }
-    
-    fetchEndGameStats(statsText) {
-        const roomId = this.roomRepository.getRoomNumber();
-
-        axios.get(`/rooms/${roomId}/game/result`)
-            .then(response => {
-                const stats = response.data;
-                let statsDisplayText = "플레이어 결과:\n";
-
-                Object.keys(stats).forEach(team => {
-                    statsDisplayText += `\n팀: ${team}\n`;
-                    stats[team].forEach(player => {
-                        statsDisplayText += `닉네임: ${player.nickname}\n`;
-                        statsDisplayText += `잡은 횟수: ${player.catchCount}\n`;
-                        statsDisplayText += `플레이 시간: ${player.playTimeInSeconds}초\n\n`;
-                        console.log(statsDisplayText);
-                    });
-                });
-
-                statsText.setText(statsDisplayText);
-            })
-            .catch(error => {
-                statsText.setText("결과를 불러오지 못했습니다.");
-                console.error("Error fetching end game stats:", error);
-            });
     }
 
     // 맵타일단위를 pix로 변환
