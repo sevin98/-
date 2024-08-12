@@ -15,6 +15,8 @@ import lombok.Setter;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -64,6 +66,9 @@ public class Player extends Subscribable {
     private Duration itemDuration;
     // 나한테 공격한 사람의 ID (HP 에 아이템을 숨겨놓은 사람)
     private String appliedById;
+    // 플레이어가 가지고 있는 Item 리스트
+    private List<Item> items = new ArrayList<>();
+
 
     public Player(UserProfile userProfile, Room room) {
         this(userProfile.getUuid(), userProfile.getNickname(), room);
@@ -253,4 +258,6 @@ public class Player extends Subscribable {
     public void applyMushroomEffect() {
         room.getPlayingGame().applyMushroomEffect(this);
     }
+
+    public void addItem(Item item){ items.add(item); }
 }
