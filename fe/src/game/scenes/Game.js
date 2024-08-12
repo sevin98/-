@@ -32,7 +32,8 @@ export class game extends Phaser.Scene {
 
     preload() {
         this.load.image("racoon", "assets/character/image.png");
-        this.load.image('success','assets/object/success.png')
+        this.load.image("success", "assets/object/success.png");
+
         this.cursors = this.input.keyboard.createCursorKeys();
         this.headDir = 2; //under direction
         this.moving = 0;
@@ -462,7 +463,7 @@ export class game extends Phaser.Scene {
                         } else {
                             gameRepository
                                 .requestSeek(objectId)
-                                .then(({ isSucceeded }) => {
+                                .then(({ isSucceeded, catchCount }) => {
                                     if (isSucceeded) {
                                         console.log("탐색 성공");
                                         //찾았습니다 메세지
@@ -476,6 +477,7 @@ export class game extends Phaser.Scene {
                                             closest.body.x + 10,
                                             closest.body.y + 10
                                         );
+                                        // console.log('탐색 성공 횟수':catchCount)
                                     } else {
                                         console.log("탐색 실패");
                                         //여기 숨은 사람 없습니다 메세지
@@ -484,6 +486,7 @@ export class game extends Phaser.Scene {
                                             closest.body.x - 40,
                                             closest.body.y - 40
                                         );
+                                        console.log('탐색 실패 횟수:',catchCount)
                                     }
                                 });
                         }
@@ -499,16 +502,20 @@ export class game extends Phaser.Scene {
 
         // 맵축소
         this.createMapWall();
+
+        //닭등장
     }
 
     // 맵타일단위를 pix로 변환
     tileToPixel(tileCoord) {
         return tileCoord;
     }
-    // 맞췄을떄 물체위에 이미지 넣는 함수
+
+
+    // 맞췄을떄 물체위에 동그라미(success) 이미지 넣는 함수
     showSuccessImage(x, y) {
         const image = this.add.image(x, y, "success");
-        image.setDepth(100); // 제일 위에 표시 
+        image.setDepth(10); //
         // 1초후에 이미지를 페이드 아웃하고 제거
         this.time.delayedCall(3000, () => {
             this.tweens.add({
