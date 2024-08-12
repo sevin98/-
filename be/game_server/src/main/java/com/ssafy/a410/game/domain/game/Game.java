@@ -171,7 +171,7 @@ public class Game extends Subscribable implements Runnable {
             throw new UnhandledException("Game start interrupted");
         }
 
-        for (int round = 1; round <= TOTAL_ROUND && !isEnd(); round++) {
+        for (round = 1; round <= TOTAL_ROUND && !isEnd(); round++) {
             // 라운드 변경 알림
             log.debug("Room {} round {} start =======================================", room.getRoomNumber(), round);
             broadcastService.broadcastTo(this, new RoundChangeControlMessage(round, TOTAL_ROUND));
