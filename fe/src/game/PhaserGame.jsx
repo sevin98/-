@@ -2,7 +2,7 @@ import PropTypes from "prop-types";
 import { forwardRef, useEffect, useLayoutEffect, useRef } from "react";
 import StartGame from "./main";
 import GameRepository from "../repository/_game";
-import eventBus from "./EventBus";
+import EventBus from "./EventBus";
 
 export const PhaserGame = forwardRef(function PhaserGame(
     { currentActiveScene },
@@ -28,7 +28,7 @@ export const PhaserGame = forwardRef(function PhaserGame(
     }, [ref]);
 
     useEffect(() => {
-        eventBus.on("current-scene-ready", (currentScene) => {
+        EventBus.on("current-scene-ready", (currentScene) => {
             if (currentActiveScene instanceof Function) {
                 currentActiveScene(currentScene);
             }
@@ -36,7 +36,7 @@ export const PhaserGame = forwardRef(function PhaserGame(
         });
 
         return () => {
-            eventBus.removeListener("current-scene-ready");
+            EventBus.removeListener("current-scene-ready");
         };
     }, [currentActiveScene, ref]);
 
@@ -51,3 +51,4 @@ export default PhaserGame;
 PhaserGame.propTypes = {
     currentActiveScene: PropTypes.func,
 };
+
