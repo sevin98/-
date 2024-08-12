@@ -154,6 +154,14 @@ export class game extends Phaser.Scene {
             volume: 1,
             loop: true,
         });
+
+        this.hpSeekSuccessSound = this.sound.add("hp-seek-success", {
+            volume: 1,
+        });
+
+        this.hpSeekFailSound = this.sound.add("hp-seek-fail", {
+            volume: 1,
+        });
     }
 
     update() {
@@ -467,6 +475,8 @@ export class game extends Phaser.Scene {
                                 .then(({ isSucceeded, catchCount }) => {
                                     if (isSucceeded) {
                                         console.log("탐색 성공");
+                                        this.hpSeekSuccessSound.play();
+
                                         //찾았습니다 메세지
                                         this.text.showTextFind(
                                             this,
@@ -481,6 +491,8 @@ export class game extends Phaser.Scene {
                                         // console.log('탐색 성공 횟수':catchCount)
                                     } else {
                                         console.log("탐색 실패");
+                                        this.hpSeekFailSound.play();
+
                                         //여기 숨은 사람 없습니다 메세지
                                         this.text.showTextFailFind(
                                             this,
@@ -492,13 +504,13 @@ export class game extends Phaser.Scene {
                                             closest.body.x + 10,
                                             closest.body.y + 10
                                         );
+
+                                        // 50% 확률로 닭 출현
+                                        if (Math.random() < 0.5) {
+                                            uiControlQueue.addSurpriseChickenMessage();
+                                        }
                                     }
                                 });
-                        }
-
-                        // 50% 확률로 닭 출현
-                        if (Math.random() < 0.5) {
-                            uiControlQueue.addSurpriseChickenMessage();
                         }
                     }
                 }
@@ -515,7 +527,6 @@ export class game extends Phaser.Scene {
     tileToPixel(tileCoord) {
         return tileCoord;
     }
-
 
     // 맞췄을떄 물체위에 동그라미(success) 이미지 넣는 함수
     showSuccessImage(x, y) {
