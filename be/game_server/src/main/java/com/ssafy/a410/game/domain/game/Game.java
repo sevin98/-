@@ -11,10 +11,7 @@ import com.ssafy.a410.game.domain.game.item.ItemUseReq;
 import com.ssafy.a410.game.domain.game.message.DirectionHintMessage;
 import com.ssafy.a410.game.domain.game.message.EliminationOutOfSafeZoneMessage;
 import com.ssafy.a410.game.domain.game.message.control.*;
-import com.ssafy.a410.game.domain.game.message.control.item.ItemApplicationFailedMessage;
-import com.ssafy.a410.game.domain.game.message.control.item.ItemAppliedMessage;
-import com.ssafy.a410.game.domain.game.message.control.item.ItemAppliedToHPObjectMessage;
-import com.ssafy.a410.game.domain.game.message.control.item.ItemClearedMessage;
+import com.ssafy.a410.game.domain.game.message.control.item.*;
 import com.ssafy.a410.game.domain.player.*;
 import com.ssafy.a410.game.domain.player.message.control.*;
 import com.ssafy.a410.game.domain.player.message.request.GamePlayerRequest;
@@ -57,13 +54,14 @@ public class Game extends Subscribable implements Runnable {
     private final Queue<GamePlayerRequest> seekingTeamRequests;
     private final MessageBroadcastService broadcastService;
     private final UserService userService;
+    private final List<Item> availableItems;
     // 현재 게임이 머물러 있는 상태(단계)
     private Phase currentPhase;
-
     private int round;
 
-    public Game(Room room, MessageBroadcastService broadcastService, UserService userService) {
+    public Game(Room room, MessageBroadcastService broadcastService, UserService userService, List<Item> availableItems) {
         this.room = room;
+        this.availableItems = Arrays.asList(Item.values());
         try {
             this.gameMap = new GameMap("map-2024-07-29");
         } catch (IOException e) {
@@ -236,9 +234,11 @@ public class Game extends Subscribable implements Runnable {
         for (Player player : this.room.getPlayers().values()) {
             player.reset();
             player.setPlayerStartTime();
+            initializePlayerItems(player);
             PlayerPosition info = new PlayerPosition(player);
             Team playerTeam = hidingTeam.has(player) ? hidingTeam : seekingTeam;
-            PlayerInitializeMessage message = new PlayerInitializeMessage(info, playerTeam);
+            List<Item> initItems = player.getItems();
+            PlayerInitializeMessage message = new PlayerInitializeMessage(info, playerTeam, initItems);
             broadcastService.unicastTo(player, message);
 
             // 양 팀에 소속된 플레이어들에게 최초 위치는 송신
@@ -568,21 +568,36 @@ public class Game extends Subscribable implements Runnable {
     public void applyItemToPlayer(String playerId, Item item, Duration duration, String appliedById, String requestId) {
         Player player = getPlayerbyId(playerId);
         Duration durationOfItem = item.getDuration();
-        player.applyItem(item, durationOfItem, appliedById);
-        broadcastService.broadcastTo(this, new ItemAppliedMessage(
-                room.getRoomNumber(),
-                playerId,
-                item,
-                duration,
-                player.getSpeed(),
-                requestId
-        ));
+
+        // 플레이어에게 현재 적용된 아이템이 없다면 아이템을 적용시킨다.
+        if (player.getCurrentItem() == null) {
+            player.applyItem(item, durationOfItem, appliedById);
+            broadcastService.broadcastTo(this, new ItemAppliedMessage(
+                    room.getRoomNumber(),
+                    playerId,
+                    item,
+                    duration,
+                    player.getSpeed(),
+                    requestId
+            ));
+
+            // 이미 적용된 아이템이 있다면 아이템 적용 실패
+        } else {
+            broadcastService.broadcastTo(this, new ItemApplicationFailedToPlayerMessage(
+                    room.getRoomNumber(),
+                    playerId,
+                    item,
+                    requestId
+            ));
+        }
     }
 
     public void applyItemToHPObject(String objectId, Item item, Duration duration, String appliedById, String requestId) {
         HPObject hpObject = gameMap.getHpObjects().get(objectId);
         Duration durationOfItem = item.getDuration();
-        if (hpObject != null) {
+
+        // 오브젝트가 실존하고, 비어있을때만 아이템 설치 가능
+        if (hpObject != null && hpObject.isEmpty()) {
             hpObject.applyItem(item, durationOfItem, appliedById);
             broadcastService.broadcastTo(this, new ItemAppliedToHPObjectMessage(
                     room.getRoomNumber(),
@@ -594,7 +609,7 @@ public class Game extends Subscribable implements Runnable {
                     requestId
             ));
         } else {
-            broadcastService.broadcastTo(this, new ItemApplicationFailedMessage(
+            broadcastService.broadcastTo(this, new ItemApplicationFailedToObjectMessage(
                     room.getRoomNumber(),
                     appliedById,
                     objectId,
@@ -637,12 +652,21 @@ public class Game extends Subscribable implements Runnable {
         String targetId = itemUseReq.getTargetId();
         Item item = itemUseReq.getItem();
         String requestId = itemUseReq.getRequestId();
-        String roomId = itemUseReq.getRoomId();
 
+        // targetId 가 없거나 비어있다면 자기자신에게 사용한다고 가정한다.
+        if (targetId == null || targetId.isEmpty()) {
+            targetId = playerId;
+        }
+
+        // 아이템 타입이 자신에게 사용되는 아이템이라면
         if (item.isApplicableToPlayer()) {
             applyItemToPlayer(targetId, item, item.getDuration(), playerId, requestId);
+
+            // 아이템 타입이 오브젝트에 사용되는 아이템이라면
         } else if (item.isApplicableToHPObject()) {
             applyItemToHPObject(targetId, item, item.getDuration(), playerId, requestId);
+
+            // 그 어디에도 속하지 않는 아이템이라면
         } else {
             throw new ResponseException(ErrorDetail.UNKNOWN_ITEM_OR_PLAYER_NOT_FOUND);
         }
@@ -758,5 +782,16 @@ public class Game extends Subscribable implements Runnable {
 
     public void setGameFinished() {
         this.currentPhase = Phase.FINISHED;
+    }
+
+    // 아이템 numItems 개를 게임 시작시 player 에게 부여
+    private void initializePlayerItems(Player player) {
+        Random random = new Random();
+        // 일단 아이템 칸수는 2개로 하고, 추후 조정 가능하게끔 상수로 관리
+        int numItems = 2;
+        for (int i = 0; i < numItems; i++) {
+            Item randomItem = availableItems.get(random.nextInt(availableItems.size()));
+            player.addItem(randomItem);
+        }
     }
 }

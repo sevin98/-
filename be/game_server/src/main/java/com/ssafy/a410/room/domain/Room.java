@@ -6,6 +6,7 @@ import com.ssafy.a410.common.constant.MilliSecOf;
 import com.ssafy.a410.common.exception.ResponseException;
 import com.ssafy.a410.common.exception.UnhandledException;
 import com.ssafy.a410.game.domain.game.Game;
+import com.ssafy.a410.game.domain.game.Item;
 import com.ssafy.a410.game.domain.game.message.control.GameControlMessage;
 import com.ssafy.a410.game.domain.game.message.control.GameControlType;
 import com.ssafy.a410.game.domain.player.Player;
@@ -22,6 +23,8 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
@@ -53,6 +56,10 @@ public class Room extends Subscribable {
         this.broadcastService = broadcastService;
         this.userService = userService;
         players = new ConcurrentHashMap<>();
+    }
+
+    List<Item> createAvailableItems() {
+        return Arrays.asList(Item.values());
     }
 
     /**
@@ -159,7 +166,8 @@ public class Room extends Subscribable {
             return;
         }
 
-        playingGame = new Game(this, broadcastService, userService);
+        List<Item> items = createAvailableItems();
+        playingGame = new Game(this, broadcastService, userService, items);
 
         // 게임 메시지 구독 명령
         final long STARTS_AFTER = 2L * MilliSecOf.SECONDS;

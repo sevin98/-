@@ -61,14 +61,15 @@ public class GameController {
         interactService.seekObject(interactSeekReq);
     }
 
-    // 오브젝트에 아이템을 숨긴다
-    @PostMapping("/rooms/{roomId}/game/use/item")
-    public void useItem(@PathVariable String roomId, @RequestBody ItemUseReq requestDto, Principal principal) {
-        String playerId = principal.getName();
-        requestDto.setPlayerId(playerId);
-        requestDto.setRoomId(roomId);
-        interactService.useItem(requestDto);
+    // 아이템을 사용한다.
+    @MessageMapping("/rooms/{roomId}/game/use/item")
+    public void useItem(@DestinationVariable String roomId, @Payload BlockingReq<ItemUseReq> req, Principal principal) {
+        ItemUseReq itemUseReq = req.getData();
+        itemUseReq.setPlayerId(principal.getName());
+        itemUseReq.setRoomId(roomId);
+        interactService.useItem(itemUseReq);
     }
+
 
     @GetMapping("rooms/{roomId}/game/result")
     public ResponseEntity<Map<String, List<PlayerStatsResp>>> getEndGameStats(@PathVariable String roomId) {
