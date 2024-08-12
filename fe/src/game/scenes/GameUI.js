@@ -3,8 +3,7 @@ import Phaser from "phaser";
 import uiControlQueue, { MESSAGE_TYPE } from "../../util/UIControlQueue";
 import { getRoomRepository } from "../../repository";
 import { Phase } from "../../repository/_game";
-
-import eventBus from "../EventBus";
+import { game } from "./Game";
 
 export default class GameUI extends Phaser.Scene {
     static progressBarAssetPrefix = "progress-bar-01-";
@@ -49,6 +48,15 @@ export default class GameUI extends Phaser.Scene {
         );
 
         this.load.image("magnifier-item", "assets/object/item/glassItem.png");
+
+        this.load.image(
+            "chickenEffectImage",
+            "assets/object/chickenEffectImage.png"
+        );
+        this.load.image(
+            "chickenEffectPhoto",
+            "assets/object/chickenEffectPhoto.png"
+        );
     }
 
     async #getNumOfRacoons() {
@@ -479,7 +487,7 @@ export default class GameUI extends Phaser.Scene {
             this.tweens.add({
                 targets: chickenHead,
                 alpha: 0,
-                duration: 3000,
+                duration: 5000,
                 ease: "Power1",
                 onComplete: () => {
                     chickenHead.visible = false;
