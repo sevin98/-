@@ -24,6 +24,14 @@
     <body>
         <div id="root"></div>
         <script type="module" src="/src/main.jsx"></script>
+        <script>
+            function onMouseClick() {
+                const fileUrl = "/sounds/effect/universal/Modern1.mp3";
+                const audio = new Audio(fileUrl);
+                audio.play();
+            }
+            document.addEventListener("click", onMouseClick);
+        </script>
     </body>
 </html>
 
