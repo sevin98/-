@@ -6,7 +6,7 @@ import com.ssafy.a410.common.exception.ResponseException;
 import com.ssafy.a410.game.domain.Pos;
 import com.ssafy.a410.game.domain.game.Game;
 import com.ssafy.a410.game.domain.game.Item;
-import com.ssafy.a410.game.domain.game.message.EliminationMessage;
+import com.ssafy.a410.game.domain.game.message.EliminationUnHidePlayersMessage;
 import com.ssafy.a410.game.service.MessageBroadcastService;
 import com.ssafy.a410.room.domain.Room;
 import com.ssafy.a410.socket.domain.Subscribable;
@@ -142,10 +142,22 @@ public class Player extends Subscribable {
 
     public void eliminate() {
         this.isEliminated = true;
+//        MessageBroadcastService broadcastService = room.getPlayingGame().getBroadcastService();
+//        Game game = room.getPlayingGame();
+//        String team = game.getPlayerTeam(this);
+//        EliminationMessage message = new EliminationMessage(this.id, team);
+//        broadcastService.unicastTo(this, message);
+//        broadcastService.broadcastTo(game, message);
+        // eliminate 당한시간 기록
+        this.eliminationTime = LocalDateTime.now();
+    }
+
+    public void eliminateUnhidePlayers() {
+        this.isEliminated = true;
         MessageBroadcastService broadcastService = room.getPlayingGame().getBroadcastService();
         Game game = room.getPlayingGame();
         String team = game.getPlayerTeam(this);
-        EliminationMessage message = new EliminationMessage(this.id, team);
+        EliminationUnHidePlayersMessage message = new EliminationUnHidePlayersMessage(this.id, team);
         broadcastService.unicastTo(this, message);
         broadcastService.broadcastTo(game, message);
         // eliminate 당한시간 기록
@@ -259,5 +271,7 @@ public class Player extends Subscribable {
         room.getPlayingGame().applyMushroomEffect(this);
     }
 
-    public void addItem(Item item){ items.add(item); }
+    public void addItem(Item item) {
+        items.add(item);
+    }
 }

@@ -1,9 +1,7 @@
-import { v4 as uuid } from "uuid";
-import { Mutex } from "async-mutex";
-
 import axios from "../network/AxiosClient";
 import asyncResponses from "../repository/_asyncResponses";
 
+import EventBus from "../game/EventBus";
 import { getStompClient } from "../network/StompClient";
 import GameRepository from "./_game";
 import { Player } from "./interface";
@@ -177,6 +175,9 @@ export default class RoomRepository {
                 const targetPlayer = this.#joinedPlayers.find(
                     (player) => player.getPlayerId() === playerData.playerId
                 );
+                if (targetPlayer.getIsReady() !== playerData.isReady) {
+                    EventBus.emit("player-ready-status-changed");
+                }
                 targetPlayer.setIsReady(playerData.isReady);
                 remainPlayerIds.push(targetPlayer.getPlayerId());
             }

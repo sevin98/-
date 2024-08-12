@@ -1,5 +1,17 @@
 import { getRoomRepository } from "./index";
 
+// 플레이어의 탈락 사유
+export class PLAYER_ELIMINATION_REASON {
+    // Main Phase에 상대 편에게 잡혔을 때
+    static CAUGHT = "CAUGHT";
+    // Ready Phase에 숨지 못했을 때
+    static FAILED_TO_HIDE = "FAILED_TO_HIDE";
+    // End Phase에 금지 구역에 포함되어 있을 때
+    static OUT_OF_SAFE_ZONE = "OUT_OF_SAFE_ZONE";
+    // 무단 이탈
+    static PLAYER_DISCONNECTED = "PLAYER_DISCONNECTED";
+}
+
 export class Player {
     #playerId;
     #playerNickname;
@@ -52,7 +64,7 @@ export class Player {
         this.#isDead = true;
     }
 
-    getIsdead() {
+    isDead() {
         return this.#isDead;
     }
 
