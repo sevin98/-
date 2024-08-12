@@ -274,7 +274,7 @@ public class Game extends Subscribable implements Runnable {
             // 봇 플레이어들의 위치 전송
 //            for (Player player : hidingTeam.getPlayers().values()) {
 //                if (player.isBot()) {
-                    // 현재 위치를 기준으로 랜덤하게 옆으로 위치 옮겨주기
+            // 현재 위치를 기준으로 랜덤하게 옆으로 위치 옮겨주기
 //                    player.setX(player.getPos().getX() + 0.0001);
 //                    player.setY(player.getPos().getY() + 0.0001);
 //                    // 방향 랜덤 지정
@@ -344,11 +344,10 @@ public class Game extends Subscribable implements Runnable {
             }
             // 안 숨었을 경우 탈락 처리
             if (!isHide && !player.isEliminated()) {
-                player.eliminate();
+                player.eliminateUnhidePlayers();
             }
         }
     }
-
 
 
     private void runMainPhase() {
@@ -385,7 +384,7 @@ public class Game extends Subscribable implements Runnable {
             // 봇 플레이어들의 위치 전송
 //            for (Player player : seekingTeam.getPlayers().values()) {
 //                if (player.isBot()) {
-                    // 현재 위치를 기준으로 랜덤하게 옆으로 위치 옮겨주기
+            // 현재 위치를 기준으로 랜덤하게 옆으로 위치 옮겨주기
 //                    player.setX(player.getPos().getX() + 0.0001);
 //                    player.setY(player.getPos().getY() + 0.0001);
 //                    player.setDirection(PlayerDirection.values()[(int) (Math.random() * 4)]);
