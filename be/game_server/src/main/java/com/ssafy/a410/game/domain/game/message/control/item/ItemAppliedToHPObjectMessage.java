@@ -15,7 +15,7 @@ public class ItemAppliedToHPObjectMessage extends ItemMessage {
     private final String appliedById;
 
     public ItemAppliedToHPObjectMessage(String roomId, String hpObjectId, String playerId, Item item, Duration duration, String appliedById, String requestId) {
-        super(ItemControlType.ItemAppliedToHPObject, null, requestId);
+        super(ItemControlType.ITEM_APPLIED_TO_OBJECT, null, requestId);
         this.roomId = roomId;
         this.hpObjectId = hpObjectId;
         this.playerId = playerId;
