@@ -234,6 +234,7 @@ public class Room extends Subscribable {
         return disconnectedPlayers.get(playerId);
     }
 
+    @Getter
     public static class DisconnectedPlayerInfo {
         private final Team.Character teamCharacter;
         private final String playerId;
