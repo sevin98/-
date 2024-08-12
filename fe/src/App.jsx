@@ -35,7 +35,7 @@ function App() {
         try {
             const res = await axios.post(`/api/rooms/${roomNumber}/leave`);
 
-            if (res.status === 200) {
+            if (res.status === 204) {
                 navigate(LOBBY_ROUTE_PATH);
             }
         } catch (error) {
