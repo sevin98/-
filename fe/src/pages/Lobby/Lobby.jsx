@@ -12,6 +12,10 @@ import "./Lobby.css";
 import { ImPencil2 } from "react-icons/im";
 import { WAITING_ROOM_ROUTE_PATH } from "../WaitingRoom/WaitingRoom";
 
+import { Link } from "react-router-dom";
+import { RANKING_PAGE_ROUTE_PATH } from "../RankingPage/RankingPage";
+
+
 export default function Lobby() {
     const navigate = useNavigate();
 
@@ -112,6 +116,17 @@ export default function Lobby() {
                             <GiFastForwardButton />
                             <h2>즉시 게임 시작하기!</h2>
                         </button>
+                    </div>
+                    <hr className="grey"></hr>
+                    {/* 랭킹 페이지로 이동하는 버튼 추가 */}
+                    <div className="button-box-lobby">
+                        <Link to={RANKING_PAGE_ROUTE_PATH}>
+                            <button>
+                                click!
+                                <GiFastForwardButton />
+                                <h2>랭킹 보기</h2>
+                            </button>
+                        </Link>
                     </div>
                 </div>
             </div>

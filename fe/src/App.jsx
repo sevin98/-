@@ -7,6 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 import Popup from "./components/Popup";
 import { LOBBY_ROUTE_PATH } from "../src/pages/Lobby/Lobby";
 import { ROOM_JOIN_ROUTE_PATH } from "./pages/Lobby/RoomJoin";
+import MusicPlayer from "./components/MusicPlayer/MusicPlayer";
 
 function App() {
     const [isPopupVisible, setPopupVisible] = useState(false);
@@ -48,6 +49,7 @@ function App() {
         <div id="app">
             <RouterProvider router={router} />
             <ToastContainer />
+            <MusicPlayer />
             <Popup
                 visible={isPopupVisible}
                 onExit={handleReturnToWaitingRoom}
@@ -58,3 +60,4 @@ function App() {
 }
 
 export default App;
+
