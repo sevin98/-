@@ -32,6 +32,9 @@ export class game extends Phaser.Scene {
 
     preload() {
         this.load.image("racoon", "assets/character/image.png");
+        this.load.image("success", "assets/object/success.png");
+        this.load.image("failed", "assets/object/failed.png");
+
         this.cursors = this.input.keyboard.createCursorKeys();
         this.headDir = 2; //under direction
         this.moving = 0;
@@ -151,6 +154,14 @@ export class game extends Phaser.Scene {
             volume: 1,
             loop: true,
         });
+
+        this.hpSeekSuccessSound = this.sound.add("hp-seek-success", {
+            volume: 1,
+        });
+
+        this.hpSeekFailSound = this.sound.add("hp-seek-fail", {
+            volume: 1,
+        });
     }
 
     update() {
@@ -212,8 +223,13 @@ export class game extends Phaser.Scene {
                     }
                 }
 
+                // 죽었으면 무조건 숨기고 움직임 허용
+                if (me.isDead()) {
+                    this.localPlayer.visible = false;
+                    this.localPlayer.allowMove();
+                }
                 // 숨는 팀인 경우
-                if (me.isHidingTeam()) {
+                else if (me.isHidingTeam()) {
                     // 레디 페이즈에
                     if (gameRepository.getCurrentPhase() === Phase.READY) {
                         // 숨었다고 처리 되었으나 화면에 보이고 있으면
@@ -227,7 +243,6 @@ export class game extends Phaser.Scene {
                             // 화면에 보이게 하고 움직임 허가
                             this.localPlayer.visible = true;
                             this.localPlayer.allowMove();
-                        } else {
                         }
                         this.shownHintForCurrentPhase = false;
                     }
@@ -404,16 +419,15 @@ export class game extends Phaser.Scene {
                 }
                 // this.input.keyboard.enabled = false;
                 // 상호작용 표시가 있고, space 키 이벤트 있는 경우
+                // 죽어 있는 상태면 상호작용 불가
                 if (
                     this.interactionEffect &&
                     isFirstPress(
                         this.m_cursorKeys.space.keyCode,
                         this.m_cursorKeys.space.isDown
-                    )
+                    ) &&
+                    !me.isDead()
                 ) {
-                    //publish
-                    // console.log(closest.getData("id")); // key:ObjectId
-                    // key:playerID value: uuid
                     const objectId = closest.getData("id");
 
                     // 숨을 차례이면 숨기 요청
@@ -430,11 +444,18 @@ export class game extends Phaser.Scene {
                                         me.setIsHiding(true);
                                         this.text.showTextHide(
                                             this,
-                                            closest.body.x - 20,
-                                            closest.body.y - 20
+                                            closest.body.x - 40,
+                                            closest.body.y - 40
                                         );
                                         //숨었을때 로컬플레이어 숨음으로 상태 변경
                                         // this.getGameRepository.getMe().setIsHiding();
+                                    } else {
+                                        console.log("숨기 실패");
+                                        this.text.showTextFailHide(
+                                            this,
+                                            closest.body.x - 40,
+                                            closest.body.y - 40
+                                        );
                                     }
                                 });
                         }
@@ -448,60 +469,104 @@ export class game extends Phaser.Scene {
                         // 찾을 수 있는 횟수가 남아 있어야 함
                         else if (!me.canSeek()) {
                             console.log("탐색 횟수가 부족합니다.");
+                            // 찾을 수 있는 남은 횟수가 없습니다 메세지
+                            this.text.showTextNoAvaiblableCount(
+                                this,
+                                closest.body.x - 40,
+                                closest.body.y - 40
+                            );
                         } else {
                             gameRepository
                                 .requestSeek(objectId)
-                                .then(({ isSucceeded }) => {
+                                .then(({ isSucceeded, catchCount }) => {
                                     if (isSucceeded) {
                                         console.log("탐색 성공");
+                                        this.hpSeekSuccessSound.play();
+
+                                        //찾았습니다 메세지
+                                        this.text.showTextFind(
+                                            this,
+                                            closest.body.x - 40,
+                                            closest.body.y - 40
+                                        );
+                                        // 이미지 넣었다가 사라지기
+                                        this.showSuccessImage(
+                                            closest.body.x + 10,
+                                            closest.body.y + 10
+                                        );
+                                        // console.log('탐색 성공 횟수':catchCount)
                                     } else {
                                         console.log("탐색 실패");
+                                        this.hpSeekFailSound.play();
+
+                                        //여기 숨은 사람 없습니다 메세지
+                                        this.text.showTextFailFind(
+                                            this,
+                                            closest.body.x - 40,
+                                            closest.body.y - 40
+                                        );
+                                        // 이미지 넣었다가 사라지기
+                                        this.showFailedImage(
+                                            closest.body.x + 10,
+                                            closest.body.y + 10
+                                        );
+
+                                        // 50% 확률로 닭 출현
+                                        if (Math.random() < 0.5) {
+                                            uiControlQueue.addSurpriseChickenMessage();
+                                        }
                                     }
                                 });
                         }
-
-                        // 50% 확률로 닭 출현
-                        if (Math.random() < 0.5) {
-                            uiControlQueue.addSurpriseChickenMessage();
-                        }
                     }
-                }
-
-                //탐색- 찾는팀,상호작용이펙트,스페이스다운
-                if (
-                    me.isSeekingTeam() &&
-                    this.interactionEffect &&
-                    this.m_cursorKeys.space.isDown
-                ) {
-                    this.text.showTextFind(
-                        this,
-                        closest.body.x - 20,
-                        closest.body.y - 20
-                    );
-
-                    // else if 숨은 사람이 없음
-                    this.text.showTextFailFind(
-                        this,
-                        closest.body.x - 20,
-                        closest.body.y - 20
-                    );
-                    // els if type: 더이상 찾을 수 있는 횟수가 없음
-                    this.text.showTextNoAvaiblableCount(
-                        this,
-                        closest.body.x - 20,
-                        closest.body.y - 20
-                    );
                 }
             });
         });
 
         // 맵축소
         this.createMapWall();
+
+        //닭등장
     }
 
     // 맵타일단위를 pix로 변환
     tileToPixel(tileCoord) {
         return tileCoord;
+    }
+
+    // 맞췄을떄 물체위에 동그라미(success) 이미지 넣는 함수
+    showSuccessImage(x, y) {
+        const image = this.add.image(x, y, "success");
+        image.setDepth(10); //
+        // 1초후에 이미지를 페이드 아웃하고 제거
+        this.time.delayedCall(3000, () => {
+            this.tweens.add({
+                targets: image,
+                alpha: 0,
+                duration: 100, // 페이드아웃 시간
+                ease: "Power2", // 천천히 사라지는 애니메이션
+                onComplete: () => {
+                    image.destroy();
+                },
+            });
+        });
+    }
+    // 맞췄을떄 물체위에 동그라미(success) 이미지 넣는 함수
+    showFailedImage(x, y) {
+        const image = this.add.image(x, y, "failed");
+        image.setDepth(10); //
+        // 1초후에 이미지를 페이드 아웃하고 제거
+        this.time.delayedCall(3000, () => {
+            this.tweens.add({
+                targets: image,
+                alpha: 0,
+                duration: 100, // 페이드아웃 시간
+                ease: "Power2", // 천천히 사라지는 애니메이션
+                onComplete: () => {
+                    image.destroy();
+                },
+            });
+        });
     }
 
     //constructor에 있는 임의의 position 배열에서 좌표 꺼내는 랜덤함수
