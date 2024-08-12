@@ -81,6 +81,7 @@ export default class GameRepository {
     #initialItems;
     #itemQ;
     #itemW;
+    #itemSpeed; // 현재의 아이템 스피드
 
     constructor(room, roomNumber, gameSubscriptionInfo, startsAfterMilliSec) {
         this.#room = room;
@@ -164,19 +165,20 @@ export default class GameRepository {
                     `플레이어 ${data.playerId}님이 안전구역을 벗어나 탈락하셨습니다.`
                 );
                 break;
-            //아이템 메세지: 나중에 static으로 추가하기 
+            //아이템 메세지: 나중에 static으로 추가하기
             case "ITEM_APPLIED_TO_PLAYER":
-                console.log(message);
                 console.log("1. 아이템 플레이어에 적용 성공");
-                this.#handleItemAppliedPlayerSuccess(message.data);
+                console.log("or 6. 탐색시 아이템 적용 성공");
+                // 넘어온 data 확인해보니 message 그대로 넘겨줘야함 
+                this.#handleItemAppliedPlayerSuccess(message);
                 break;
             case "ITEM_APPLIED_TO_OBJECT":
                 console.log("2. 아이템 오브젝트에 적용 성공");
-                console.log("6. 탐색시 아이템 적용 성공");
+                this.#handleItemAppliedObjectSuccess(message);
                 break;
             case "ITEM_APPLICATION_FAILED_TO_OBJECT":
                 console.log("3. 이미 아이템이 적용된 플레이어or 5.object존재x");
-                this.#handleItemAppliedPlayerFailed(message.data);
+                this.#handleItemAppliedPlayerFailed(message);
                 break;
             case "ITEM_APPLICATION_FAILED_TO_PLAYER":
                 console.log("4. 이미 아이템이 설치된 오브젝트"); //5
@@ -607,13 +609,18 @@ export default class GameRepository {
 
     // 자신에게 사용하는 아이템 성공/실패 처리
     #handleItemAppliedPlayerSuccess(data) {
-        console.log("성공", data);
+        console.log('handle속도:',data.newSpeed)
+        this.#itemSpeed = data.newSpeed;
     }
     #handleItemAppliedPlayerFailed(data) {
-        console.log('실패',data)
+        console.log("실패", data);
     }
-    
+    // 아이템 object에 적용
+    #handleItemAppliedObjectSuccess(){
+
+    }
     async requestItemUse(item, targetId) {
+        console.log("_game", item, targetId);
         const requestId = uuid();
         this.#stompClient.publish({
             destination: `/ws/rooms/${this.#roomNumber}/game/use/item`,
@@ -625,11 +632,12 @@ export default class GameRepository {
                 },
             }),
         });
-
+        //TODO: 응답 안들어오는 중임
         const requestItemResult = await asyncResponses.get(requestId);
         // 아이템 적용 성공인지
+        // console.log('request',requestItemResult)
         return Promise.resolve({
-            isSucceeded: requestItemResult.type == "ItemAppliedToPlayer",
+            isSucceeded: requestItemResult.type == "ITEM_APPLIED_TO_PLAYER",
             speed: requestItemResult.data.newSpeed,
         });
     }
@@ -640,5 +648,10 @@ export default class GameRepository {
     }
     getItemW() {
         return this.#itemW;
+    }
+    // 스피드 값 가져오기, 응답들어오면 필요없음
+    getItemSpeed() {
+        console.log('get스피드',this.#itemSpeed)
+        return this.#itemSpeed;
     }
 }

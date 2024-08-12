@@ -415,7 +415,42 @@ export class game extends Phaser.Scene {
                         this.interactionEffect = null;
                     }
                 }
-                // this.input.keyboard.enabled = false;
+
+                // 아이템 사용 코드추가: Q눌렀을때
+                if (Phaser.Input.Keyboard.JustDown(this.m_cursorKeys.Q)) {
+                    if (
+                        this.interactionEffect
+                    ) {
+                        // interactionEFFECT있을때 가장 가까운 objectid전달
+                        this.useItemQ(closest.getData("id"))
+                        .then((speed) => {
+                            console.log(speed)
+                            this.localPlayer.setVelocity(speed, speed);
+                        });
+                        console.log(this.localPlayer.body.velocity)
+                    }else{ // 가까운 이펙트없으면 null 전달
+                        this.useItemQ(null)
+                        .then((speed)=>{
+                            console.log(speed)
+                            this.localPlayer.setVelocity(speed,speed)
+                        })
+                    }
+                } else if (Phaser.Input.Keyboard.JustDown(this.m_cursorKeys.W)) {
+                    if (this.interactionEffect) {
+                        // interactionEFFECT있을때 가장 가까운 objectid전달
+                        this.useItemW(closest.getData("id")).then((speed) => {
+                            console.log(speed);
+                            this.localPlayer.setVelocity(speed, speed);
+                        });
+                    } else {
+                        // 가까운 이펙트없으면 null 전달
+                        this.useItemW(null).then((speed) => {
+                            console.log(speed);
+                            this.localPlayer.setVelocity(speed, speed);
+                        });
+                    }
+                }
+
                 // 상호작용 표시가 있고, space 키 이벤트 있는 경우
                 if (
                     this.interactionEffect &&
@@ -514,48 +549,44 @@ export class game extends Phaser.Scene {
                                 });
                         }
                     }
-                } else if (
-                    // 아이템 사용
-                    this.interactionEffect &&
-                    isFirstPress(
-                        this.m_cursorKeys.Q.keyCode,
-                        this.m_cursorKeys.Q.isDown
-                    )
-                ) {
-                    
-                    this.useItemQ();
-                } else if (
-                    // 아이템 사용
-                    this.interactionEffect &&
-                    isFirstPress(
-                        this.m_cursorKeys.W.keyCode,
-                        this.m_cursorKeys.W.isDown
-                    )
-                ) {
-                    this.useItemW();
                 }
             });
         });
-
         // 맵축소
         this.createMapWall();
-
-        //닭등장
+        // Q 아이템 사용 요청시
     }
     // Q아이템 사용요청
-    async useItemQ() {
-        console.log('Q이벤트')
+    async useItemQ(targetId) {
+        const gameRepository = await this.roomRepository.getGameRepository();
+        const item = gameRepository.getItemQ();
+        // 고추일때는 targetId null값으로 변환
+        if (item === "RED_PEPPER") {
+            targetId = null;
+        }
+        await gameRepository.requestItemUse(item, targetId);
+        console.log(gameRepository.getItemSpeed());
+        const speed = gameRepository.getItemSpeed();
+        return speed;   // undefined
+    }
+    // W아이템 사용요청 / qW 같은템일떄 에러나는것같음
+    async useItemW(targetId) {
         this.roomRepository.getGameRepository().then((gameRepository) => {
-            gameRepository.requestItemUse(gameRepository.getItemQ());
+            const item = gameRepository.getItemW();
+            // 고추일때는 targetId null값으로 변환
+            if (item === "RED_PEPPER") {
+                targetId = null;
+            }
+            gameRepository
+                .requestItemUse(item, targetId)
+                .then(({ isSucceeded, speed }) => { //TODO: _game.js의 함수확인
+                    if (isSucceeded) {
+                        console.log("속도변화", speed);
+                    }
+                });
         });
     }
-    // W아이템 사용요청
-    async useItemW() {
-        console.log('W이벤트')
-        this.roomRepository.getGameRepository().then((gameRepository) => {
-            gameRepository.requestItemUse(gameRepository.getItemW());
-        });
-    }
+
 
     // 맵타일단위를 pix로 변환
     tileToPixel(tileCoord) {
