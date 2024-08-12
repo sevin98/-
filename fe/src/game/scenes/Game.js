@@ -11,6 +11,7 @@ import { Phase } from "../../repository/_game";
 import uiControlQueue from "../../util/UIControlQueue";
 
 import eventBus from "../EventBus"; //씬 간 소통위한 이벤트리스너 호출
+import { LOBBY_ROUTE_PATH } from "../../pages/Lobby/Lobby";
 
 export class game extends Phaser.Scene {
     //cursor = this.cursor.c
@@ -28,6 +29,9 @@ export class game extends Phaser.Scene {
         this.lastWallPos = {};
         this.hintImages = {};
         this.shownHintForCurrentPhase = false;
+        this.modalShown = false;
+
+        this.updatePaused = false;
     }
 
     preload() {
@@ -157,6 +161,10 @@ export class game extends Phaser.Scene {
     }
 
     update() {
+
+        if (this.updatePaused) {
+            return;
+        }
         // 로컬플레이어 포지션 트래킹 , 이후 위치는 x,y,headDir로 접근
         this.roomRepository.getGameRepository().then((gameRepository) => {
             gameRepository.getMe().then((me) => {
@@ -502,6 +510,10 @@ export class game extends Phaser.Scene {
                         }
                     }
                 }
+                if (gameRepository.getIsEnd() === true && this.modalShown === false) {
+                    this.showEndGameModal();
+                    this.modalShown = true;
+                }
             });
         });
 
@@ -509,7 +521,71 @@ export class game extends Phaser.Scene {
         this.createMapWall();
 
         //닭등장
+
+        
     }
+
+    showEndGameModal() {
+        console.log("End Game Modal");
+        this.updatePaused = true;
+    
+        // 플레이어의 현재 위치를 가져옵니다.
+        const playerX = this.localPlayer.x;
+        const playerY = this.localPlayer.y;
+    
+        // 모달 크기 조정
+        const modalWidth = 200; // 모달의 너비
+        const modalHeight = 100; // 모달의 높이
+    
+        // 모달 배경
+        const modalBackground = this.add
+            .rectangle(playerX, playerY, modalWidth, modalHeight, 0x000000, 0.8)
+            .setDepth(2000);
+    
+        // 모달 텍스트
+        const modalText = this.add
+            .text(playerX, playerY - 20, "게임 종료!", {
+                fontSize: "20px",
+                color: "#ffffff",
+            })
+            .setDepth(2001)
+            .setOrigin(0.5);
+    
+        // 버튼
+        const modalButton = this.add
+            .text(playerX, playerY + 20, "로비로", {
+                fontSize: "16px",
+                color: "#00ff00",
+                backgroundColor: "#333333",
+                padding: { left: 10, right: 10, top: 5, bottom: 5 },
+            })
+            .setDepth(2001)
+            .setOrigin(0.5)
+            .setInteractive()
+            .on("pointerdown", () => {
+                // 버튼 클릭 시 라우팅 이벤트 발생
+                window.dispatchEvent(
+                    new CustomEvent("phaser-route", {
+                        detail: LOBBY_ROUTE_PATH,
+                    })
+                );
+            });
+    
+        // 팝업 컨테이너 생성
+        this.modalContainer = this.add.container(0, 0, [
+            modalBackground,
+            modalText,
+            modalButton,
+        ]);
+    
+        // 이벤트 클린업을 위해 씬이 종료될 때 모달을 제거
+        this.events.once("shutdown", () => {
+            if (this.modalContainer) {
+                this.modalContainer.destroy(true);
+            }
+        });
+    }
+    
 
     // 맵타일단위를 pix로 변환
     tileToPixel(tileCoord) {
