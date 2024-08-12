@@ -75,9 +75,10 @@ export default class GameRepository {
     #currentPhaseFinishAfterMilliSec;
     #currentSafeZone;
     #isGameEnd = false;
-
+    
     #isInitialized = false;
     #currentEliminatedPlayerAndTeam; //ui업데이트
+    #seekFailCatchCount = 0; // 기본값 0 
 
     constructor(room, roomNumber, gameSubscriptionInfo, startsAfterMilliSec) {
         this.#room = room;
@@ -224,6 +225,9 @@ export default class GameRepository {
                     // 화면에 찾는 팀, 숨는 팀 플레이어들이 보이게 하기
                     this.#setTeamPlayersVisibility(this.getSeekingTeam(), true);
                     this.#setTeamPlayersVisibility(this.getHidingTeam(), true);
+
+                    // 남은 찾는 횟수 UI 제거
+                    uiControlQueue.addHideSeekCountUiMessage();
                 } else {
                     console.log(
                         `당신의 팀이 찾을 차례입니다. ${data.finishAfterMilliSec}ms 후에 상대 팀을 찾을 수 있습니다.`
@@ -233,6 +237,9 @@ export default class GameRepository {
                     this.#setTeamPlayersVisibility(this.getSeekingTeam(), true);
                     // 화면에 숨는 팀 플레이어들이 보이지 않게 하기
                     this.#setTeamPlayersVisibility(this.getHidingTeam(), false);
+
+                    // 남은 찾는 횟수 UI 초기화
+                    uiControlQueue.addShowSeekCountUiMessage();
                 }
             } else if (this.#currentPhase === Phase.MAIN) {
                 if (me.isHidingTeam()) {
@@ -486,28 +493,33 @@ export default class GameRepository {
             }),
         });
 
-        const { status, data } = await asyncResponses.get(requestId);
-        if (status === INTERACT_SEEK_SUCCESS) {
-            this.#handleSeekSuccessResult(data);
-        } else {
-            this.#handleSeekFailResult(data);
-        }
+        const seekResult = await asyncResponses.get(requestId);
 
+        if (seekResult.type === "INTERACT_SEEK_SUCCESS") {
+            this.#handleSeekSuccessResult(seekResult.data);
+        } else {
+            this.#handleSeekFailResult(seekResult.data);
+        }
+        
         // TODO: 아이템 처리 필요
         return Promise.resolve({
-            isSucceeded: status === INTERACT_SEEK_SUCCESS,
+            isSucceeded: seekResult.type === INTERACT_SEEK_SUCCESS,
         });
     }
+
+
+
+
+
 
     // 찾기 성공 결과 반영
     #handleSeekSuccessResult(data) {
         const { foundPlayerId, objectId } = data;
         const restCatchCount = Player.MAX_SEEK_COUNT - data.catchCount;
         const requestedPlayerId = data.playerId;
-
         const foundPlayer = this.getPlayerWithId(foundPlayerId);
         const requestedPlayer = this.getPlayerWithId(requestedPlayerId);
-
+        
         // 찾은 플레이어를 죽은 상태로 변경
         foundPlayer.setDead();
         // 남은 시도 횟수 갱신
@@ -515,21 +527,30 @@ export default class GameRepository {
         // 찾은 횟수 갱신
         requestedPlayer.increaseCatchCount();
 
+        uiControlQueue.addUpdateSeekCountUiMessage(restCatchCount);
+
         // TODO : HP에 뭔 짓을 해줘야 함?
     }
-
+    
     // 찾기 실패 결과 반영
     #handleSeekFailResult(data) {
         const { objectId } = data;
         const restCatchCount = Player.MAX_SEEK_COUNT - data.catchCount;
         const requestedPlayerId = data.playerId;
-
+        
         const requestedPlayer = this.getPlayerWithId(requestedPlayerId);
         // 남은 시도 횟수 갱신
         requestedPlayer.setRestSeekCount(restCatchCount);
 
+        uiControlQueue.addUpdateSeekCountUiMessage(restCatchCount);
+        this.#seekFailCatchCount = data.catchCount;
+
         // TODO : HP에 뭔 짓을 해줘야 함?
         // TODO : 아이템 처리 필요
+    }
+
+    getSeekFailCount(){
+        return this.#seekFailCatchCount; 
     }
 
     getNextPhaseChangeAt() {
@@ -567,5 +588,8 @@ export default class GameRepository {
             .find((player) => player.getPlayerId() === playerId);
         player.setDead();
     }
+
+
+
 }
 

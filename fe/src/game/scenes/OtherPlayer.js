@@ -33,7 +33,17 @@ export default class OtherPlayerSprite extends Phaser.Physics.Arcade.Sprite {
             this.isRacoon = this._player.isRacoonTeam();
             this.setupAnimations();
         });
+
+        this.isMoving = false;
+        this.footstepSound = new Audio(
+            "sounds/effect/minifantasy/16_human_walk_stone_2.wav"
+        );
+        this.footstepSound.loop = true;
     }
+
+    playFootstepSound() {}
+
+    stopFootstepSound() {}
 
     //애니메이션
     setupAnimations() {
@@ -232,6 +242,7 @@ export default class OtherPlayerSprite extends Phaser.Physics.Arcade.Sprite {
             this.anims.play("fox-idle-down");
         }
     }
+
     move(headDir) {
         if (this.isRacoon) {
             // 애니메이션 업데이트

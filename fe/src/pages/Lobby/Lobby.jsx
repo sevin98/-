@@ -12,6 +12,10 @@ import "./Lobby.css";
 import { ImPencil2 } from "react-icons/im";
 import { WAITING_ROOM_ROUTE_PATH } from "../WaitingRoom/WaitingRoom";
 
+import { Link } from "react-router-dom";
+import { RANKING_PAGE_ROUTE_PATH } from "../RankingPage/RankingPage";
+
+
 export default function Lobby() {
     const navigate = useNavigate();
 
@@ -79,11 +83,18 @@ export default function Lobby() {
                     toast.error("요청을 보내는 중 오류가 발생했습니다.");
                 }
             }
-        };
+    };
+    
+    const onRankingPageBtnClicked = (e) => { 
+        e.preventDefault();
+        navigate(RANKING_PAGE_ROUTE_PATH);
+        console.log("랭킹 페이지로 이동");
+    }
 
     return (
         <div id="container" className="rpgui-cursor-default">
             <div className="wrapper rpgui-content">
+                <div className="background-overlay"></div>
                 <div>
                     <div className="rpgui-container framed main-frame">
                         <h1> Hi !! </h1>
@@ -111,6 +122,15 @@ export default function Lobby() {
                             click!
                             <GiFastForwardButton />
                             <h2>즉시 게임 시작하기!</h2>
+                        </button>
+                    </div>
+                    <hr className="grey"></hr>
+                    {/* 랭킹 페이지로 이동하는 버튼 추가 */}
+                    <div className="button-box-lobby">
+                        <button onClick={onRankingPageBtnClicked}>
+                            click!
+                            <GiFastForwardButton />
+                            <h2>랭킹 보기</h2>
                         </button>
                     </div>
                 </div>
