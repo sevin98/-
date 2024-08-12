@@ -73,22 +73,35 @@ export class game extends Phaser.Scene {
                 );
                 playercam.startFollow(this.localPlayer);
 
+                // 죽은 플레이어는 충돌 처리 안함
+                const passDeadPlayerCollider = (wall, playerSprite) => {
+                    return !me.isDead();
+                };
+
                 //로컬플레이어와 layer의 충돌설정
                 this.physics.add.collider(
                     this.localPlayer,
-                    this.maptile.getLayers().BackGround
+                    this.maptile.getLayers().BackGround,
+                    undefined,
+                    passDeadPlayerCollider
                 );
                 this.physics.add.collider(
                     this.localPlayer,
-                    this.maptile.getLayers().Walls
+                    this.maptile.getLayers().Walls,
+                    undefined,
+                    passDeadPlayerCollider
                 );
                 this.physics.add.collider(
                     this.localPlayer,
-                    this.maptile.getLayers().BackGround_Of_Wall
+                    this.maptile.getLayers().BackGround_Of_Wall,
+                    undefined,
+                    passDeadPlayerCollider
                 );
                 this.physics.add.collider(
                     this.localPlayer,
-                    this.maptile.getLayers().HP
+                    this.maptile.getLayers().HP,
+                    undefined,
+                    passDeadPlayerCollider
                 );
                 // floatinglayer를 player 보다 나중에 호출해서 z-index 구현
                 this.maptile.createFloatingMap();
@@ -104,7 +117,12 @@ export class game extends Phaser.Scene {
                     hpObject.setAlpha(0); //투명하게
                 });
 
-                this.physics.add.collider(this.localPlayer, this.group);
+                this.physics.add.collider(
+                    this.localPlayer,
+                    this.group,
+                    undefined,
+                    passDeadPlayerCollider
+                );
 
                 // 다른 플레이어 스프라이트
                 this.otherPlayerSprites = [];
@@ -139,9 +157,8 @@ export class game extends Phaser.Scene {
                 this.physics.add.collider(
                     this.localPlayer,
                     this.mapWalls,
-                    () => {
-                        console.log("작아지는 벽과 충돌");
-                    }
+                    undefined,
+                    passDeadPlayerCollider
                 );
 
                 //game-ui 씬
