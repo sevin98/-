@@ -12,6 +12,7 @@ import uiControlQueue from "../../util/UIControlQueue";
 
 import eventBus from "../EventBus"; //씬 간 소통위한 이벤트리스너 호출
 import { LOBBY_ROUTE_PATH } from "../../pages/Lobby/Lobby";
+import axios from "../../network/AxiosClient";
 
 export class game extends Phaser.Scene {
     //cursor = this.cursor.c
@@ -563,6 +564,15 @@ export class game extends Phaser.Scene {
             .setDepth(2001)
             .setOrigin(0.5);
     
+        // stat 텍스트
+        const statsText = this.add
+            .text(playerX, playerY - 40, "결과를 불러오는 중...", {
+                fontSize: "14px",
+                color: "#ffffff",
+            })
+            .setDepth(2001)
+            .setOrigin(0.5);
+
         // 버튼
         const modalButton = this.add
             .text(playerX, playerY + 20, "로비로", {
@@ -578,7 +588,10 @@ export class game extends Phaser.Scene {
                 // 버튼 클릭 시 라우팅 이벤트 발생
                 window.dispatchEvent(
                     new CustomEvent("phaser-route", {
-                        detail: LOBBY_ROUTE_PATH,
+                        detail: {
+                            path: LOBBY_ROUTE_PATH,
+                            roomNumber: this.roomRepository.getRoomNumber()
+                        }
                     })
                 );
             });
@@ -587,8 +600,11 @@ export class game extends Phaser.Scene {
         this.modalContainer = this.add.container(0, 0, [
             modalBackground,
             modalText,
+            statsText,
             modalButton,
         ]);
+
+        this.fetchEndGameStats(statsText);
     
         // 이벤트 클린업을 위해 씬이 종료될 때 모달을 제거
         this.events.once("shutdown", () => {
@@ -598,6 +614,31 @@ export class game extends Phaser.Scene {
         });
     }
     
+    fetchEndGameStats(statsText) {
+        const roomId = this.roomRepository.getRoomNumber();
+
+        axios.get(`/rooms/${roomId}/game/result`)
+            .then(response => {
+                const stats = response.data;
+                let statsDisplayText = "플레이어 결과:\n";
+
+                Object.keys(stats).forEach(team => {
+                    statsDisplayText += `\n팀: ${team}\n`;
+                    stats[team].forEach(player => {
+                        statsDisplayText += `닉네임: ${player.nickname}\n`;
+                        statsDisplayText += `잡은 횟수: ${player.catchCount}\n`;
+                        statsDisplayText += `플레이 시간: ${player.playTimeInSeconds}초\n\n`;
+                        console.log(statsDisplayText);
+                    });
+                });
+
+                statsText.setText(statsDisplayText);
+            })
+            .catch(error => {
+                statsText.setText("결과를 불러오지 못했습니다.");
+                console.error("Error fetching end game stats:", error);
+            });
+    }
 
     // 맵타일단위를 pix로 변환
     tileToPixel(tileCoord) {
