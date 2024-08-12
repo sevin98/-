@@ -1,8 +1,8 @@
 .background-overlay {
     position: absolute;
-    width: 500px;
-    height: 600px;
-    background-color: rgba(255, 255, 255, 0.7);
+    width: 450px;
+    height: 570px;
+    background-color: rgba(255, 255, 255, 0.6);
     z-index: -1;
     border-radius: 40px;
     align-items: center;
