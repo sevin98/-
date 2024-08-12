@@ -88,6 +88,7 @@ export default function Lobby() {
     return (
         <div id="container" className="rpgui-cursor-default">
             <div className="wrapper rpgui-content">
+                <div className="background-overlay"></div>
                 <div>
                     <div className="rpgui-container framed main-frame">
                         <h1> Hi !! </h1>
