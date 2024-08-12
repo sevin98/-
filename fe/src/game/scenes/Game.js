@@ -524,6 +524,15 @@ export class game extends Phaser.Scene {
                 ) {
                     
                     this.useItemQ();
+                } else if (
+                    // 아이템 사용
+                    this.interactionEffect &&
+                    isFirstPress(
+                        this.m_cursorKeys.W.keyCode,
+                        this.m_cursorKeys.W.isDown
+                    )
+                ) {
+                    this.useItemW();
                 }
             });
         });
@@ -535,12 +544,14 @@ export class game extends Phaser.Scene {
     }
     // Q아이템 사용요청
     async useItemQ() {
+        console.log('Q이벤트')
         this.roomRepository.getGameRepository().then((gameRepository) => {
             gameRepository.requestItemUse(gameRepository.getItemQ());
         });
     }
     // W아이템 사용요청
-    async useItem() {
+    async useItemW() {
+        console.log('W이벤트')
         this.roomRepository.getGameRepository().then((gameRepository) => {
             gameRepository.requestItemUse(gameRepository.getItemW());
         });
