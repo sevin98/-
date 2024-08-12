@@ -18,7 +18,6 @@ import com.ssafy.a410.game.domain.player.message.request.GamePlayerRequest;
 import com.ssafy.a410.game.domain.team.Team;
 import com.ssafy.a410.game.service.MessageBroadcastService;
 import com.ssafy.a410.room.domain.Room;
-import com.ssafy.a410.room.domain.message.control.RoomMemberInfo;
 import com.ssafy.a410.socket.domain.Subscribable;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -232,7 +231,8 @@ public class Game extends Subscribable implements Runnable {
             PlayerPosition info = new PlayerPosition(player);
             Team playerTeam = hidingTeam.has(player) ? hidingTeam : seekingTeam;
             List<Item> initItems = player.getItems();
-            PlayerInitializeMessage message = new PlayerInitializeMessage(info, playerTeam, initItems);
+            String playerNickname = player.getNickname();
+            PlayerInitializeMessage message = new PlayerInitializeMessage(info, playerTeam, initItems, playerNickname);
             broadcastService.unicastTo(player, message);
 
             // 양 팀에 소속된 플레이어들에게 최초 위치는 송신
@@ -274,7 +274,7 @@ public class Game extends Subscribable implements Runnable {
             // 봇 플레이어들의 위치 전송
 //            for (Player player : hidingTeam.getPlayers().values()) {
 //                if (player.isBot()) {
-                    // 현재 위치를 기준으로 랜덤하게 옆으로 위치 옮겨주기
+            // 현재 위치를 기준으로 랜덤하게 옆으로 위치 옮겨주기
 //                    player.setX(player.getPos().getX() + 0.0001);
 //                    player.setY(player.getPos().getY() + 0.0001);
 //                    // 방향 랜덤 지정
@@ -350,7 +350,6 @@ public class Game extends Subscribable implements Runnable {
     }
 
 
-
     private void runMainPhase() {
         this.currentPhase = Phase.MAIN;
         broadcastService.broadcastTo(this, new PhaseChangeControlMessage(Phase.MAIN));
@@ -385,7 +384,7 @@ public class Game extends Subscribable implements Runnable {
             // 봇 플레이어들의 위치 전송
 //            for (Player player : seekingTeam.getPlayers().values()) {
 //                if (player.isBot()) {
-                    // 현재 위치를 기준으로 랜덤하게 옆으로 위치 옮겨주기
+            // 현재 위치를 기준으로 랜덤하게 옆으로 위치 옮겨주기
 //                    player.setX(player.getPos().getX() + 0.0001);
 //                    player.setY(player.getPos().getY() + 0.0001);
 //                    player.setDirection(PlayerDirection.values()[(int) (Math.random() * 4)]);
@@ -455,13 +454,10 @@ public class Game extends Subscribable implements Runnable {
     }
 
     // player는 현재 사용하지 않지만, 후에 "player가 나갔습니다" 를 뿌려줄까봐 유지함
-    public void notifyDisconnection(Player player) {
-
-        String team = this.getPlayerTeam(player);
-
+    public void notifyDisconnection(Room.DisconnectedPlayerInfo info) {
         GameControlMessage message = new GameControlMessage(
                 GameControlType.PLAYER_DISCONNECTED,
-                Map.of("playerId", player.getId(), "team", team, "roomInfo", RoomMemberInfo.getAllInfoListFrom(this.getRoom()))
+                Map.of("playerId", info.getPlayerId())
         );
         broadcastService.broadcastTo(this, message);
     }
