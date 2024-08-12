@@ -17,14 +17,13 @@ export class Preloader extends Scene {
             "assets/character/fox.json"
         );
 
-        // map 이미지 로드 
+        // map 이미지 로드
         this.load.tilemapTiledJSON(
             "map-2024-07-29",
             "/assets/map/map-2024-07-29.json"
         );
         this.load.image("tiles", "/assets/map/map-2024-07-29_tiles.png");
         this.load.image("base", "/assets/map/base.png");
-
 
         // 상호작용 확인할 오크통&상호작용 표시 이미지 로드
         this.load.image("oak", "assets/object/oak.png");
@@ -43,9 +42,23 @@ export class Preloader extends Scene {
         this.load.image("RIGHT", "assets/object/right.png");
         this.load.image("DOWN", "assets/object/down.png");
 
+        // 캐릭터 발자국 소리
+        this.load.audio(
+            "footstep-sound",
+            "sounds/effect/minifantasy/16_human_walk_stone_2.wav"
+        );
+
+        // 닭소리
+        this.load.audio(
+            "surprising-chicken",
+            "sounds/effect/custom/surprising-chicken.mp3"
+        );
+
+        // 닭 머리
+        this.load.image("chicken-head-1", "image/chicken-head-1.png");
     }
     create() {
-        this.scene.start("game");     
+        this.scene.start("game");
         // this.scene.start("MainMenu");
     }
 }

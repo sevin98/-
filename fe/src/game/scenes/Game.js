@@ -8,6 +8,7 @@ import TextGroup from "./TextGroup";
 import { isFirstPress } from "../../util/keyStroke";
 import { getRoomRepository } from "../../repository";
 import { Phase } from "../../repository/_game";
+import uiControlQueue from "../../util/UIControlQueue";
 
 import eventBus from "../EventBus"; //씬 간 소통위한 이벤트리스너 호출
 
@@ -148,6 +149,11 @@ export class game extends Phaser.Scene {
                 // 이벤트리스너
             });
         });
+
+        this.footstepSound = this.sound.add("footstep-sound", {
+            volume: 1,
+            loop: true,
+        });
     }
 
     update() {
@@ -218,16 +224,13 @@ export class game extends Phaser.Scene {
                             // 화면에서 숨기고 움직임 제한
                             this.localPlayer.visible = false;
                             this.localPlayer.disallowMove();
-                            console.log(">>> c1");
                         }
                         // 아직 안숨었으면
                         else if (!me.isHiding()) {
                             // 화면에 보이게 하고 움직임 허가
                             this.localPlayer.visible = true;
                             this.localPlayer.allowMove();
-                            console.log(">>> c2");
                         } else {
-                            console.log(">>> ca");
                         }
                         this.shownHintForCurrentPhase = false;
                     }
@@ -236,7 +239,6 @@ export class game extends Phaser.Scene {
                         // 화면에 안보이게 하고 움직임 제한
                         this.localPlayer.visible = false;
                         this.localPlayer.disallowMove();
-                        console.log(">>> c3");
                     }
                 }
                 // 찾는 팀인 경우
@@ -250,14 +252,12 @@ export class game extends Phaser.Scene {
                         this.localPlayer.disallowMove();
                         this.shownHintForCurrentPhase = false;
                         this.roomRepository.setDirectionHints();
-                        console.log(">>> c4");
                     }
                     // 메인 페이즈에
                     else if (gameRepository.getCurrentPhase() === Phase.MAIN) {
                         // 화면에 보이게 하고 움직임 허가
                         this.localPlayer.visible = true;
                         this.localPlayer.allowMove();
-                        console.log(">>> c5");
 
                         if (
                             !this.shownHintForCurrentPhase &&
@@ -346,7 +346,6 @@ export class game extends Phaser.Scene {
                             this.shownHintForCurrentPhase = true;
                         }
                     } else {
-                        console.log(">>> cb");
                     }
                 }
 
@@ -357,7 +356,7 @@ export class game extends Phaser.Scene {
                     this.headDir,
                     this.moving
                 );
-                playerMoveHandler.update();
+                playerMoveHandler.update(this.footstepSound);
 
                 // 플레이어에서 물리적으로 가장 가까운 거리 찾는 객체
                 const closest = this.physics.closest(
@@ -496,6 +495,11 @@ export class game extends Phaser.Scene {
                                     }
                                 });
                         }
+
+                        // 50% 확률로 닭 출현
+                        if (Math.random() < 0.5) {
+                            uiControlQueue.addSurpriseChickenMessage();
+                        }
                     }
                 }
             });
@@ -572,7 +576,9 @@ export class game extends Phaser.Scene {
                 this.lastWallPos.y !== currentSafeZone[1]
             ) {
                 console.log("맵이 줄어듭니다");
-                this.mapWalls.clear(); // 이전 맵 없애기
+                if (this.mapWalls) {
+                    this.mapWalls.clear(); // 이전 맵 없애기
+                }
                 const [startX, startY, endX, endY] = currentSafeZone;
                 const tileSize = 32; // 타일의 크기를 고정된 값으로 설정 (예: 32x32 픽셀)
 
