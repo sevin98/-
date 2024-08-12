@@ -75,10 +75,10 @@ export default class GameRepository {
     #currentPhaseFinishAfterMilliSec;
     #currentSafeZone;
     #isGameEnd = false;
-    
+
     #isInitialized = false;
     #currentEliminatedPlayerAndTeam; //ui업데이트
-    #seekFailCatchCount = 0; // 기본값 0 
+    #initialItems;
 
     constructor(room, roomNumber, gameSubscriptionInfo, startsAfterMilliSec) {
         this.#room = room;
@@ -330,11 +330,14 @@ export default class GameRepository {
 
     initializePlayer(data) {
         // 플레이어 초기 정보 설정
-        const { playerPositionInfo, teamCharacter, teamSubscriptionInfo } =
-            data;
-
+        const {
+            playerPositionInfo,
+            teamCharacter,
+            teamSubscriptionInfo,
+            items,
+        } = data;
         console.log(`내 정보 초기화: ${playerPositionInfo.playerId}`);
-
+        this.#initialItems = items; // 초기 플레이어의 아이템 값
         this.#me = new Player({
             playerId: playerPositionInfo.playerId,
             playerNickname: "me",
@@ -453,6 +456,10 @@ export default class GameRepository {
         return this.#room.getJoinedPlayers();
     }
 
+    getInitialItems() {
+        return this.#initialItems;
+    }
+
     // HP =====================================================================
     // 숨기 요청
     async requestHide(objectId) {
@@ -493,17 +500,12 @@ export default class GameRepository {
         } else {
             this.#handleSeekFailResult(seekResult.data);
         }
-        
+
         // TODO: 아이템 처리 필요
         return Promise.resolve({
             isSucceeded: seekResult.type === INTERACT_SEEK_SUCCESS,
         });
     }
-
-
-
-
-
 
     // 찾기 성공 결과 반영
     #handleSeekSuccessResult(data) {
@@ -512,7 +514,7 @@ export default class GameRepository {
         const requestedPlayerId = data.playerId;
         const foundPlayer = this.getPlayerWithId(foundPlayerId);
         const requestedPlayer = this.getPlayerWithId(requestedPlayerId);
-        
+
         // 찾은 플레이어를 죽은 상태로 변경
         foundPlayer.setDead();
         // 남은 시도 횟수 갱신
@@ -524,26 +526,21 @@ export default class GameRepository {
 
         // TODO : HP에 뭔 짓을 해줘야 함?
     }
-    
+
     // 찾기 실패 결과 반영
     #handleSeekFailResult(data) {
         const { objectId } = data;
         const restCatchCount = Player.MAX_SEEK_COUNT - data.catchCount;
         const requestedPlayerId = data.playerId;
-        
+
         const requestedPlayer = this.getPlayerWithId(requestedPlayerId);
         // 남은 시도 횟수 갱신
         requestedPlayer.setRestSeekCount(restCatchCount);
 
         uiControlQueue.addUpdateSeekCountUiMessage(restCatchCount);
-        this.#seekFailCatchCount = data.catchCount;
 
         // TODO : HP에 뭔 짓을 해줘야 함?
         // TODO : 아이템 처리 필요
-    }
-
-    getSeekFailCount(){
-        return this.#seekFailCatchCount; 
     }
 
     getNextPhaseChangeAt() {
@@ -556,6 +553,7 @@ export default class GameRepository {
     //맵축소
     #handleSafeZoneUpdateEvent(data) {
         const safeZone = data; //[0, 0, 1600, 1600],
+        console.log('안전구역',safeZone)
         this.#currentSafeZone = safeZone;
     }
     //맵축소
@@ -581,8 +579,5 @@ export default class GameRepository {
             .find((player) => player.getPlayerId() === playerId);
         player.setDead();
     }
-
-
-
 }
 
