@@ -83,7 +83,13 @@ export default function Lobby() {
                     toast.error("요청을 보내는 중 오류가 발생했습니다.");
                 }
             }
-        };
+    };
+    
+    const onRankingPageBtnClicked = (e) => { 
+        e.preventDefault();
+        navigate(RANKING_PAGE_ROUTE_PATH);
+        console.log("랭킹 페이지로 이동");
+    }
 
     return (
         <div id="container" className="rpgui-cursor-default">
@@ -121,13 +127,11 @@ export default function Lobby() {
                     <hr className="grey"></hr>
                     {/* 랭킹 페이지로 이동하는 버튼 추가 */}
                     <div className="button-box-lobby">
-                        <Link to={RANKING_PAGE_ROUTE_PATH}>
-                            <button>
-                                click!
-                                <GiFastForwardButton />
-                                <h2>랭킹 보기</h2>
-                            </button>
-                        </Link>
+                        <button onClick={onRankingPageBtnClicked}>
+                            click!
+                            <GiFastForwardButton />
+                            <h2>랭킹 보기</h2>
+                        </button>
                     </div>
                 </div>
             </div>
