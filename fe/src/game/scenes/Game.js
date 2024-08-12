@@ -32,6 +32,9 @@ export class game extends Phaser.Scene {
 
     preload() {
         this.load.image("racoon", "assets/character/image.png");
+        this.load.image("success", "assets/object/success.png");
+        this.load.image("failed", "assets/object/failed.png");
+
         this.cursors = this.input.keyboard.createCursorKeys();
         this.headDir = 2; //under direction
         this.moving = 0;
@@ -411,9 +414,6 @@ export class game extends Phaser.Scene {
                         this.m_cursorKeys.space.isDown
                     )
                 ) {
-                    //publish
-                    // console.log(closest.getData("id")); // key:ObjectId
-                    // key:playerID value: uuid
                     const objectId = closest.getData("id");
 
                     // 숨을 차례이면 숨기 요청
@@ -430,11 +430,18 @@ export class game extends Phaser.Scene {
                                         me.setIsHiding(true);
                                         this.text.showTextHide(
                                             this,
-                                            closest.body.x - 20,
-                                            closest.body.y - 20
+                                            closest.body.x - 40,
+                                            closest.body.y - 40
                                         );
                                         //숨었을때 로컬플레이어 숨음으로 상태 변경
                                         // this.getGameRepository.getMe().setIsHiding();
+                                    } else {
+                                        console.log("숨기 실패");
+                                        this.text.showTextFailHide(
+                                            this,
+                                            closest.body.x - 40,
+                                            closest.body.y - 40
+                                        );
                                     }
                                 });
                         }
@@ -448,14 +455,43 @@ export class game extends Phaser.Scene {
                         // 찾을 수 있는 횟수가 남아 있어야 함
                         else if (!me.canSeek()) {
                             console.log("탐색 횟수가 부족합니다.");
+                            // 찾을 수 있는 남은 횟수가 없습니다 메세지
+                            this.text.showTextNoAvaiblableCount(
+                                this,
+                                closest.body.x - 40,
+                                closest.body.y - 40
+                            );
                         } else {
                             gameRepository
                                 .requestSeek(objectId)
-                                .then(({ isSucceeded }) => {
+                                .then(({ isSucceeded, catchCount }) => {
                                     if (isSucceeded) {
                                         console.log("탐색 성공");
+                                        //찾았습니다 메세지
+                                        this.text.showTextFind(
+                                            this,
+                                            closest.body.x - 40,
+                                            closest.body.y - 40
+                                        );
+                                        // 이미지 넣었다가 사라지기
+                                        this.showSuccessImage(
+                                            closest.body.x + 10,
+                                            closest.body.y + 10
+                                        );
+                                        // console.log('탐색 성공 횟수':catchCount)
                                     } else {
                                         console.log("탐색 실패");
+                                        //여기 숨은 사람 없습니다 메세지
+                                        this.text.showTextFailFind(
+                                            this,
+                                            closest.body.x - 40,
+                                            closest.body.y - 40
+                                        );
+                                        // 이미지 넣었다가 사라지기
+                                        this.showFailedImage(
+                                            closest.body.x + 10,
+                                            closest.body.y + 10
+                                        );
                                     }
                                 });
                         }
@@ -466,42 +502,54 @@ export class game extends Phaser.Scene {
                         }
                     }
                 }
-
-                //탐색- 찾는팀,상호작용이펙트,스페이스다운
-                if (
-                    me.isSeekingTeam() &&
-                    this.interactionEffect &&
-                    this.m_cursorKeys.space.isDown
-                ) {
-                    this.text.showTextFind(
-                        this,
-                        closest.body.x - 20,
-                        closest.body.y - 20
-                    );
-
-                    // else if 숨은 사람이 없음
-                    this.text.showTextFailFind(
-                        this,
-                        closest.body.x - 20,
-                        closest.body.y - 20
-                    );
-                    // els if type: 더이상 찾을 수 있는 횟수가 없음
-                    this.text.showTextNoAvaiblableCount(
-                        this,
-                        closest.body.x - 20,
-                        closest.body.y - 20
-                    );
-                }
             });
         });
 
         // 맵축소
         this.createMapWall();
+
+        //닭등장
     }
 
     // 맵타일단위를 pix로 변환
     tileToPixel(tileCoord) {
         return tileCoord;
+    }
+
+
+    // 맞췄을떄 물체위에 동그라미(success) 이미지 넣는 함수
+    showSuccessImage(x, y) {
+        const image = this.add.image(x, y, "success");
+        image.setDepth(10); //
+        // 1초후에 이미지를 페이드 아웃하고 제거
+        this.time.delayedCall(3000, () => {
+            this.tweens.add({
+                targets: image,
+                alpha: 0,
+                duration: 100, // 페이드아웃 시간
+                ease: "Power2", // 천천히 사라지는 애니메이션
+                onComplete: () => {
+                    image.destroy();
+                },
+            });
+        });
+    }
+    // 맞췄을떄 물체위에 동그라미(success) 이미지 넣는 함수
+    showFailedImage(x, y) {
+        const image = this.add.image(x, y, "failed");
+        image.setDepth(10); //
+        // 1초후에 이미지를 페이드 아웃하고 제거
+        this.time.delayedCall(3000, () => {
+            this.tweens.add({
+                targets: image,
+                alpha: 0,
+                duration: 100, // 페이드아웃 시간
+                ease: "Power2", // 천천히 사라지는 애니메이션
+                onComplete: () => {
+                    image.destroy();
+                },
+            });
+        });
     }
 
     //constructor에 있는 임의의 position 배열에서 좌표 꺼내는 랜덤함수
