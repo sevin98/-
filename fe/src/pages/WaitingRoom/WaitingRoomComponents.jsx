@@ -50,7 +50,7 @@ function PlayerSlot({ player, isMe }) {
     if (!player) {
         return (
             <div className="rpgui-container framed-grey player-slot empty">
-                <div className="rpgui-icon shield-slot"></div>
+                <div className="rpgui-icon empty-slot"></div>
                 <h2 className="empty-slot">빈 슬롯</h2>
             </div>
         );

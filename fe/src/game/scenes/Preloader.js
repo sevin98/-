@@ -56,7 +56,28 @@ export class Preloader extends Scene {
 
         // 닭 머리
         this.load.image("chicken-head-1", "image/chicken-head-1.png");
+
+        //로딩중 텍스트메세지
+        this.loadingText = this.add
+            .text(
+                this.cameras.main.centerX,
+                this.cameras.main.centerY,
+                "LOADING...",
+                {
+                    fontFamily: '"Press Start 2P", cursive',
+                    fontSize: "36px",
+                    fill: "#000",
+                    align: "center",
+                    stroke: "#fff",
+                    strokeThickness: 4,
+                }
+            )
+            .setOrigin(0.5, 0.5);
+
+        // 로딩 화면 배경색
+        this.cameras.main.setBackgroundColor("#028af8");
     }
+
     create() {
         this.scene.start("game");
         // this.scene.start("MainMenu");
