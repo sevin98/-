@@ -547,6 +547,7 @@ export default class GameRepository {
         this.#seekFailCatchCount= data.catchCount;
 
         uiControlQueue.addUpdateSeekCountUiMessage(restCatchCount);
+        this.#seekFailCatchCount = data.catchCount;
 
         // TODO : HP에 뭔 짓을 해줘야 함?
         // TODO : 아이템 처리 필요
