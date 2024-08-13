@@ -555,6 +555,8 @@ export class game extends Phaser.Scene {
 
     showEndGameModal() {
         console.log("End Game Modal");
+        const gameEndSoundAudio = new Audio("/sounds/effect/etc/ddt.mp3");
+        gameEndSoundAudio.play();
 
         // RPGUI 모달을 표시
         const modalElement = document.getElementById("rpgui-modal");
