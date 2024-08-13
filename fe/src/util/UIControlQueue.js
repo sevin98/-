@@ -5,6 +5,7 @@ export class MESSAGE_TYPE {
     static UPDATE_SEEK_COUNT_UI = "UPDATE_SEEK_COUNT_UI";
     static SURPRISE_CHICKEN = "SURPRISE_CHICKEN";
     static PLAYER_DEAD = "PLAYER_DEAD";
+    static GAME_END = "GAME_END";
 }
 
 class UIControlQueue {
@@ -55,6 +56,10 @@ class UIControlQueue {
             reasonType,
             data,
         });
+    }
+
+    addGameEndMessage(redirectAfter) {
+        this.addGameUiControlMessage(MESSAGE_TYPE.GAME_END, { redirectAfter });
     }
 }
 
