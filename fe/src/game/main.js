@@ -24,6 +24,8 @@ const config = {
         target: 30,
         forceSetTimeOut: true,
     },
+    roundPixels: true,
+    pixelArt: true,
 };
 
 const StartGame = (parent) => {
