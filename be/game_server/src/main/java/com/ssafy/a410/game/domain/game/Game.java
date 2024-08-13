@@ -567,14 +567,16 @@ public class Game extends Subscribable implements Runnable {
         // 플레이어에게 현재 적용된 아이템이 없다면 아이템을 적용시킨다.
         if (player.getCurrentItem() == null) {
             player.applyItem(item, durationOfItem, appliedById);
-            broadcastService.broadcastTo(this, new ItemAppliedMessage(
+            ItemAppliedMessage message = new ItemAppliedMessage(
                     room.getRoomNumber(),
                     playerId,
                     item,
                     duration,
                     player.getSpeed(),
                     requestId
-            ));
+            );
+            broadcastService.broadcastTo(this, message);
+            broadcastService.unicastTo(player, message);
 
             // 이미 적용된 아이템이 있다면 아이템 적용 실패
         } else {
@@ -590,11 +592,12 @@ public class Game extends Subscribable implements Runnable {
     public void applyItemToHPObject(String objectId, Item item, Duration duration, String appliedById, String requestId) {
         HPObject hpObject = gameMap.getHpObjects().get(objectId);
         Duration durationOfItem = item.getDuration();
+        Player player = getPlayerbyId(appliedById);
 
         // 오브젝트가 실존하고, 비어있을때만 아이템 설치 가능
         if (hpObject != null && hpObject.isEmpty()) {
             hpObject.applyItem(item, durationOfItem, appliedById);
-            broadcastService.broadcastTo(this, new ItemAppliedToHPObjectMessage(
+            ItemAppliedToHPObjectMessage message = new ItemAppliedToHPObjectMessage(
                     room.getRoomNumber(),
                     objectId,
                     hpObject.getPlayer() != null ? hpObject.getPlayer().getId() : null,
@@ -602,15 +605,19 @@ public class Game extends Subscribable implements Runnable {
                     duration,
                     appliedById,
                     requestId
-            ));
+            );
+            broadcastService.broadcastTo(this, message);
+            broadcastService.unicastTo(player, message);
         } else {
-            broadcastService.broadcastTo(this, new ItemApplicationFailedToObjectMessage(
+            ItemApplicationFailedToObjectMessage message = new ItemApplicationFailedToObjectMessage(
                     room.getRoomNumber(),
                     appliedById,
                     objectId,
                     item,
                     requestId
-            ));
+            );
+            broadcastService.broadcastTo(this, message);
+            broadcastService.unicastTo(player, message);
         }
     }
 
@@ -790,7 +797,7 @@ public class Game extends Subscribable implements Runnable {
         }
     }
 
-    private void broadCastGameResult(Map<String, List<PlayerStatsResp>> stats){
+    private void broadCastGameResult(Map<String, List<PlayerStatsResp>> stats) {
         GameResultMessage message = new GameResultMessage(stats);
         broadcastService.broadcastTo(this, message);
     }
