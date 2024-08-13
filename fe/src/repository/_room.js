@@ -275,14 +275,18 @@ export default class RoomRepository {
     // 게임 정보를 담고 있는 repository 반환
     // WARNING : 게임 정보 구독 요청이 처리될 때까지는 null을 반환한다.
     getGameRepository() {
-        return new Promise((resolve, reject) => {
-            const trial = setInterval(() => {
-                if (this.#gameRepository) {
-                    clearInterval(trial);
-                    resolve(this.#gameRepository);
-                }
-            }, 10);
-        });
+        if (this.#gameRepository) {
+            return Promise.resolve(this.#gameRepository);
+        } else {
+            return new Promise((resolve, reject) => {
+                const trial = setInterval(() => {
+                    if (this.#gameRepository) {
+                        clearInterval(trial);
+                        resolve(this.#gameRepository);
+                    }
+                }, 10);
+            });
+        }
     }
 
     // 게임 시작 여부 반환
@@ -295,4 +299,3 @@ export default class RoomRepository {
         this.#gameStartsAt = Date.now() + startsAfterMilliSec;
     }
 }
-
