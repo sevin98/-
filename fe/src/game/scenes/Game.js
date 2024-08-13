@@ -422,10 +422,7 @@ export class game extends Phaser.Scene {
                         // interactionEFFECT있을때 가장 가까운 objectid전달
                         this.useItemQ(closest.getData("id"))
                             .then((data) => {
-                                console.log(
-                                    "최종:",
-                                    data
-                                );
+                                console.log("최종:", data);
                             })
                             .catch((err) => {
                                 console.log("useItem호출에러", err);
@@ -559,45 +556,26 @@ export class game extends Phaser.Scene {
     }
     // Q아이템 사용요청
     async useItemQ(targetId) {
+        console.log("useItemQ 시작");
         try {
-            console.log("useItemQ 시작");
-            const gameRepository = await this.roomRepository.getGameRepository();
+            const gameRepository =
+                await this.roomRepository.getGameRepository();
             const item = gameRepository.getItemQ();
-            if (item === "RED_PEPPER") {
+
+            // 고추일때는 targetId null값으로 변환
+            if (item === "RED_PEPPER" || item === "MUSHROOM") {
                 targetId = null;
             }
-            console.log("requestItemUse 호출 전");
-            await gameRepository.requestItemUse(item, targetId);
-            
-            //TODO: 여기서부터 사라져버림 
-            console.log("requestItemUse 호출 후");
 
-            console.log("getItemSpeed 호출 전");
-            const speed = await gameRepository.getItemSpeed();
-
-            console.log("getItemSpeed 결과:", speed);
-
-            return speed;
-
+            console.log("gamerepo들어감");
+            const data = await gameRepository.requestItemUse(item, targetId);
+            console.log("gamerepo나옴");
+            console.log("아이템publish결과", data);
+            return data;
         } catch (error) {
             console.error("useItemQ 에러:", error);
             throw error;
         }
-
-        // return this.roomRepository.getGameRepository().then((gameRepository) => {
-        //     const item = gameRepository.getItemW();
-        //     // 고추일때는 targetId null값으로 변환
-        //     if (item === "RED_PEPPER") {
-        //         targetId = null;
-        //     }
-        //     gameRepository
-        //         .requestItemUse(item, targetId)
-        //         .then(() => {
-        //             //TODO: _game.js의 함수확인
-        //             console.log(gameRepository.getItemSpeed());
-        //             return gameRepository.getItemSpeed();
-        //         });
-        // });
     }
 
     // W아이템 사용요청 / qW 같은템일떄 에러나는것같음
@@ -605,7 +583,7 @@ export class game extends Phaser.Scene {
         this.roomRepository.getGameRepository().then((gameRepository) => {
             const item = gameRepository.getItemW();
             // 고추일때는 targetId null값으로 변환
-            if (item === "RED_PEPPER") {
+            if (item === "RED_PEPPER" || item === "MUSHROOM") {
                 targetId = null;
             }
             gameRepository

@@ -621,6 +621,7 @@ export default class GameRepository {
     }
 
     async requestItemUse(item, targetId) {
+        try{
         console.log("_game에 들어옴:", item, targetId);
         const requestId = uuid();
         this.#stompClient.publish({
@@ -640,7 +641,10 @@ export default class GameRepository {
         return Promise.resolve({
             isSucceeded: requestItemResult.type == "ITEM_APPLIED_TO_PLAYER",
             speed: requestItemResult.data.newSpeed,
-        });
+        })
+    } catch(error){
+        console.log(error)
+    }
     }
 
     // 로컬플레이어의 아이템이름 반환
