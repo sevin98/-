@@ -563,7 +563,7 @@ public class Game extends Subscribable implements Runnable {
 
     // 자기 자신에게 아이템 적용
     public void applyItemToPlayer(String playerId, Item item, Duration duration, String appliedById, String requestId) {
-        Player player = getPlayerbyId(playerId);
+        Player player = getPlayerById(playerId);
         ItemInfo itemInfo = new ItemInfo(room.getRoomNumber(), playerId, null, item, duration, player.getSpeed(), appliedById);
 
         // 플레이어에게 현재 적용된 아이템이 없다면 아이템을 적용시킨다.
@@ -583,7 +583,7 @@ public class Game extends Subscribable implements Runnable {
 
     public void applyItemToHPObject(String objectId, Item item, Duration duration, String appliedById, String requestId) {
         HPObject hpObject = gameMap.getHpObjects().get(objectId);
-        Player player = getPlayerbyId(appliedById);
+        Player player = getPlayerById(appliedById);
         ItemInfo itemInfo = new ItemInfo(room.getRoomNumber(), appliedById, objectId, item, duration, 0, appliedById);
 
         if (objectId.equals(player.getId()) || hpObject == null || !hpObject.isEmpty() || hpObject.getAppliedItem() != null) {
@@ -598,8 +598,7 @@ public class Game extends Subscribable implements Runnable {
         }
     }
 
-
-    private Player getPlayerbyId(String playerId) {
+    private Player getPlayerById(String playerId) {
         for (Team team : List.of(hidingTeam, seekingTeam)) {
             Player player = team.getPlayerWithId(playerId);
             if (player != null) return player;
