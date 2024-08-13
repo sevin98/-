@@ -135,7 +135,7 @@ export default class RoomRepository {
                 await new Promise((resolve) => setTimeout(resolve, 100));
             }
         }
-
+        // console.log('#handleplyerMessage',type, requestId)
         switch (type) {
             // 초기화 수행 후
             case INITIALIZE_PLAYER:
@@ -156,8 +156,10 @@ export default class RoomRepository {
             case DIRECTION_HINT:
                 this.#handleDirectionHintEvent(requestId, result);
                 break;
+
         }
     }
+
 
     // 주기적으로 수신한 플레이어 정보와 현재 플레이어 정보를 대조하여 상태를 업데이트
     #updatePlayers(joinedPlayers) {
@@ -294,4 +296,3 @@ export default class RoomRepository {
         this.#gameStartsAt = Date.now() + startsAfterMilliSec;
     }
 }
-

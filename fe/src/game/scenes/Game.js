@@ -418,35 +418,36 @@ export class game extends Phaser.Scene {
 
                 // 아이템 사용 코드추가: Q눌렀을때
                 if (Phaser.Input.Keyboard.JustDown(this.m_cursorKeys.Q)) {
-                    if (
-                        this.interactionEffect
-                    ) {
-                        // interactionEFFECT있을때 가장 가까운 objectid전달
-                        this.useItemQ(closest.getData("id"))
-                        .then((speed) => {
-                            console.log(speed)
-                            this.localPlayer.setVelocity(speed, speed);
-                        });
-                        console.log(this.localPlayer.body.velocity)
-                    }else{ // 가까운 이펙트없으면 null 전달
-                        this.useItemQ(null)
-                        .then((speed)=>{
-                            console.log(speed)
-                            this.localPlayer.setVelocity(speed,speed)
-                        })
-                    }
-                } else if (Phaser.Input.Keyboard.JustDown(this.m_cursorKeys.W)) {
                     if (this.interactionEffect) {
                         // interactionEFFECT있을때 가장 가까운 objectid전달
-                        this.useItemW(closest.getData("id")).then((speed) => {
-                            console.log(speed);
-                            this.localPlayer.setVelocity(speed, speed);
+                        this.useItemQ(closest.getData("id"))
+                            .then((data) => {
+                                console.log(
+                                    "최종:",
+                                    data
+                                );
+                            })
+                            .catch((err) => {
+                                console.log("useItem호출에러", err);
+                            });
+                    } else {
+                        // 가까운 이펙트없으면 null 전달
+                        this.useItemQ(null).then((data) => {
+                            console.log("최종:", data);
+                        });
+                    } // W 키 눌렀을때
+                } else if (
+                    Phaser.Input.Keyboard.JustDown(this.m_cursorKeys.W)
+                ) {
+                    if (this.interactionEffect) {
+                        // interactionEFFECT있을때 가장 가까운 objectid전달
+                        this.useItemW(closest.getData("id")).then((data) => {
+                            console.log("최종:", data);
                         });
                     } else {
                         // 가까운 이펙트없으면 null 전달
-                        this.useItemW(null).then((speed) => {
-                            console.log(speed);
-                            this.localPlayer.setVelocity(speed, speed);
+                        this.useItemW(null).then((data) => {
+                            console.log("최종:", data);
                         });
                     }
                 }
@@ -558,17 +559,47 @@ export class game extends Phaser.Scene {
     }
     // Q아이템 사용요청
     async useItemQ(targetId) {
-        const gameRepository = await this.roomRepository.getGameRepository();
-        const item = gameRepository.getItemQ();
-        // 고추일때는 targetId null값으로 변환
-        if (item === "RED_PEPPER") {
-            targetId = null;
+        try {
+            console.log("useItemQ 시작");
+            const gameRepository = await this.roomRepository.getGameRepository();
+            const item = gameRepository.getItemQ();
+            if (item === "RED_PEPPER") {
+                targetId = null;
+            }
+            console.log("requestItemUse 호출 전");
+            await gameRepository.requestItemUse(item, targetId);
+            
+            //TODO: 여기서부터 사라져버림 
+            console.log("requestItemUse 호출 후");
+
+            console.log("getItemSpeed 호출 전");
+            const speed = await gameRepository.getItemSpeed();
+
+            console.log("getItemSpeed 결과:", speed);
+
+            return speed;
+
+        } catch (error) {
+            console.error("useItemQ 에러:", error);
+            throw error;
         }
-        await gameRepository.requestItemUse(item, targetId);
-        console.log(gameRepository.getItemSpeed());
-        const speed = gameRepository.getItemSpeed();
-        return speed;   // undefined
+
+        // return this.roomRepository.getGameRepository().then((gameRepository) => {
+        //     const item = gameRepository.getItemW();
+        //     // 고추일때는 targetId null값으로 변환
+        //     if (item === "RED_PEPPER") {
+        //         targetId = null;
+        //     }
+        //     gameRepository
+        //         .requestItemUse(item, targetId)
+        //         .then(() => {
+        //             //TODO: _game.js의 함수확인
+        //             console.log(gameRepository.getItemSpeed());
+        //             return gameRepository.getItemSpeed();
+        //         });
+        // });
     }
+
     // W아이템 사용요청 / qW 같은템일떄 에러나는것같음
     async useItemW(targetId) {
         this.roomRepository.getGameRepository().then((gameRepository) => {
@@ -579,14 +610,14 @@ export class game extends Phaser.Scene {
             }
             gameRepository
                 .requestItemUse(item, targetId)
-                .then(({ isSucceeded, speed }) => { //TODO: _game.js의 함수확인
+                .then(({ isSucceeded, speed }) => {
+                    //TODO: _game.js의 함수확인
                     if (isSucceeded) {
                         console.log("속도변화", speed);
                     }
                 });
         });
     }
-
 
     // 맵타일단위를 pix로 변환
     tileToPixel(tileCoord) {

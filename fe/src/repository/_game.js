@@ -169,22 +169,22 @@ export default class GameRepository {
             case "ITEM_APPLIED_TO_PLAYER":
                 console.log("1. 아이템 플레이어에 적용 성공");
                 console.log("or 6. 탐색시 아이템 적용 성공");
-                // 넘어온 data 확인해보니 message 그대로 넘겨줘야함 
+                // 넘어온 data 확인해보니 message 그대로 넘겨줘야함
                 this.#handleItemAppliedPlayerSuccess(message);
                 break;
             case "ITEM_APPLIED_TO_OBJECT":
                 console.log("2. 아이템 오브젝트에 적용 성공");
                 this.#handleItemAppliedObjectSuccess(message);
                 break;
-            case "ITEM_APPLICATION_FAILED_TO_OBJECT":
-                console.log("3. 이미 아이템이 적용된 플레이어or 5.object존재x");
-                this.#handleItemAppliedPlayerFailed(message);
-                break;
             case "ITEM_APPLICATION_FAILED_TO_PLAYER":
-                console.log("4. 이미 아이템이 설치된 오브젝트"); //5
+                console.log("3. 이미 아이템이 적용된 플레이어");
+                break;
+            case "ITEM_APPLICATION_FAILED_TO_OBJECT":
+                console.log("4. 이미 아이템이 설치된object or  5.object존재x");
+                this.#handleItemAppliedObjectFailed(message);
                 break;
             case "ITEM_CLEARED":
-                console.log("8. item 효과제거"); //5
+                console.log("8. item 효과제거");
                 break;
 
             default:
@@ -609,18 +609,19 @@ export default class GameRepository {
 
     // 자신에게 사용하는 아이템 성공/실패 처리
     #handleItemAppliedPlayerSuccess(data) {
-        console.log('handle속도:',data.newSpeed)
         this.#itemSpeed = data.newSpeed;
+        console.log("handle:나한테 적용될 속도:", this.#itemSpeed);
     }
-    #handleItemAppliedPlayerFailed(data) {
-        console.log("실패", data);
+    #handleItemAppliedObjectFailed(data) {
+        console.log("handle:아이템object에 적용 실패");
     }
-    // 아이템 object에 적용
-    #handleItemAppliedObjectSuccess(){
+    // 아이템 object에 적용결과
+    #handleItemAppliedObjectSuccess(data) {
+        console.log("handle:아이템object에 적용성공,결과:", data);
+    }
 
-    }
     async requestItemUse(item, targetId) {
-        console.log("_game", item, targetId);
+        console.log("_game에 들어옴:", item, targetId);
         const requestId = uuid();
         this.#stompClient.publish({
             destination: `/ws/rooms/${this.#roomNumber}/game/use/item`,
@@ -635,7 +636,7 @@ export default class GameRepository {
         //TODO: 응답 안들어오는 중임
         const requestItemResult = await asyncResponses.get(requestId);
         // 아이템 적용 성공인지
-        // console.log('request',requestItemResult)
+        console.log("request", requestItemResult);
         return Promise.resolve({
             isSucceeded: requestItemResult.type == "ITEM_APPLIED_TO_PLAYER",
             speed: requestItemResult.data.newSpeed,
@@ -651,7 +652,7 @@ export default class GameRepository {
     }
     // 스피드 값 가져오기, 응답들어오면 필요없음
     getItemSpeed() {
-        console.log('get스피드',this.#itemSpeed)
+        console.log("get스피드", this.#itemSpeed);
         return this.#itemSpeed;
     }
 }
