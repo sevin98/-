@@ -40,7 +40,7 @@ public class Game extends Subscribable implements Runnable {
     private static final int SAFE_ZONE_REDUCE_AMOUNT = 100;
     private static final int SAFE_ZONE_REDUCE_DURATION = 10;
 
-    private static final int TOTAL_ROUND = 5;
+    private static final int TOTAL_ROUND = 100;
     // 게임 맵
     private final GameMap gameMap;
     // 플레이어들이 속해 있는 방
@@ -593,12 +593,34 @@ public class Game extends Subscribable implements Runnable {
     }
 
     public void applyItemToHPObject(String objectId, Item item, Duration duration, String appliedById, String requestId) {
-        HPObject hpObject = gameMap.getHpObjects().get(objectId);
         Duration durationOfItem = item.getDuration();
         Player player = getPlayerbyId(appliedById);
+        if (objectId == null) {
+            ItemApplicationFailedToObjectMessage message = new ItemApplicationFailedToObjectMessage(
+                    room.getRoomNumber(),
+                    appliedById,
+                    null,
+                    item,
+                    requestId
+            );
+            broadcastService.broadcastTo(this, message);
+            broadcastService.unicastTo(player, message);
+        }
+        HPObject hpObject = gameMap.getHpObjects().get(objectId);
 
+        if (hpObject == null || hpObject.isEmpty() || hpObject.getAppliedItem() != null) {
+            ItemApplicationFailedToObjectMessage message = new ItemApplicationFailedToObjectMessage(
+                    room.getRoomNumber(),
+                    appliedById,
+                    objectId,
+                    item,
+                    requestId
+            );
+            broadcastService.broadcastTo(this, message);
+            broadcastService.unicastTo(player, message);
+        }
         // 오브젝트가 실존하고, 비어있을때만 아이템 설치 가능
-        if (hpObject != null && hpObject.isEmpty()) {
+        else {
             hpObject.applyItem(item, durationOfItem, appliedById);
             ItemAppliedToHPObjectMessage message = new ItemAppliedToHPObjectMessage(
                     room.getRoomNumber(),
@@ -607,16 +629,6 @@ public class Game extends Subscribable implements Runnable {
                     item,
                     duration,
                     appliedById,
-                    requestId
-            );
-            broadcastService.broadcastTo(this, message);
-            broadcastService.unicastTo(player, message);
-        } else {
-            ItemApplicationFailedToObjectMessage message = new ItemApplicationFailedToObjectMessage(
-                    room.getRoomNumber(),
-                    appliedById,
-                    objectId,
-                    item,
                     requestId
             );
             broadcastService.broadcastTo(this, message);
@@ -668,9 +680,6 @@ public class Game extends Subscribable implements Runnable {
 
             // 아이템 타입이 오브젝트에 사용되는 아이템이라면
         } else if (item.isApplicableToHPObject()) {
-
-            if (targetId == null)
-                throw new ResponseException(ErrorDetail.HP_OBJECT_NOT_FOUND);
 
             applyItemToHPObject(targetId, item, item.getDuration(), playerId, requestId);
 
