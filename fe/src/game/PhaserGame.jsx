@@ -110,21 +110,34 @@ export const PhaserGame = forwardRef(function PhaserGame(
                 style={{
                     display: "none",
                     position: "absolute",
-                    width: "500px",
-                    height: "400px",
+                    width: "800px",
+                    height: "600px",
                     top: "50%",
                     left: "50%",
                     transform: "translate(-50%, -50%)",
                     zIndex: 1000,
+                    paddingBottom: "50px", // 하단 공간 확보
                 }}
             >
-                <h3 className="rpgui-center">Game Over</h3>
-                {/* <div id="stats-text" className="rpgui-content">
+                <div
+                    id="stats-text"
+                    className="rpgui-content"
+                    style={{
+                        maxHeight: "500px",
+                        overflowY: "auto",
+                        marginBottom: "20px",
+                    }}
+                >
                     Loading stats...
-                </div> */}
+                </div>
                 <div
                     className="rpgui-buttons"
-                    style={{ textAlign: "center", marginTop: "20px" }}
+                    style={{
+                        position: "absolute",
+                        bottom: "20px",
+                        width: "100%",
+                        textAlign: "center",
+                    }}
                 >
                     <button id="lobby-button" className="rpgui-button">
                         <h2>로비로</h2>
@@ -140,6 +153,7 @@ export const PhaserGame = forwardRef(function PhaserGame(
             </div>
         </div>
     );
+    
 });
 
 export const PHASER_GAME_ROUTE_PATH = "/GameStart";
