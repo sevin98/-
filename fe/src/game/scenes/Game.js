@@ -421,16 +421,16 @@ export class game extends Phaser.Scene {
                     if (this.interactionEffect) {
                         // interactionEFFECT있을때 가장 가까운 objectid전달
                         this.useItemQ(closest.getData("id"))
-                            .then((data) => {
-                                console.log("최종:", data);
+                            .then((speed) => {
+                                console.log("찐최종:", speed);
                             })
                             .catch((err) => {
                                 console.log("useItem호출에러", err);
                             });
                     } else {
                         // 가까운 이펙트없으면 null 전달
-                        this.useItemQ(null).then((data) => {
-                            console.log("최종:", data);
+                        this.useItemQ(null).then((speed) => {
+                            console.log("찐최종:", speed);
                         });
                     } // W 키 눌렀을때
                 } else if (
@@ -439,12 +439,12 @@ export class game extends Phaser.Scene {
                     if (this.interactionEffect) {
                         // interactionEFFECT있을때 가장 가까운 objectid전달
                         this.useItemW(closest.getData("id")).then((data) => {
-                            console.log("최종:", data);
+                            console.log("찐최종:", data);
                         });
                     } else {
                         // 가까운 이펙트없으면 null 전달
                         this.useItemW(null).then((data) => {
-                            console.log("최종:", data);
+                            console.log("찐최종:", data);
                         });
                     }
                 }
@@ -556,26 +556,21 @@ export class game extends Phaser.Scene {
     }
     // Q아이템 사용요청
     async useItemQ(targetId) {
-        console.log("useItemQ 시작");
-        try {
-            const gameRepository =
-                await this.roomRepository.getGameRepository();
+        this.roomRepository.getGameRepository().then((gameRepository) => {
             const item = gameRepository.getItemQ();
-
             // 고추일때는 targetId null값으로 변환
             if (item === "RED_PEPPER" || item === "MUSHROOM") {
                 targetId = null;
             }
-
-            console.log("gamerepo들어감");
-            const data = await gameRepository.requestItemUse(item, targetId);
-            console.log("gamerepo나옴");
-            console.log("아이템publish결과", data);
-            return data;
-        } catch (error) {
-            console.error("useItemQ 에러:", error);
-            throw error;
-        }
+            gameRepository
+                .requestItemUse(item, targetId)
+                .then(({ isSucceeded }) => {
+                    //TODO: _game.js의 함수확인
+                    if (isSucceeded) {
+                        console.log('리턴값ㅇ');
+                    }
+                });
+        });
     }
 
     // W아이템 사용요청 / qW 같은템일떄 에러나는것같음
@@ -588,10 +583,10 @@ export class game extends Phaser.Scene {
             }
             gameRepository
                 .requestItemUse(item, targetId)
-                .then(({ isSucceeded, speed }) => {
+                .then(({ isSucceeded }) => {
                     //TODO: _game.js의 함수확인
                     if (isSucceeded) {
-                        console.log("속도변화", speed);
+                        console.log("리턴값ㅇ");
                     }
                 });
         });

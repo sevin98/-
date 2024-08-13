@@ -170,7 +170,7 @@ export default class GameRepository {
                 console.log("1. 아이템 플레이어에 적용 성공");
                 console.log("or 6. 탐색시 아이템 적용 성공");
                 // 넘어온 data 확인해보니 message 그대로 넘겨줘야함
-                this.#handleItemAppliedPlayerSuccess(message);
+                // this.#handleItemAppliedPlayerSuccess(message);
                 break;
             case "ITEM_APPLIED_TO_OBJECT":
                 console.log("2. 아이템 오브젝트에 적용 성공");
@@ -607,11 +607,6 @@ export default class GameRepository {
         player.setDead();
     }
 
-    // 자신에게 사용하는 아이템 성공/실패 처리
-    #handleItemAppliedPlayerSuccess(data) {
-        this.#itemSpeed = data.newSpeed;
-        console.log("handle:나한테 적용될 속도:", this.#itemSpeed);
-    }
     #handleItemAppliedObjectFailed(data) {
         console.log("handle:아이템object에 적용 실패");
     }
@@ -621,31 +616,29 @@ export default class GameRepository {
     }
 
     async requestItemUse(item, targetId) {
-        try{
-        console.log("_game에 들어옴:", item, targetId);
-        const requestId = uuid();
-        this.#stompClient.publish({
-            destination: `/ws/rooms/${this.#roomNumber}/game/use/item`,
-            body: JSON.stringify({
-                requestId,
-                data: {
-                    item: item,
-                    targetId: targetId,
-                },
-            }),
-        });
-        //TODO: 응답 안들어오는 중임
-        const requestItemResult = await asyncResponses.get(requestId);
-        // 아이템 적용 성공인지
-        console.log("request", requestItemResult);
-        return Promise.resolve({
-            isSucceeded: requestItemResult.type == "ITEM_APPLIED_TO_PLAYER",
-            speed: requestItemResult.data.newSpeed,
-        })
-    } catch(error){
-        console.log(error)
-    }
-    }
+            console.log("_game에 들어옴:", item, targetId);
+            const requestId = uuid();
+
+            this.#stompClient.publish({
+                destination: `/ws/rooms/${this.#roomNumber}/game/use/item`,
+                body: JSON.stringify({
+                    requestId,
+                    data: {
+                        item: item,
+                        targetId: targetId,
+                    },
+                }),
+            });
+
+             const requestItemResult = await asyncResponses.get(requestId);
+             console.log('pub:',requestItemResult)
+
+             return Promise.resolve({
+                 isSucceeded:
+                     requestItemResult.type === "ITEM_APPLIED_TO_PLAYER",
+             });
+        } 
+    
 
     // 로컬플레이어의 아이템이름 반환
     getItemQ() {
@@ -654,9 +647,5 @@ export default class GameRepository {
     getItemW() {
         return this.#itemW;
     }
-    // 스피드 값 가져오기, 응답들어오면 필요없음
-    getItemSpeed() {
-        console.log("get스피드", this.#itemSpeed);
-        return this.#itemSpeed;
-    }
+
 }
