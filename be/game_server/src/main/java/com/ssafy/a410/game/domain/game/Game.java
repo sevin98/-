@@ -40,7 +40,7 @@ public class Game extends Subscribable implements Runnable {
     private static final int SAFE_ZONE_REDUCE_AMOUNT = 100;
     private static final int SAFE_ZONE_REDUCE_DURATION = 10;
 
-    private static final int TOTAL_ROUND = 5;
+    private static final int TOTAL_ROUND = 100;
     // 게임 맵
     private final GameMap gameMap;
     // 플레이어들이 속해 있는 방
