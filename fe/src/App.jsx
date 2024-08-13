@@ -8,6 +8,7 @@ import Popup from "./components/Popup";
 import { LOBBY_ROUTE_PATH } from "../src/pages/Lobby/Lobby";
 import { ROOM_JOIN_ROUTE_PATH } from "./pages/Lobby/RoomJoin";
 import MusicPlayer from "./components/MusicPlayer/MusicPlayer";
+import GameInformation from './components/GameInformation/GameInformation';
 
 function App() {
     return (
@@ -15,6 +16,7 @@ function App() {
             <RouterProvider router={router} />
             <ToastContainer />
             <MusicPlayer />
+            <GameInformation />
         </div>
     );
 }

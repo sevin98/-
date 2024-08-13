@@ -527,6 +527,11 @@ public class Game extends Subscribable implements Runnable {
     }
 
     private void endGame(Team winningTeam) {
+
+        // 게임 결과를 전송한다.
+        Map<String, List<PlayerStatsResp>> stats = this.getEndGameStats();
+        broadCastGameResult(stats);
+
         // 승리 팀을 알리고, 게임을 종료하고, 결과를 저장하는 등
         broadcastService.broadcastTo(this, new GameEndMessage());
 
@@ -789,5 +794,10 @@ public class Game extends Subscribable implements Runnable {
             Item randomItem = availableItems.get(random.nextInt(availableItems.size()));
             player.addItem(randomItem);
         }
+    }
+
+    private void broadCastGameResult(Map<String, List<PlayerStatsResp>> stats){
+        GameResultMessage message = new GameResultMessage(stats);
+        broadcastService.broadcastTo(this, message);
     }
 }

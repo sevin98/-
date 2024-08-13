@@ -14,7 +14,7 @@ public class ItemAppliedMessage extends ItemMessage {
     private final int newSpeed;
 
     public ItemAppliedMessage(String roomId, String playerId, Item item, Duration duration, int newSpeed, String requestId) {
-        super(ItemControlType.ItemAppliedToPlayer, null, requestId);
+        super(ItemControlType.ITEM_APPLIED_TO_PLAYER, null, requestId);
         this.roomId = roomId;
         this.playerId = playerId;
         this.item = item;

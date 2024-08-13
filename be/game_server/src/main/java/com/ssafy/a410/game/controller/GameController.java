@@ -70,11 +70,11 @@ public class GameController {
         interactService.useItem(itemUseReq);
     }
 
-
-    @GetMapping("rooms/{roomId}/game/result")
-    public ResponseEntity<Map<String, List<PlayerStatsResp>>> getEndGameStats(@PathVariable String roomId) {
-        Game game = gameService.getGameByRoomId(roomId);
-        Map<String, List<PlayerStatsResp>> stats = game.getEndGameStats();
-        return ResponseEntity.ok(stats);
-    }
+    // 게임 결과 전송 엔드포인트, 게임 종료 시 broadCast해주는 것으로 대체
+//    @GetMapping("rooms/{roomId}/game/result")
+//    public ResponseEntity<Map<String, List<PlayerStatsResp>>> getEndGameStats(@PathVariable String roomId) {
+//        Game game = gameService.getGameByRoomId(roomId);
+//        Map<String, List<PlayerStatsResp>> stats = game.getEndGameStats();
+//        return ResponseEntity.ok(stats);
+//    }
 }
