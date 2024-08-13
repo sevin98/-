@@ -577,23 +577,57 @@ export class game extends Phaser.Scene {
         modalElement.style.display = "block";
 
         // 게임 결과를 HTML로 변환
-        let resultsHtml = ` 
-            <h3 style="font-size: 2em; text-align: center; margin-bottom: 20px; margin-top: 20px">Game Results</h3>
-            <ul style="list-style: none; padding: 0;">
+        let resultsHtml = `
+        <h3 style="font-size: 2.0em; text-align: center; margin-bottom: 1.2em; margin-top: 1.2em;">Game Results</h3>
+        <div style="display: flex; justify-content: space-between;">
+            <div style="width: 48%;">
+                <h4 style="text-align: center;">Team RACOON</h4>
+                <ul style="list-style: none; padding: 0;">
         `;
+
+        // 팀에 따라 결과를 나누어 표시
         this.gameResults.forEach((result) => {
-            resultsHtml += `
-                <li style="margin-bottom: 15px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; background-color: #f9f9f9;">
-                    <h2 style="font-size: 0.8em; margin: 0;">${result.nickname}</h2>
-                    <p style="margin: 5px 0;">
-                        <strong>Team:</strong> ${result.team} &nbsp; | &nbsp; 
-                        <strong>Catches:</strong> ${result.catchCount} &nbsp; | &nbsp; 
-                        <strong>Play Time:</strong> ${result.playTime} seconds
-                    </p>
-                </li>
-            `;
+            if (result.team === "RACOON") {
+                resultsHtml += `
+                    <li style="margin-bottom: 0.9em; margin-right: 1.2em; padding: 0.3em; border: 0.1em solid #ccc; border-radius: 0.3em;">
+                        <h2 style="font-size: 0.8em; margin-top: 0.7em;">${result.nickname}</h2>
+                        <p style="margin: 0.3em 0; text-align: center; font-size: 0.8em;">
+                            <strong>Catches: ${result.catchCount}</strong></br>
+                            <strong>Survival Time: ${result.playTime} s</strong>
+                        </p>
+                    </li>
+                `;
+            }
         });
-        resultsHtml += "</ul>";
+
+        resultsHtml += `
+                </ul>
+            </div>
+            <div style="width: 48%;">
+                <h4 style="text-align: center;">Team FOX</h4>
+                <ul style="list-style: none; padding: 0;">
+        `;
+
+        this.gameResults.forEach((result) => {
+            if (result.team === "FOX") {
+                resultsHtml += `
+                    <li style="margin-bottom: 0.9em; margin-right: 1.2em; padding: 0.3em; border: 0.1em solid #ccc; border-radius: 0.3em;">
+                        <h2 style="font-size: 0.8em; margin-top: 0.7em;">${result.nickname}</h2>
+                        <p style="margin: 0.3em 0; text-align: center; font-size: 0.8em;">
+                            <strong>Catches: ${result.catchCount}</strong></br>
+                            <strong>Survival Time: ${result.playTime} s</strong>
+                        </p>
+                    </li>
+                `;
+            }
+        });
+
+        resultsHtml += `
+                </ul>
+            </div>
+        </div>
+        `;
+
 
         // 모달 내의 stats-text 요소에 결과 추가
         const statsTextElement = document.getElementById("stats-text");
