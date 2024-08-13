@@ -325,6 +325,11 @@ export default class GameUI extends Phaser.Scene {
                         case MESSAGE_TYPE.PLAYER_DEAD:
                             this.#announcePlayerElimination(message.data);
                             break;
+                        case MESSAGE_TYPE.GAME_END:
+                            this.#showGameEndMessage(
+                                message.data.redirectAfter ?? 3000
+                            );
+                            break;
                         default:
                             break;
                     }
@@ -520,6 +525,38 @@ export default class GameUI extends Phaser.Scene {
         }
 
         this.killLogQueue.push(messageText);
+    }
+
+    #showGameEndMessage(redirectAfter) {
+        // 게임 종료 후 안내 메시지
+        const gameEndMessage = this.add.text(
+            this.cameras.main.width / 2,
+            this.cameras.main.height * 0.9,
+            `${Math.ceil(redirectAfter / 1000)}초 후에 로비로 이동합니다`,
+            {
+                fontSize: 30,
+                color: "#ffffff",
+                backgroundColor: "#000000aa",
+                align: "center",
+                padding: {
+                    left: 8,
+                    right: 8,
+                    top: 8,
+                    bottom: 8,
+                },
+            }
+        );
+        gameEndMessage.setOrigin(0.5, 0.5);
+
+        this.tweens.add({
+            targets: gameEndMessage,
+            alpha: 0,
+            duration: redirectAfter,
+            ease: "Power1",
+            onComplete: () => {
+                gameEndMessage.destroy();
+            },
+        });
     }
 
     #hideSeekCountUi() {

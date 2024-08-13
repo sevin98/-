@@ -543,6 +543,20 @@ export class game extends Phaser.Scene {
                     this.gameResults = gameRepository.getGameResults();
                     this.showEndGameModal();
                     this.modalShown = true;
+
+                    // 5초 후에 로비로 이동
+                    uiControlQueue.addGameEndMessage(5000);
+                    this.time.delayedCall(5000, () => {
+                        window.dispatchEvent(
+                            new CustomEvent("phaser-route-lobby", {
+                                detail: {
+                                    path: LOBBY_ROUTE_PATH,
+                                    roomNumber:
+                                        this.roomRepository.getRoomNumber(),
+                                },
+                            })
+                        );
+                    });
                 }
             });
         });
@@ -589,6 +603,8 @@ export class game extends Phaser.Scene {
 
         // 로비 버튼 클릭 이벤트
         document.getElementById("lobby-button").onclick = () => {
+            this.time.removeAllEvents();
+
             window.dispatchEvent(
                 new CustomEvent("phaser-route-lobby", {
                     detail: {
@@ -601,6 +617,8 @@ export class game extends Phaser.Scene {
 
         // 이전 방으로 돌아가기 버튼 클릭 이벤트
         document.getElementById("back-to-room-button").onclick = () => {
+            this.time.removeAllEvents();
+
             window.dispatchEvent(
                 new CustomEvent("phaser-route-back-to-room", {
                     detail: {
