@@ -78,6 +78,7 @@ export default class GameRepository {
     #currentSafeZone;
     #isGameEnd = false;
     #gameResults = [];
+    #winningTeam;
 
     #isInitialized = false;
     #currentEliminatedPlayerAndTeam; //ui업데이트
@@ -282,8 +283,13 @@ export default class GameRepository {
         });
     }
 
-    #handleGameEndEvent() {
+    #handleGameEndEvent(data) {
+        this.#winningTeam = data.WINNING_TEAM;
         this.#setIsEnd();
+    }
+
+    getWinningTeam() {
+        return this.#winningTeam;
     }
 
     #setIsEnd() {
