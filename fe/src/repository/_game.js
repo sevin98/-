@@ -77,10 +77,15 @@ export default class GameRepository {
     #currentPhaseFinishAfterMilliSec;
     #currentSafeZone;
     #isGameEnd = false;
-    #gameResults = [];
 
     #isInitialized = false;
     #currentEliminatedPlayerAndTeam; //ui업데이트
+    #initialItems;
+    #itemQ;
+    #itemW;
+    #itemSpeed; // 현재의 아이템 스피드
+    #gameResults = [];
+
     #seekFailCatchCount = 0; // 기본값 0
 
     constructor(room, roomNumber, gameSubscriptionInfo, startsAfterMilliSec) {
@@ -114,7 +119,7 @@ export default class GameRepository {
         if (!this.#isInitialized && type !== GAME_INFO) {
             await gameInitializationMutex.acquire();
         }
-
+        console.log("메시지타입", message.type);
         switch (type) {
             case GAME_START:
                 this.#handleGameStartEvent(data);
@@ -179,6 +184,28 @@ export default class GameRepository {
                 this.#handleGameResultEvent(data);
                 console.log("게임 결과를 수신했습니다.");
                 break;
+            //아이템 메세지: 나중에 static으로 추가하기
+            case "ITEM_APPLIED_TO_PLAYER":
+                console.log("1. 아이템 플레이어에 적용 성공");
+                console.log("or 6. 탐색시 아이템 적용 성공");
+                // 넘어온 data 확인해보니 message 그대로 넘겨줘야함
+                // this.#handleItemAppliedPlayerSuccess(message);
+                break;
+            case "ITEM_APPLIED_TO_OBJECT":
+                console.log("2. 아이템 오브젝트에 적용 성공");
+                this.#handleItemAppliedObjectSuccess(message);
+                break;
+            case "ITEM_APPLICATION_FAILED_TO_PLAYER":
+                console.log("3. 이미 아이템이 적용된 플레이어");
+                break;
+            case "ITEM_APPLICATION_FAILED_TO_OBJECT":
+                console.log("4. 이미 아이템이 설치된object or  5.object존재x");
+                this.#handleItemAppliedObjectFailed(message);
+                break;
+            case "ITEM_CLEARED":
+                console.log("8. item 효과제거");
+                break;
+
             default:
                 console.error("Received unknown message:", message);
                 throw new Error(
@@ -353,11 +380,14 @@ export default class GameRepository {
             playerPositionInfo,
             teamCharacter,
             teamSubscriptionInfo,
+            items,
             playerNickname,
         } = data;
 
         console.log(`내 정보 초기화: ${playerPositionInfo.playerId}`);
-
+        this.#initialItems = items; // 초기 플레이어의 아이템 값
+        this.#itemQ = items[0];
+        this.#itemW = items[1];
         this.#me = new Player({
             playerId: playerPositionInfo.playerId,
             playerNickname,
@@ -499,6 +529,10 @@ export default class GameRepository {
         return this.#room.getJoinedPlayers();
     }
 
+    getInitialItems() {
+        return this.#initialItems;
+    }
+
     // HP =====================================================================
     // 숨기 요청
     async requestHide(objectId) {
@@ -577,7 +611,6 @@ export default class GameRepository {
         requestedPlayer.setRestSeekCount(restCatchCount);
 
         uiControlQueue.addUpdateSeekCountUiMessage(restCatchCount);
-        this.#seekFailCatchCount = data.catchCount;
 
         // TODO : HP에 뭔 짓을 해줘야 함?
         // TODO : 아이템 처리 필요
@@ -597,6 +630,7 @@ export default class GameRepository {
     //맵축소
     #handleSafeZoneUpdateEvent(data) {
         const safeZone = data; //[0, 0, 1600, 1600],
+        console.log("안전구역", safeZone);
         this.#currentSafeZone = safeZone;
     }
     //맵축소
@@ -639,5 +673,43 @@ export default class GameRepository {
             // 사망 메시지 표시
             uiControlQueue.addDeadMessage(reasonType, data);
         });
+    }
+
+    #handleItemAppliedObjectFailed(data) {
+        console.log("handle:아이템object에 적용 실패");
+    }
+    // 아이템 object에 적용결과
+    #handleItemAppliedObjectSuccess(data) {
+        console.log("handle:아이템object에 적용성공,결과:", data);
+    }
+
+    async requestItemUse(item, targetId) {
+        console.log("_game에 들어옴:", item, targetId);
+        const requestId = uuid();
+
+        this.#stompClient.publish({
+            destination: `/ws/rooms/${this.#roomNumber}/game/use/item`,
+            body: JSON.stringify({
+                requestId,
+                data: {
+                    item: item,
+                    targetId: targetId,
+                },
+            }),
+        });
+
+        const requestItemResult = await asyncResponses.get(requestId);
+        return Promise.resolve({
+            isSucceeded: requestItemResult.type === "ITEM_APPLIED_TO_PLAYER",
+            speed: requestItemResult.data.newSpeed,
+        });
+    }
+
+    // 로컬플레이어의 아이템이름 반환
+    getItemQ() {
+        return this.#itemQ;
+    }
+    getItemW() {
+        return this.#itemW;
     }
 }
