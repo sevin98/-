@@ -1,25 +1,20 @@
 package com.ssafy.a410.game.controller;
 
 import com.ssafy.a410.game.controller.dto.BlockingReq;
-import com.ssafy.a410.game.domain.game.Game;
-import com.ssafy.a410.game.domain.game.item.ItemUseReq;
 import com.ssafy.a410.game.controller.dto.PlayerPositionReq;
-import com.ssafy.a410.game.domain.game.message.request.InteractSeekReq;
+import com.ssafy.a410.game.domain.game.item.ItemUseReq;
 import com.ssafy.a410.game.domain.game.message.request.InteractHideReq;
-import com.ssafy.a410.game.domain.player.PlayerStatsResp;
+import com.ssafy.a410.game.domain.game.message.request.InteractSeekReq;
 import com.ssafy.a410.game.service.GameService;
 import com.ssafy.a410.game.service.InteractService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
-import java.util.List;
-import java.util.Map;
 
 
 @Slf4j
@@ -67,6 +62,7 @@ public class GameController {
         ItemUseReq itemUseReq = req.getData();
         itemUseReq.setPlayerId(principal.getName());
         itemUseReq.setRoomId(roomId);
+        itemUseReq.setRequestId(req.getRequestId());
         interactService.useItem(itemUseReq);
     }
 
