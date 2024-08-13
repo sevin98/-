@@ -32,6 +32,8 @@ const PLAYER_DISCONNECTED = "PLAYER_DISCONNECTED";
 const SAFE_ZONE_UPDATE = "SAFE_ZONE_UPDATE";
 // 안전구역밖으로 나간 플레이어 게임 탈락 이벤트
 const ELIMINATION_OUT_OF_SAFE_ZONE = "ELIMINATION_OUT_OF_SAFE_ZONE";
+// 게임 종료 시 게임 결과 수신 이벤트
+const GAME_RESULT = "GAME_RESULT";
 
 // 화면 가리기 명령 이벤트
 const COVER_SCREEN = "COVER_SCREEN";
@@ -75,6 +77,7 @@ export default class GameRepository {
     #currentPhaseFinishAfterMilliSec;
     #currentSafeZone;
     #isGameEnd = false;
+    #gameResults = [];
 
     #isInitialized = false;
     #currentEliminatedPlayerAndTeam; //ui업데이트
@@ -171,6 +174,10 @@ export default class GameRepository {
                 //맵축소
                 this.#handleSafeZoneUpdateEvent(data);
                 console.log(`안전 지역이 변경되었습니다.`);
+                break;
+            case GAME_RESULT:
+                this.#handleGameResultEvent(data);
+                console.log("게임 결과를 수신했습니다.");
                 break;
             default:
                 console.error("Received unknown message:", message);
@@ -277,11 +284,6 @@ export default class GameRepository {
 
     #handleGameEndEvent() {
         this.#setIsEnd();
-        window.dispatchEvent(new CustomEvent('GAME_END', {
-            detail: {
-                roomNumber: this.#roomNumber
-            }
-        }));
     }
 
     #setIsEnd() {
@@ -410,6 +412,25 @@ export default class GameRepository {
             const player = this.getPlayerWithId(playerId);
             player.setPosition({ x, y, direction });
         }
+    }
+
+    #handleGameResultEvent(data){
+        console.log(data);
+        Object.keys(data).forEach(team => {
+            data[team].forEach(player => {
+                this.#gameResults.push({
+                    nickname: player.nickname,
+                    catchCount: player.catchCount,
+                    playTime: player.playTimeInSeconds,
+                    team: player.team,
+                });
+            });
+        });
+    }
+
+    // gameResults getter
+    getGameResults(){
+        return this.#gameResults;
     }
 
     // 게임 시작 시각
