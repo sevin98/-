@@ -13,7 +13,7 @@ public class ItemClearedMessage extends ItemMessage {
     private final String appliedById;
 
     public ItemClearedMessage(String roomId, String playerId, String hpObjectId, Duration duration, String appliedById) {
-        super(ItemControlType.ItemCleared, null, null);
+        super(ItemControlType.ITEM_CLEARED, null, null);
         this.roomId = roomId;
         this.playerId = playerId;
         this.hpObjectId = hpObjectId;
