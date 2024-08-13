@@ -49,20 +49,18 @@ ChatBox.propTypes = {
 function PlayerSlot({ player, isMe }) {
     if (!player) {
         return (
-            <div className="rpgui-container framed-grey player-slot empty">
-                <div className="rpgui-icon empty-slot"></div>
-                <h2 className="empty-slot">빈 슬롯</h2>
+            <div className="player-slot empty">
+                <h2 className="empty-slot">기다리는 중</h2>
             </div>
         );
     }
 
     return (
         <div
-            className={`rpgui-container framed-grey player-slot ${
+            className={`player-slot ${
                 player.getIsReady() ? "ready" : ""
             } ${isMe ? "me" : ""}`}
         >
-            <div className="player-icon">{player.icon}</div>
             <h2 className="player-nickname">{player.getPlayerNickname()}</h2>
             <h2
                 className={`player-ready-status ${
