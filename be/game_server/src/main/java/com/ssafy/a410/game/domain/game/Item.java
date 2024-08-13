@@ -20,11 +20,13 @@ public enum Item {
     LEAF;
 
     public boolean isApplicableToPlayer() {
-        return this == MUSHROOM || this == RED_PEPPER || this == LEAF;
+        return this == MUSHROOM || this == RED_PEPPER;
+//        || this == LEAF;
     }
 
     public boolean isApplicableToHPObject() {
-        return this == BANANA || this == BEEHIVE || this == POISON_MUSHROOM;
+        return this == BANANA || this == BEEHIVE;
+//                || this == POISON_MUSHROOM;
     }
 
     public Duration getDuration() {

@@ -632,13 +632,15 @@ public class Game extends Subscribable implements Runnable {
     }
 
     public void notifyItemCleared(Player player) {
-        broadcastService.broadcastTo(this, new ItemClearedMessage(
+        ItemClearedMessage message = new ItemClearedMessage(
                 room.getRoomNumber(),
                 player.getId(),
                 null,
                 Duration.ZERO,
                 null
-        ));
+        );
+        broadcastService.broadcastTo(this, message);
+        broadcastService.unicastTo(player, message);
     }
 
     public void notifyHPItemCleared(HPObject hpObject) {
@@ -663,11 +665,11 @@ public class Game extends Subscribable implements Runnable {
         }
 
         // 아이템 타입이 자신에게 사용되는 아이템이라면
-        if (item.isApplicableToPlayer()) {
+        if (item.isApplicableToPlayer() && targetId.equals(playerId)) {
             applyItemToPlayer(targetId, item, item.getDuration(), playerId, requestId);
 
             // 아이템 타입이 오브젝트에 사용되는 아이템이라면
-        } else if (item.isApplicableToHPObject()) {
+        } else if (item.isApplicableToHPObject() && !targetId.equals(playerId)) {
             applyItemToHPObject(targetId, item, item.getDuration(), playerId, requestId);
 
             // 그 어디에도 속하지 않는 아이템이라면
