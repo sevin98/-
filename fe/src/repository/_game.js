@@ -223,7 +223,7 @@ export default class GameRepository {
             this.#setIsEnd();
         }
 
-        this.getMe().then((me) => {
+        this.getMe().then(async (me) => {
             if (
                 this.#currentPhase === Phase.READY ||
                 this.#currentPhase === Phase.MAIN
@@ -234,7 +234,7 @@ export default class GameRepository {
                 );
             }
             if (this.#currentPhase === Phase.READY) {
-                if (me.isHidingTeam()) {
+                if (await me.isHidingTeam()) {
                     console.log(
                         `당신의 팀이 숨을 차례입니다. ${data.finishAfterMilliSec}ms 안에 숨지 못하면 탈락합니다.`
                     );
@@ -259,7 +259,7 @@ export default class GameRepository {
                     uiControlQueue.addShowSeekCountUiMessage();
                 }
             } else if (this.#currentPhase === Phase.MAIN) {
-                if (me.isHidingTeam()) {
+                if (await me.isHidingTeam()) {
                     console.log(
                         `앞으로 ${data.finishAfterMilliSec}ms 동안 들키지 않으면 생존합니다.`
                     );
@@ -414,10 +414,10 @@ export default class GameRepository {
         }
     }
 
-    #handleGameResultEvent(data){
+    #handleGameResultEvent(data) {
         console.log(data);
-        Object.keys(data).forEach(team => {
-            data[team].forEach(player => {
+        Object.keys(data).forEach((team) => {
+            data[team].forEach((player) => {
                 this.#gameResults.push({
                     nickname: player.nickname,
                     catchCount: player.catchCount,
@@ -429,7 +429,7 @@ export default class GameRepository {
     }
 
     // gameResults getter
-    getGameResults(){
+    getGameResults() {
         return this.#gameResults;
     }
 
@@ -445,14 +445,18 @@ export default class GameRepository {
 
     // 내 플레이어 정보
     getMe() {
-        return new Promise((resolve) => {
-            const interval = setInterval(() => {
-                if (this.#me) {
-                    clearInterval(interval);
-                    resolve(this.#me);
-                }
-            }, 10);
-        });
+        if (this.#me) {
+            return Promise.resolve(this.#me);
+        } else {
+            return new Promise((resolve) => {
+                const interval = setInterval(() => {
+                    if (this.#me) {
+                        clearInterval(interval);
+                        resolve(this.#me);
+                    }
+                }, 10);
+            });
+        }
     }
 
     // 해당 id를 가지는 플레이어를 찾아 반환

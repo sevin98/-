@@ -80,6 +80,14 @@ export class game extends Phaser.Scene {
                 );
                 playercam.startFollow(this.localPlayer);
 
+                // player.js 에서 player 키조작이벤트 불러옴
+                this.playerMoveHandler = new HandlePlayerMove(
+                    this.cursors,
+                    this.localPlayer,
+                    this.headDir,
+                    this.moving
+                );
+
                 // 죽은 플레이어는 충돌 처리 안함
                 const passDeadPlayerCollider = (wall, playerSprite) => {
                     return !me.isDead();
@@ -194,7 +202,7 @@ export class game extends Phaser.Scene {
         }
         // 로컬플레이어 포지션 트래킹 , 이후 위치는 x,y,headDir로 접근
         this.roomRepository.getGameRepository().then((gameRepository) => {
-            gameRepository.getMe().then((me) => {
+            gameRepository.getMe().then(async (me) => {
                 const { x, y, headDir } = me.getPosition();
                 if (this.hintImages) {
                     for (let direction in this.hintImages) {
@@ -256,7 +264,7 @@ export class game extends Phaser.Scene {
                     this.localPlayer.allowMove();
                 }
                 // 숨는 팀인 경우
-                else if (me.isHidingTeam()) {
+                else if (await me.isHidingTeam()) {
                     // 레디 페이즈에
                     if (gameRepository.getCurrentPhase() === Phase.READY) {
                         // 숨었다고 처리 되었으나 화면에 보이고 있으면
@@ -384,18 +392,10 @@ export class game extends Phaser.Scene {
 
                             this.shownHintForCurrentPhase = true;
                         }
-                    } else {
                     }
                 }
 
-                // player.js 에서 player 키조작이벤트 불러옴
-                const playerMoveHandler = new HandlePlayerMove(
-                    this.cursors,
-                    this.localPlayer,
-                    this.headDir,
-                    this.moving
-                );
-                playerMoveHandler.update(this.footstepSound);
+                this.playerMoveHandler.update(this.footstepSound);
 
                 // 플레이어에서 물리적으로 가장 가까운 거리 찾는 객체
                 const closest = this.physics.closest(
@@ -409,17 +409,6 @@ export class game extends Phaser.Scene {
                     this.localPlayer.x,
                     this.localPlayer.y
                 );
-
-                // 시각적으로 가까운 오브젝트와의 선 표시, 나중에 지우면되는코드
-                this.graphics
-                    .clear()
-                    .lineStyle(1, 0xff3300)
-                    .lineBetween(
-                        closest.body.center.x,
-                        closest.body.center.y,
-                        this.localPlayer.x,
-                        this.localPlayer.y
-                    );
 
                 // 30px 이하로 가까이 있을때 상호작용 표시 로직
                 if (minDistance < 30) {
@@ -458,7 +447,7 @@ export class game extends Phaser.Scene {
                     const objectId = closest.getData("id");
 
                     // 숨을 차례이면 숨기 요청
-                    if (me.isHidingTeam()) {
+                    if (await me.isHidingTeam()) {
                         // 단, 레디 페이즈에만 숨을 수 있음
                         if (gameRepository.getCurrentPhase() !== Phase.READY) {
                             console.log("READY 페이즈만 숨을 수 있습니다.");
@@ -554,6 +543,20 @@ export class game extends Phaser.Scene {
                     this.gameResults = gameRepository.getGameResults();
                     this.showEndGameModal();
                     this.modalShown = true;
+
+                    // 5초 후에 로비로 이동
+                    uiControlQueue.addGameEndMessage(5000);
+                    this.time.delayedCall(5000, () => {
+                        window.dispatchEvent(
+                            new CustomEvent("phaser-route-lobby", {
+                                detail: {
+                                    path: LOBBY_ROUTE_PATH,
+                                    roomNumber:
+                                        this.roomRepository.getRoomNumber(),
+                                },
+                            })
+                        );
+                    });
                 }
             });
         });
@@ -566,11 +569,13 @@ export class game extends Phaser.Scene {
 
     showEndGameModal() {
         console.log("End Game Modal");
-    
+        const gameEndSoundAudio = new Audio("/sounds/effect/etc/ddt.mp3");
+        gameEndSoundAudio.play();
+
         // RPGUI 모달을 표시
         const modalElement = document.getElementById("rpgui-modal");
         modalElement.style.display = "block";
-    
+
         // 게임 결과를 HTML로 변환
         let resultsHtml = `
         <h3 style="font-size: 2.0em; text-align: center; margin-bottom: 1.2em; margin-top: 1.2em;">Game Results</h3>
@@ -624,15 +629,16 @@ export class game extends Phaser.Scene {
         `;
 
 
-    
         // 모달 내의 stats-text 요소에 결과 추가
         const statsTextElement = document.getElementById("stats-text");
         if (statsTextElement) {
             statsTextElement.innerHTML = resultsHtml;
         }
-    
+
         // 로비 버튼 클릭 이벤트
         document.getElementById("lobby-button").onclick = () => {
+            this.time.removeAllEvents();
+
             window.dispatchEvent(
                 new CustomEvent("phaser-route-lobby", {
                     detail: {
@@ -642,9 +648,11 @@ export class game extends Phaser.Scene {
                 })
             );
         };
-    
+
         // 이전 방으로 돌아가기 버튼 클릭 이벤트
         document.getElementById("back-to-room-button").onclick = () => {
+            this.time.removeAllEvents();
+
             window.dispatchEvent(
                 new CustomEvent("phaser-route-back-to-room", {
                     detail: {
@@ -655,13 +663,12 @@ export class game extends Phaser.Scene {
                 })
             );
         };
-    
+
         // Phaser 씬이 종료될 때 모달을 숨기거나 제거
         this.events.once("shutdown", () => {
             modalElement.style.display = "none";
         });
     }
-    
 
     // 맵타일단위를 pix로 변환
     tileToPixel(tileCoord) {

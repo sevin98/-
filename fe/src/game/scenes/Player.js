@@ -170,11 +170,11 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
         this.roomRepository = getRoomRepository();
 
         this.roomRepository.getGameRepository().then((gameRepository) => {
-            gameRepository.getMe().then((me) => {
+            gameRepository.getMe().then(async (me) => {
                 me.setSprite(this);
 
                 //racoon animation
-                if (me.isRacoonTeam()) {
+                if (await me.isRacoonTeam()) {
                     this.anims.create({
                         key: "racoon-idle-down",
                         frames: this.anims.generateFrameNames("racoon", {
@@ -184,7 +184,7 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
                             suffix: ".png",
                         }),
                         repeat: -1,
-                        frameRate: 5,
+                        frameRate: 1,
                     });
 
                     this.anims.create({
@@ -196,7 +196,7 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
                             suffix: ".png",
                         }),
                         repeat: -1,
-                        frameRate: 5,
+                        frameRate: 1,
                     });
                     this.anims.create({
                         key: "racoon-idle-left",
@@ -207,7 +207,7 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
                             suffix: ".png",
                         }),
                         repeat: -1,
-                        frameRate: 5,
+                        frameRate: 1,
                     });
 
                     this.anims.create({
@@ -219,7 +219,7 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
                             suffix: ".png",
                         }),
                         repeat: -1,
-                        frameRate: 5,
+                        frameRate: 1,
                     });
 
                     this.anims.create({
@@ -280,7 +280,7 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
                             suffix: ".png",
                         }),
                         repeat: -1,
-                        frameRate: 5,
+                        frameRate: 1,
                     });
 
                     this.anims.create({
@@ -292,7 +292,7 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
                             suffix: ".png",
                         }),
                         repeat: -1,
-                        frameRate: 5,
+                        frameRate: 1,
                     });
                     this.anims.create({
                         key: "fox-idle-left",
@@ -303,7 +303,7 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
                             suffix: ".png",
                         }),
                         repeat: -1,
-                        frameRate: 5,
+                        frameRate: 1,
                     });
 
                     this.anims.create({
@@ -315,7 +315,7 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
                             suffix: ".png",
                         }),
                         repeat: -1,
-                        frameRate: 5,
+                        frameRate: 1,
                     });
 
                     this.anims.create({
@@ -402,10 +402,10 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
 
     stopMove(headDir) {
         this.roomRepository.getGameRepository().then((gameRepository) => {
-            gameRepository.getMe().then((me) => {
+            gameRepository.getMe().then(async (me) => {
                 this.setVelocityX(0);
                 this.setVelocityY(0);
-                if (me.isRacoonTeam()) {
+                if (await me.isRacoonTeam()) {
                     switch (headDir) {
                         case 0:
                             if (this.anims.currentAnim.key != "racoon-idle-up")
@@ -456,7 +456,7 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
     }
     move(direction) {
         this.roomRepository.getGameRepository().then((gameRepository) => {
-            gameRepository.getMe().then((me) => {
+            gameRepository.getMe().then(async (me) => {
                 if (!this.canMove()) return;
                 switch (direction) {
                     case Direction.Up:
@@ -464,12 +464,12 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
                         this.setVelocityX(0);
 
                         if (
-                            me.isRacoonTeam() &&
+                            (await me.isRacoonTeam()) &&
                             this.anims.currentAnim.key != "racoon-run-up"
                         )
                             this.anims.play("racoon-run-up");
                         if (
-                            !me.isRacoonTeam() &&
+                            !(await me.isRacoonTeam()) &&
                             this.anims.currentAnim.key != "fox-run-up"
                         )
                             this.anims.play("fox-run-up");
@@ -480,12 +480,12 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
                         this.setVelocityX(0);
                         //this.y += Player.PLAYER_SPEED;
                         if (
-                            me.isRacoonTeam() &&
+                            (await me.isRacoonTeam()) &&
                             this.anims.currentAnim.key != "racoon-run-down"
                         )
                             this.anims.play("racoon-run-down");
                         if (
-                            !me.isRacoonTeam() &&
+                            !(await me.isRacoonTeam()) &&
                             this.anims.currentAnim.key != "fox-run-down"
                         )
                             this.anims.play("fox-run-down");
@@ -496,12 +496,12 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
                         this.setVelocityY(0);
                         //this.x += Player.PLAYER_SPEED;
                         if (
-                            me.isRacoonTeam() &&
+                            (await me.isRacoonTeam()) &&
                             this.anims.currentAnim.key != "racoon-run-right"
                         )
                             this.anims.play("racoon-run-right");
                         if (
-                            !me.isRacoonTeam() &&
+                            !(await me.isRacoonTeam()) &&
                             this.anims.currentAnim.key != "fox-run-right"
                         )
                             this.anims.play("fox-run-right");
@@ -511,12 +511,12 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
                         this.setVelocityY(0);
                         //this.x -= Player.PLAYER_SPEED;
                         if (
-                            me.isRacoonTeam() &&
+                            (await me.isRacoonTeam()) &&
                             this.anims.currentAnim.key != "racoon-run-left"
                         )
                             this.anims.play("racoon-run-left");
                         if (
-                            !me.isRacoonTeam() &&
+                            !(await me.isRacoonTeam()) &&
                             this.anims.currentAnim.key != "fox-run-left"
                         )
                             this.anims.play("fox-run-left");

@@ -68,12 +68,12 @@ export class Player {
         return this.#isDead;
     }
 
-    isRacoonTeam() {
-        return this.#team.getCharacter().toLowerCase() === "racoon";
+    async isRacoonTeam() {
+        return (await this.getTeam()).getCharacter().toLowerCase() === "racoon";
     }
 
-    isFoxTeam() {
-        return this.#team.getCharacter().toLowerCase() === "fox";
+    async isFoxTeam() {
+        return (await this.getTeam()).getCharacter().toLowerCase() === "fox";
     }
 
     setPosition({ x, y, direction }) {
@@ -91,7 +91,16 @@ export class Player {
     }
 
     getTeam() {
-        return this.#team;
+        if (this.#team) {
+            return Promise.resolve(this.#team);
+        } else {
+            const interval = setInterval(() => {
+                if (this.#team) {
+                    clearInterval(interval);
+                    return Promise.resolve(this.#team);
+                }
+            }, 100);
+        }
     }
 
     isInitialized() {
@@ -102,12 +111,12 @@ export class Player {
         );
     }
 
-    isHidingTeam() {
-        return this.#team.isHidingTeam();
+    async isHidingTeam() {
+        return (await this.getTeam()).isHidingTeam();
     }
 
-    isSeekingTeam() {
-        return this.#team.isSeekingTeam();
+    async isSeekingTeam() {
+        return (await this.getTeam()).isSeekingTeam();
     }
 
     getRestSeekCount() {
@@ -135,14 +144,18 @@ export class Player {
     }
 
     getSprite() {
-        return new Promise((resolve) => {
-            const interval = setInterval(() => {
-                if (this.#sprite) {
-                    clearInterval(interval);
-                    resolve(this.#sprite);
-                }
-            }, 10);
-        });
+        if (this.#sprite) {
+            return Promise.resolve(this.#sprite);
+        } else {
+            return new Promise((resolve) => {
+                const interval = setInterval(() => {
+                    if (this.#sprite) {
+                        clearInterval(interval);
+                        resolve(this.#sprite);
+                    }
+                }, 10);
+            });
+        }
     }
 
     setIsHiding(isHiding) {
