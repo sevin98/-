@@ -521,16 +521,17 @@ public class Game extends Subscribable implements Runnable {
     }
 
     private void endGame(Team winningTeam) {
+        // 승패팀을 찾아서 전적을 업데이트 시켜준다.
+        Team losingTeam = (winningTeam == hidingTeam) ? seekingTeam : hidingTeam;
 
         // 게임 결과를 전송한다.
         Map<String, List<PlayerStatsResp>> stats = this.getEndGameStats();
         broadCastGameResult(stats);
 
         // 승리 팀을 알리고, 게임을 종료하고, 결과를 저장하는 등
-        broadcastService.broadcastTo(this, new GameEndMessage());
+        GameEndMessage gameEndMessage = new GameEndMessage(winningTeam, losingTeam);
+        broadcastService.broadcastTo(this, gameEndMessage);
 
-        // 승패팀을 찾아서 전적을 업데이트 시켜준다.
-        Team losingTeam = (winningTeam == hidingTeam) ? seekingTeam : hidingTeam;
         updatePlayerStats(winningTeam, losingTeam);
 
         // 게임 종료 처리
