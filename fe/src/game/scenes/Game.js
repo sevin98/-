@@ -559,15 +559,13 @@ export class game extends Phaser.Scene {
         this.roomRepository.getGameRepository().then((gameRepository) => {
             const item = gameRepository.getItemQ();
             // 고추일때는 targetId null값으로 변환
-            if (item === "RED_PEPPER" || item === "MUSHROOM") {
-                targetId = null;
-            }
             gameRepository
                 .requestItemUse(item, targetId)
-                .then(({ isSucceeded }) => {
+                .then(({ isSucceeded, speed }) => {
                     //TODO: _game.js의 함수확인
-                    if (isSucceeded) {
-                        console.log('리턴값ㅇ');
+                    console.log(speed)
+                    if (isSucceeded && speed !== null ) {
+                        return speed 
                     }
                 });
         });

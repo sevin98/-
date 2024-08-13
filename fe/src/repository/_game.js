@@ -114,7 +114,7 @@ export default class GameRepository {
         if (!this.#isInitialized && type !== GAME_INFO) {
             await gameInitializationMutex.acquire();
         }
-
+        console.log("메시지타입",message.type)
         switch (type) {
             case GAME_START:
                 this.#handleGameStartEvent(data);
@@ -631,11 +631,11 @@ export default class GameRepository {
             });
 
              const requestItemResult = await asyncResponses.get(requestId);
-             console.log('pub:',requestItemResult)
-
              return Promise.resolve({
                  isSucceeded:
                      requestItemResult.type === "ITEM_APPLIED_TO_PLAYER",
+                speed:
+                    requestItemResult.newSpeed 
              });
         } 
     

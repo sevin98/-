@@ -160,25 +160,28 @@ export default class RoomRepository {
             /// publish 비동기 해결못함
             case "ITEM_APPLIED_TO_PLAYER":
                 console.log("스위치_아이템 플레이어에 적용");
-                console.log(message)
-                this.handleItemApplyToPlayer(requestId);
+                // console.log(message)
+                this.handleItemApplyToPlayer(requestId, result);
                 break;
             case "ITEM_APPLIED_TO_OBJECT":
                 // console.log("스위치_아이템 object에 적용");
-                // this.handleItemApplyToObject(requestId, result);
+                this.handleItemApplyToObject(requestId, result);
+                break;
+            case "ITEM_CLEARED":
+                console.log("8. item 효과제거-room");
                 break;
         }
     }
 
     handleItemApplyToPlayer(requestId, result) {
-        // console.log("플레이어에 적용:", "rqid:", requestId, "결과", result);
+        console.log("플레이어에 적용:", "rqid:", requestId, "결과", result);
         asyncResponses.set(requestId, result);
     }
 
-    // handleItemApplyToObject(requestId, result) {
-    //     console.log("오브젝트에 적용:", "rqid:", requestId, "결과", result);
-    //     asyncResponses.set(requestId, result);
-    // }
+    handleItemApplyToObject(requestId, result) {
+        console.log("오브젝트에 적용:", "rqid:", requestId, "결과", result);
+        asyncResponses.set(requestId, result);
+    }
 
     // 주기적으로 수신한 플레이어 정보와 현재 플레이어 정보를 대조하여 상태를 업데이트
     #updatePlayers(joinedPlayers) {
