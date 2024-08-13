@@ -6,24 +6,26 @@ import GameUI from "./scenes/GameUI";
 import { useEffect } from "react";
 
 const config = {
-    type: Phaser.AUTO,
+    type: Phaser.CANVAS,
     width: 400,
     height: 250,
     parent: "game-container",
-    backgroundColor: "#028af8",
+    backgroundColor: "#000000",
     scale: {
         mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH,
-        // zoom:1,
     },
-    scene: [Preloader, MainMenu, game, GameUI,],
-
+    scene: [Preloader, MainMenu, game, GameUI],
     physics: {
         default: "arcade",
-        arcade: {
-            debug: true,
-        },
     },
+    fps: {
+        min: 30,
+        target: 30,
+        forceSetTimeOut: true,
+    },
+    roundPixels: true,
+    pixelArt: true,
 };
 
 const StartGame = (parent) => {

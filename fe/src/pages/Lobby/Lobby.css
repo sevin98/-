@@ -1,3 +1,15 @@
+.background-overlay {
+    position: absolute;
+    width: 450px;
+    height: 570px;
+    background-color: rgba(235, 235, 226, 0.6);
+    z-index: -1;
+    border-radius: 40px;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+}
+
 .wrapper {
     position: relative;
     width: 420px;
@@ -7,7 +19,6 @@
     align-items: center;
     background-color: aliceblue;
     justify-content: center;
-    align-items: center;
 }
 
 form {

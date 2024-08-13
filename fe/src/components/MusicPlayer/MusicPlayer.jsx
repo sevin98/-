@@ -108,8 +108,8 @@ export default function MusicPlayer() {
                 className="music-player__sound-button"
                 src={
                     isPlaying
-                        ? "/image/sound-playing-button.png"
-                        : "/image/sound-muted-button.png"
+                        ? "/image/A_Audio1.png"
+                        : "/image/A_Audio3.png"
                 }
                 alt="Sound Button"
                 onClick={onSoundButtonClick}

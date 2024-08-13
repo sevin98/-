@@ -5,6 +5,7 @@ import { getRoomRepository } from "../../repository";
 import { Phase } from "../../repository/_game";
 import { game } from "./Game";
 import { isFirstPress } from "../../util/keyStroke";
+import { PLAYER_ELIMINATION_REASON } from "../../repository/interface";
 
 export default class GameUI extends Phaser.Scene {
     static progressBarAssetPrefix = "progress-bar-01-";
@@ -34,6 +35,10 @@ export default class GameUI extends Phaser.Scene {
 
         // 중앙 상단 메시지가 떠있는지 여부
         this.isTopCenterMessageVisible = false;
+
+        // 플레이어의 사망 기록을 화면에 하나씩만 보여 주기 위한 큐와 변수
+        this.killLogQueue = [];
+        this.isDisplayingKillLog = false;
     }
 
     preload() {
@@ -81,7 +86,7 @@ export default class GameUI extends Phaser.Scene {
                 return gameRepository
                     .getRacoonTeam()
                     .getPlayers()
-                    .filter((player) => player.getIsdead()).length;
+                    .filter((player) => player.isDead()).length;
             });
     }
 
@@ -100,7 +105,7 @@ export default class GameUI extends Phaser.Scene {
                 return gameRepository
                     .getFoxTeam()
                     .getPlayers()
-                    .filter((player) => player.getIsdead()).length;
+                    .filter((player) => player.isDead()).length;
             });
     }
 
@@ -161,6 +166,26 @@ export default class GameUI extends Phaser.Scene {
             volume: 1,
         });
         this.initializeChickenHeads();
+
+        // 아군 탐색 성공 사운드
+        this.allySeekSuccessSound = this.sound.add("hp-seek-success", {
+            volume: 1,
+        });
+
+        // 아군 탐색 실패 사운드
+        this.allySeekFailSound = this.sound.add("hp-seek-fail", {
+            volume: 1,
+        });
+
+        // 적군 탐색 성공 사운드
+        this.enemySeekSuccessSound = this.sound.add("hp-seek-fail", {
+            volume: 1,
+        });
+
+        // 아군 사망 사운드
+        this.allyDeadSound = this.sound.add("hp-seek-fail", {
+            volume: 1,
+        });
     }
 
     // 아이템 이미지 화면에 렌더링 
@@ -386,6 +411,14 @@ export default class GameUI extends Phaser.Scene {
     }
 
     update() {
+        // 화면에 띄우고 있는 킬 로그는 없는데 띄워야 할 킬 로그가 있을 때
+        if (!this.isDisplayingKillLog && this.killLogQueue.length > 0) {
+            // 화면에 킬 로그 띄우기
+            const killLog = this.killLogQueue.shift();
+            this.isDisplayingKillLog = true;
+            this.#showKillLog(killLog);
+        }
+
         getRoomRepository()
             .getGameRepository()
             .then((gameRepository) => {
@@ -407,6 +440,14 @@ export default class GameUI extends Phaser.Scene {
                             break;
                         case MESSAGE_TYPE.SURPRISE_CHICKEN:
                             this.doChickenSurprise();
+                            break;
+                        case MESSAGE_TYPE.PLAYER_DEAD:
+                            this.#announcePlayerElimination(message.data);
+                            break;
+                        case MESSAGE_TYPE.GAME_END:
+                            this.#showGameEndMessage(
+                                message.data.redirectAfter ?? 3000
+                            );
                             break;
                         default:
                             break;
@@ -521,9 +562,9 @@ export default class GameUI extends Phaser.Scene {
                 }
                 this.isTopCenterMessageVisible = true;
 
-                gameRepository.getMe().then((me) => {
+                gameRepository.getMe().then(async (me) => {
                     if (phase === Phase.READY) {
-                        if (me.isHidingTeam()) {
+                        if (await me.isHidingTeam()) {
                             messageTokens.push(
                                 `앞으로 ${restSeconds}초 동안 숨어야한다구리!`
                             );
@@ -533,8 +574,10 @@ export default class GameUI extends Phaser.Scene {
                             );
                         }
                     } else if (phase === Phase.MAIN) {
-                        const foeAnimal = me.isRacoonTeam() ? "여우" : "너구리";
-                        if (me.isHidingTeam()) {
+                        const foeAnimal = (await me.isRacoonTeam())
+                            ? "여우"
+                            : "너구리";
+                        if (await me.isHidingTeam()) {
                             messageTokens.push(
                                 `${foeAnimal}들이 쫓아오고 있다구리!`
                             );
@@ -580,6 +623,62 @@ export default class GameUI extends Phaser.Scene {
             });
     }
 
+    #announcePlayerElimination(message) {
+        const { reasonType, data } = message;
+        const { victimPlayerNickname } = data;
+
+        let messageText = "";
+        switch (reasonType) {
+            case PLAYER_ELIMINATION_REASON.CAUGHT:
+                const { attackerNickname } = data;
+                messageText = `[${victimPlayerNickname}]님이 [${attackerNickname}]님에게 들켰습니다.`;
+                break;
+            case PLAYER_ELIMINATION_REASON.FAILED_TO_HIDE:
+                messageText = `[${victimPlayerNickname}]님이 시간 안에 숨지 못했습니다.`;
+                break;
+            case PLAYER_ELIMINATION_REASON.OUT_OF_SAFE_ZONE:
+                messageText = `[${victimPlayerNickname}]님이 금지 구역에 포함되었습니다.`;
+                break;
+            case PLAYER_ELIMINATION_REASON.PLAYER_DISCONNECTED:
+                messageText = `[${victimPlayerNickname}]님이 게임에서 이탈했습니다.`;
+                break;
+        }
+
+        this.killLogQueue.push(messageText);
+    }
+
+    #showGameEndMessage(redirectAfter) {
+        // 게임 종료 후 안내 메시지
+        const gameEndMessage = this.add.text(
+            this.cameras.main.width / 2,
+            this.cameras.main.height * 0.9,
+            `${Math.ceil(redirectAfter / 1000)}초 후에 로비로 이동합니다`,
+            {
+                fontSize: 30,
+                color: "#ffffff",
+                backgroundColor: "#000000aa",
+                align: "center",
+                padding: {
+                    left: 8,
+                    right: 8,
+                    top: 8,
+                    bottom: 8,
+                },
+            }
+        );
+        gameEndMessage.setOrigin(0.5, 0.5);
+
+        this.tweens.add({
+            targets: gameEndMessage,
+            alpha: 0,
+            duration: redirectAfter,
+            ease: "Power1",
+            onComplete: () => {
+                gameEndMessage.destroy();
+            },
+        });
+    }
+
     #hideSeekCountUi() {
         this.magnifierIcon.visible = false;
         this.counterText.visible = false;
@@ -614,5 +713,38 @@ export default class GameUI extends Phaser.Scene {
                 },
             });
         }
+    }
+
+    #showKillLog(messageText) {
+        const text = this.add.text(
+            this.cameras.main.width / 2,
+            this.cameras.main.height / 5,
+            messageText,
+            {
+                fontFamily: "m6x11",
+                color: "#ffffff",
+                backgroundColor: "#ff0000aa",
+                align: "center",
+                fontSize: 20,
+                padding: {
+                    left: 10,
+                    right: 10,
+                    top: 10,
+                    bottom: 10,
+                },
+            }
+        );
+        text.setOrigin(0.5, 0.5);
+
+        this.tweens.add({
+            targets: text,
+            alpha: 0,
+            duration: 3000,
+            ease: "Power1",
+            onComplete: () => {
+                text.destroy();
+                this.isDisplayingKillLog = false;
+            },
+        });
     }
 }

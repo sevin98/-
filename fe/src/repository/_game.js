@@ -1,7 +1,7 @@
 import { v4 as uuid } from "uuid";
 
 import { getStompClient } from "../network/StompClient";
-import { Team, Player } from "./interface";
+import { Team, Player, PLAYER_ELIMINATION_REASON } from "./interface";
 import asyncResponses from "./_asyncResponses";
 import { Mutex } from "async-mutex";
 import uiControlQueue from "../util/UIControlQueue";
@@ -24,14 +24,16 @@ const INTERACT_HIDE_FAIL = "INTERACT_HIDE_FAIL";
 const INTERACT_SEEK_SUCCESS = "INTERACT_SEEK_SUCCESS";
 // 찾기 실패 이벤트
 const INTERACT_SEEK_FAIL = "INTERACT_SEEK_FAIL";
-// 플레이어 탈락 이벤트
-const ELIMINATION = "ELIMINATION";
+// 플레이어가 숨지 못했을 때 탈락 이벤트
+const FAILED_TO_HIDE = "FAILED_TO_HIDE";
 // 플레이어 게임 이탈 이벤트
 const PLAYER_DISCONNECTED = "PLAYER_DISCONNECTED";
 // 안전 구역 업데이트 이벤트
 const SAFE_ZONE_UPDATE = "SAFE_ZONE_UPDATE";
 // 안전구역밖으로 나간 플레이어 게임 탈락 이벤트
 const ELIMINATION_OUT_OF_SAFE_ZONE = "ELIMINATION_OUT_OF_SAFE_ZONE";
+// 게임 종료 시 게임 결과 수신 이벤트
+const GAME_RESULT = "GAME_RESULT";
 
 // 화면 가리기 명령 이벤트
 const COVER_SCREEN = "COVER_SCREEN";
@@ -59,7 +61,7 @@ export class Phase {
     // 다음 라운드를 위해 기존의 게임 상태를 정리하고 있는 상태
     static END = "END";
     // 게임이 끝난 상태
-    static FINISHED = "FINISHED";
+    static GAME_END = "GAME_END";
 }
 
 export default class GameRepository {
@@ -82,6 +84,9 @@ export default class GameRepository {
     #itemQ;
     #itemW;
     #itemSpeed; // 현재의 아이템 스피드
+    #gameResults = [];
+
+    #seekFailCatchCount = 0; // 기본값 0
 
     constructor(room, roomNumber, gameSubscriptionInfo, startsAfterMilliSec) {
         this.#room = room;
@@ -114,7 +119,7 @@ export default class GameRepository {
         if (!this.#isInitialized && type !== GAME_INFO) {
             await gameInitializationMutex.acquire();
         }
-        console.log("메시지타입",message.type)
+        console.log("메시지타입", message.type);
         switch (type) {
             case GAME_START:
                 this.#handleGameStartEvent(data);
@@ -139,31 +144,45 @@ export default class GameRepository {
             case INTERACT_HIDE_FAIL:
                 this.#handleInteractHideFailEvent(data);
                 break;
-            case INTERACT_SEEK_SUCCESS:
-                this.#handleInteractSeekSuccessEvent(data);
-                break;
             case INTERACT_SEEK_FAIL:
                 this.#handleInteractSeekFailEvent(data);
                 break;
-            case ELIMINATION:
-                this.#handleCurrentEliminatedPlayerAndTeam(data);
-                console.log(`플레이어 ${data.playerId}님이 탈락하셨습니다.`);
+            case INTERACT_SEEK_SUCCESS:
+                this.#handlePlayerDeath(PLAYER_ELIMINATION_REASON.CAUGHT, data);
+                break;
+            case FAILED_TO_HIDE:
+                this.#handlePlayerDeath(
+                    PLAYER_ELIMINATION_REASON.FAILED_TO_HIDE,
+                    data
+                );
+                console.log(
+                    `플레이어 ${data.playerId}님이 숨지 못해 탈락하셨습니다.`
+                );
                 break;
             case PLAYER_DISCONNECTED:
-                this.#handleCurrentEliminatedPlayerAndTeam(data);
+                this.#handlePlayerDeath(
+                    PLAYER_ELIMINATION_REASON.PLAYER_DISCONNECTED,
+                    data
+                );
                 console.log(`플레이어 ${data.playerId}님이 이탈하셨습니다.`);
+                break;
+            case ELIMINATION_OUT_OF_SAFE_ZONE:
+                this.#handlePlayerDeath(
+                    PLAYER_ELIMINATION_REASON.OUT_OF_SAFE_ZONE,
+                    data
+                );
+                console.log(
+                    `플레이어 ${data.playerId}님이 안전구역을 벗어나 탈락하셨습니다.`
+                );
                 break;
             case SAFE_ZONE_UPDATE:
                 //맵축소
                 this.#handleSafeZoneUpdateEvent(data);
                 console.log(`안전 지역이 변경되었습니다.`);
                 break;
-            case ELIMINATION_OUT_OF_SAFE_ZONE:
-                //맵축소
-                this.#handleCurrentEliminatedPlayerAndTeam(data);
-                console.log(
-                    `플레이어 ${data.playerId}님이 안전구역을 벗어나 탈락하셨습니다.`
-                );
+            case GAME_RESULT:
+                this.#handleGameResultEvent(data);
+                console.log("게임 결과를 수신했습니다.");
                 break;
             //아이템 메세지: 나중에 static으로 추가하기
             case "ITEM_APPLIED_TO_PLAYER":
@@ -227,9 +246,11 @@ export default class GameRepository {
             // 한 라운드가 끝나면 역할 반전
             this.#racoonTeam.setIsHidingTeam(!this.#racoonTeam.isHidingTeam());
             this.#foxTeam.setIsHidingTeam(!this.#foxTeam.isHidingTeam());
+        } else if (this.#currentPhase === Phase.GAME_END) {
+            this.#setIsEnd();
         }
 
-        this.getMe().then((me) => {
+        this.getMe().then(async (me) => {
             if (
                 this.#currentPhase === Phase.READY ||
                 this.#currentPhase === Phase.MAIN
@@ -240,7 +261,7 @@ export default class GameRepository {
                 );
             }
             if (this.#currentPhase === Phase.READY) {
-                if (me.isHidingTeam()) {
+                if (await me.isHidingTeam()) {
                     console.log(
                         `당신의 팀이 숨을 차례입니다. ${data.finishAfterMilliSec}ms 안에 숨지 못하면 탈락합니다.`
                     );
@@ -265,7 +286,7 @@ export default class GameRepository {
                     uiControlQueue.addShowSeekCountUiMessage();
                 }
             } else if (this.#currentPhase === Phase.MAIN) {
-                if (me.isHidingTeam()) {
+                if (await me.isHidingTeam()) {
                     console.log(
                         `앞으로 ${data.finishAfterMilliSec}ms 동안 들키지 않으면 생존합니다.`
                     );
@@ -301,18 +322,18 @@ export default class GameRepository {
     }
 
     #setTeamPlayersVisibility(team, isVisible) {
-        console.log(
-            `팀 ${team.getCharacter()}의 플레이어 ${
-                team.getPlayers().length
-            }명을 ${isVisible ? "보이게" : "숨기게"} 합니다.`
-        );
         for (let player of team.getPlayers()) {
             // 내 플레이어의 가시성은 Game.js에서 별도 처리
             if (player.getPlayerId() === this.#me.getPlayerId()) {
                 continue;
             }
+
             player.getSprite().then((sprite) => {
-                sprite.visible = isVisible;
+                if (player.isDead()) {
+                    sprite.visible = false;
+                } else {
+                    sprite.visible = isVisible;
+                }
             });
         }
     }
@@ -360,14 +381,16 @@ export default class GameRepository {
             teamCharacter,
             teamSubscriptionInfo,
             items,
+            playerNickname,
         } = data;
+
         console.log(`내 정보 초기화: ${playerPositionInfo.playerId}`);
         this.#initialItems = items; // 초기 플레이어의 아이템 값
         this.#itemQ = items[0];
         this.#itemW = items[1];
         this.#me = new Player({
             playerId: playerPositionInfo.playerId,
-            playerNickname: "me",
+            playerNickname,
             isReady: true,
         });
         this.#me.setPosition(playerPositionInfo);
@@ -421,6 +444,25 @@ export default class GameRepository {
         }
     }
 
+    #handleGameResultEvent(data) {
+        console.log(data);
+        Object.keys(data).forEach((team) => {
+            data[team].forEach((player) => {
+                this.#gameResults.push({
+                    nickname: player.nickname,
+                    catchCount: player.catchCount,
+                    playTime: player.playTimeInSeconds,
+                    team: player.team,
+                });
+            });
+        });
+    }
+
+    // gameResults getter
+    getGameResults() {
+        return this.#gameResults;
+    }
+
     // 게임 시작 시각
     getStartedAt() {
         return this.#startedAt;
@@ -433,14 +475,18 @@ export default class GameRepository {
 
     // 내 플레이어 정보
     getMe() {
-        return new Promise((resolve) => {
-            const interval = setInterval(() => {
-                if (this.#me) {
-                    clearInterval(interval);
-                    resolve(this.#me);
-                }
-            }, 10);
-        });
+        if (this.#me) {
+            return Promise.resolve(this.#me);
+        } else {
+            return new Promise((resolve) => {
+                const interval = setInterval(() => {
+                    if (this.#me) {
+                        clearInterval(interval);
+                        resolve(this.#me);
+                    }
+                }, 10);
+            });
+        }
     }
 
     // 해당 id를 가지는 플레이어를 찾아 반환
@@ -570,6 +616,10 @@ export default class GameRepository {
         // TODO : 아이템 처리 필요
     }
 
+    getSeekFailCount() {
+        return this.#seekFailCatchCount;
+    }
+
     getNextPhaseChangeAt() {
         return this.#nextPhaseChangeAt;
     }
@@ -588,23 +638,41 @@ export default class GameRepository {
         return this.#currentSafeZone;
     }
 
-    //ui업데이트
-    #handleCurrentEliminatedPlayerAndTeam(data) {
-        const { playerId, team } = data;
-        this.#setDeadPlayerWithId(playerId, team);
-    }
-
     getCurrentEliminatedPlayerAndTeam() {
         return this.#currentEliminatedPlayerAndTeam;
     }
 
-    #setDeadPlayerWithId(playerId, teamCharacter) {
-        const team =
-            teamCharacter === "RACOON" ? this.#racoonTeam : this.#foxTeam;
-        const player = team
-            .getPlayers()
-            .find((player) => player.getPlayerId() === playerId);
-        player.setDead();
+    #handlePlayerDeath(reasonType, data) {
+        const { playerId, foundPlayerId } = data;
+
+        this.getMe().then((me) => {
+            // 잡혀서 죽은거면
+            if (reasonType === PLAYER_ELIMINATION_REASON.CAUGHT) {
+                // 해당 플레이어를 탈락 처리
+                const player = this.getPlayerWithId(foundPlayerId);
+                player.setDead();
+                data.victimPlayerNickname = player.getPlayerNickname();
+                // 공격자 정보 추가
+                data.attackerNickname = this.getPlayerWithId(
+                    data.playerId
+                ).getPlayerNickname();
+            }
+            // 발견 당한 플레이어 정보가 없는데 playerId가 나이면
+            else if (me.getPlayerId() === playerId) {
+                // 나를 탈락 처리
+                me.setDead();
+                data.victimPlayerNickname = me.getPlayerNickname();
+            }
+            // 이외의 경우 다른 플레이어의 탈락을 의미함
+            else {
+                const player = this.getPlayerWithId(playerId);
+                player.setDead();
+                data.victimPlayerNickname = player.getPlayerNickname();
+            }
+
+            // 사망 메시지 표시
+            uiControlQueue.addDeadMessage(reasonType, data);
+        });
     }
 
     #handleItemAppliedObjectFailed(data) {
@@ -616,29 +684,26 @@ export default class GameRepository {
     }
 
     async requestItemUse(item, targetId) {
-            console.log("_game에 들어옴:", item, targetId);
-            const requestId = uuid();
+        console.log("_game에 들어옴:", item, targetId);
+        const requestId = uuid();
 
-            this.#stompClient.publish({
-                destination: `/ws/rooms/${this.#roomNumber}/game/use/item`,
-                body: JSON.stringify({
-                    requestId,
-                    data: {
-                        item: item,
-                        targetId: targetId,
-                    },
-                }),
-            });
+        this.#stompClient.publish({
+            destination: `/ws/rooms/${this.#roomNumber}/game/use/item`,
+            body: JSON.stringify({
+                requestId,
+                data: {
+                    item: item,
+                    targetId: targetId,
+                },
+            }),
+        });
 
-             const requestItemResult = await asyncResponses.get(requestId);
-             return Promise.resolve({
-                 isSucceeded:
-                     requestItemResult.type === "ITEM_APPLIED_TO_PLAYER",
-                speed:
-                    requestItemResult.data.newSpeed
-             });
-        } 
-    
+        const requestItemResult = await asyncResponses.get(requestId);
+        return Promise.resolve({
+            isSucceeded: requestItemResult.type === "ITEM_APPLIED_TO_PLAYER",
+            speed: requestItemResult.data.newSpeed,
+        });
+    }
 
     // 로컬플레이어의 아이템이름 반환
     getItemQ() {
@@ -647,5 +712,4 @@ export default class GameRepository {
     getItemW() {
         return this.#itemW;
     }
-
 }

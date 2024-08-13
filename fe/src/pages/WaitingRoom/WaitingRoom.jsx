@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { hasFalsy } from "../../util/validation";
 import { getRoomRepository, userRepository } from "../../repository";
+import EventBus from "../../game/EventBus";
 import axios, { updateAxiosAccessToken } from "../../network/AxiosClient";
 import { getStompClient } from "../../network/StompClient";
 
@@ -43,6 +44,20 @@ export default function WaitingRoom() {
     const [roomRepository, setRoomRepository] = useState(null);
     let [isCountdownStarted, setIsCountdownStarted] = useState(false);
 
+    const playerReadySoundAudio = new Audio(
+        "/sounds/effect/classic-arcade-sfx/Jump_6.wav"
+    );
+
+    useEffect(() => {
+        EventBus.on("player-ready-status-changed", () => {
+            playerReadySoundAudio.play();
+        });
+
+        return () => {
+            EventBus.removeListener("player-ready-status-changed");
+        };
+    });
+
     useEffect(() => {
         setUserProfile(userRepository.getUserProfile());
         setRoomRepository(getRoomRepository(roomNumber, roomPassword));
@@ -80,7 +95,6 @@ export default function WaitingRoom() {
                             // 카운트다운 시작
                             setIsCountdownStarted(true);
                             startCountdown(roomRepository.getGameStartsAt());
-                        } else if (isCountdownStarted) {
                             clearInterval(updateDataIntervalId);
                         }
                     }, 10);
@@ -161,6 +175,7 @@ export default function WaitingRoom() {
         });
         setIsPlayerReady(true);
         toast.success("준비 상태로 변경되었습니다.");
+        // readySoundAudio.play();
     };
 
     const onBackToLobbyBtnClicked = async () => {

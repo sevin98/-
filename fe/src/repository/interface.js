@@ -1,5 +1,17 @@
 import { getRoomRepository } from "./index";
 
+// 플레이어의 탈락 사유
+export class PLAYER_ELIMINATION_REASON {
+    // Main Phase에 상대 편에게 잡혔을 때
+    static CAUGHT = "CAUGHT";
+    // Ready Phase에 숨지 못했을 때
+    static FAILED_TO_HIDE = "FAILED_TO_HIDE";
+    // End Phase에 금지 구역에 포함되어 있을 때
+    static OUT_OF_SAFE_ZONE = "OUT_OF_SAFE_ZONE";
+    // 무단 이탈
+    static PLAYER_DISCONNECTED = "PLAYER_DISCONNECTED";
+}
+
 export class Player {
     #playerId;
     #playerNickname;
@@ -52,16 +64,16 @@ export class Player {
         this.#isDead = true;
     }
 
-    getIsdead() {
+    isDead() {
         return this.#isDead;
     }
 
-    isRacoonTeam() {
-        return this.#team.getCharacter().toLowerCase() === "racoon";
+    async isRacoonTeam() {
+        return (await this.getTeam()).getCharacter().toLowerCase() === "racoon";
     }
 
-    isFoxTeam() {
-        return this.#team.getCharacter().toLowerCase() === "fox";
+    async isFoxTeam() {
+        return (await this.getTeam()).getCharacter().toLowerCase() === "fox";
     }
 
     setPosition({ x, y, direction }) {
@@ -79,7 +91,16 @@ export class Player {
     }
 
     getTeam() {
-        return this.#team;
+        if (this.#team) {
+            return Promise.resolve(this.#team);
+        } else {
+            const interval = setInterval(() => {
+                if (this.#team) {
+                    clearInterval(interval);
+                    return Promise.resolve(this.#team);
+                }
+            }, 100);
+        }
     }
 
     isInitialized() {
@@ -90,12 +111,12 @@ export class Player {
         );
     }
 
-    isHidingTeam() {
-        return this.#team.isHidingTeam();
+    async isHidingTeam() {
+        return (await this.getTeam()).isHidingTeam();
     }
 
-    isSeekingTeam() {
-        return this.#team.isSeekingTeam();
+    async isSeekingTeam() {
+        return (await this.getTeam()).isSeekingTeam();
     }
 
     getRestSeekCount() {
@@ -123,14 +144,18 @@ export class Player {
     }
 
     getSprite() {
-        return new Promise((resolve) => {
-            const interval = setInterval(() => {
-                if (this.#sprite) {
-                    clearInterval(interval);
-                    resolve(this.#sprite);
-                }
-            }, 10);
-        });
+        if (this.#sprite) {
+            return Promise.resolve(this.#sprite);
+        } else {
+            return new Promise((resolve) => {
+                const interval = setInterval(() => {
+                    if (this.#sprite) {
+                        clearInterval(interval);
+                        resolve(this.#sprite);
+                    }
+                }, 10);
+            });
+        }
     }
 
     setIsHiding(isHiding) {

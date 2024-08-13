@@ -18,7 +18,6 @@ import com.ssafy.a410.game.domain.player.message.request.GamePlayerRequest;
 import com.ssafy.a410.game.domain.team.Team;
 import com.ssafy.a410.game.service.MessageBroadcastService;
 import com.ssafy.a410.room.domain.Room;
-import com.ssafy.a410.room.domain.message.control.RoomMemberInfo;
 import com.ssafy.a410.socket.domain.Subscribable;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -171,7 +170,7 @@ public class Game extends Subscribable implements Runnable {
             throw new UnhandledException("Game start interrupted");
         }
 
-        for (int round = 1; round <= TOTAL_ROUND && !isEnd(); round++) {
+        for (round = 1; round <= TOTAL_ROUND && !isEnd(); round++) {
             // 라운드 변경 알림
             log.debug("Room {} round {} start =======================================", room.getRoomNumber(), round);
             broadcastService.broadcastTo(this, new RoundChangeControlMessage(round, TOTAL_ROUND));
@@ -204,6 +203,12 @@ public class Game extends Subscribable implements Runnable {
 
         room.endGame();
         resetAllItems();
+        runFinishedPhase();
+    }
+
+    private void runFinishedPhase() {
+        this.currentPhase = Phase.FINISHED;
+        broadcastService.broadcastTo(this, new PhaseChangeControlMessage(Phase.FINISHED));
     }
 
     private boolean isTimeToSwitch(long timeToSwitchPhase) {
@@ -232,7 +237,8 @@ public class Game extends Subscribable implements Runnable {
             PlayerPosition info = new PlayerPosition(player);
             Team playerTeam = hidingTeam.has(player) ? hidingTeam : seekingTeam;
             List<Item> initItems = player.getItems();
-            PlayerInitializeMessage message = new PlayerInitializeMessage(info, playerTeam, initItems);
+            String playerNickname = player.getNickname();
+            PlayerInitializeMessage message = new PlayerInitializeMessage(info, playerTeam, initItems, playerNickname);
             broadcastService.unicastTo(player, message);
 
             // 양 팀에 소속된 플레이어들에게 최초 위치는 송신
@@ -274,7 +280,7 @@ public class Game extends Subscribable implements Runnable {
             // 봇 플레이어들의 위치 전송
 //            for (Player player : hidingTeam.getPlayers().values()) {
 //                if (player.isBot()) {
-                    // 현재 위치를 기준으로 랜덤하게 옆으로 위치 옮겨주기
+            // 현재 위치를 기준으로 랜덤하게 옆으로 위치 옮겨주기
 //                    player.setX(player.getPos().getX() + 0.0001);
 //                    player.setY(player.getPos().getY() + 0.0001);
 //                    // 방향 랜덤 지정
@@ -344,11 +350,10 @@ public class Game extends Subscribable implements Runnable {
             }
             // 안 숨었을 경우 탈락 처리
             if (!isHide && !player.isEliminated()) {
-                player.eliminate();
+                player.eliminateUnhidePlayers();
             }
         }
     }
-
 
 
     private void runMainPhase() {
@@ -385,7 +390,7 @@ public class Game extends Subscribable implements Runnable {
             // 봇 플레이어들의 위치 전송
 //            for (Player player : seekingTeam.getPlayers().values()) {
 //                if (player.isBot()) {
-                    // 현재 위치를 기준으로 랜덤하게 옆으로 위치 옮겨주기
+            // 현재 위치를 기준으로 랜덤하게 옆으로 위치 옮겨주기
 //                    player.setX(player.getPos().getX() + 0.0001);
 //                    player.setY(player.getPos().getY() + 0.0001);
 //                    player.setDirection(PlayerDirection.values()[(int) (Math.random() * 4)]);
@@ -455,13 +460,10 @@ public class Game extends Subscribable implements Runnable {
     }
 
     // player는 현재 사용하지 않지만, 후에 "player가 나갔습니다" 를 뿌려줄까봐 유지함
-    public void notifyDisconnection(Player player) {
-
-        String team = this.getPlayerTeam(player);
-
+    public void notifyDisconnection(Room.DisconnectedPlayerInfo info) {
         GameControlMessage message = new GameControlMessage(
                 GameControlType.PLAYER_DISCONNECTED,
-                Map.of("playerId", player.getId(), "team", team, "roomInfo", RoomMemberInfo.getAllInfoListFrom(this.getRoom()))
+                Map.of("playerId", info.getPlayerId())
         );
         broadcastService.broadcastTo(this, message);
     }
@@ -525,6 +527,11 @@ public class Game extends Subscribable implements Runnable {
     }
 
     private void endGame(Team winningTeam) {
+
+        // 게임 결과를 전송한다.
+        Map<String, List<PlayerStatsResp>> stats = this.getEndGameStats();
+        broadCastGameResult(stats);
+
         // 승리 팀을 알리고, 게임을 종료하고, 결과를 저장하는 등
         broadcastService.broadcastTo(this, new GameEndMessage());
 
@@ -566,34 +573,39 @@ public class Game extends Subscribable implements Runnable {
         // 플레이어에게 현재 적용된 아이템이 없다면 아이템을 적용시킨다.
         if (player.getCurrentItem() == null) {
             player.applyItem(item, durationOfItem, appliedById);
-            broadcastService.broadcastTo(this, new ItemAppliedMessage(
+            ItemAppliedMessage message = new ItemAppliedMessage(
                     room.getRoomNumber(),
                     playerId,
                     item,
                     duration,
                     player.getSpeed(),
                     requestId
-            ));
+            );
+            broadcastService.broadcastTo(this, message);
+            broadcastService.unicastTo(player, message);
 
             // 이미 적용된 아이템이 있다면 아이템 적용 실패
         } else {
-            broadcastService.broadcastTo(this, new ItemApplicationFailedToPlayerMessage(
+            ItemApplicationFailedToPlayerMessage message = new ItemApplicationFailedToPlayerMessage(
                     room.getRoomNumber(),
                     playerId,
                     item,
                     requestId
-            ));
+            );
+            broadcastService.broadcastTo(this, message);
+            broadcastService.unicastTo(player, message);
         }
     }
 
     public void applyItemToHPObject(String objectId, Item item, Duration duration, String appliedById, String requestId) {
         HPObject hpObject = gameMap.getHpObjects().get(objectId);
         Duration durationOfItem = item.getDuration();
+        Player player = getPlayerbyId(appliedById);
 
         // 오브젝트가 실존하고, 비어있을때만 아이템 설치 가능
         if (hpObject != null && hpObject.isEmpty()) {
             hpObject.applyItem(item, durationOfItem, appliedById);
-            broadcastService.broadcastTo(this, new ItemAppliedToHPObjectMessage(
+            ItemAppliedToHPObjectMessage message = new ItemAppliedToHPObjectMessage(
                     room.getRoomNumber(),
                     objectId,
                     hpObject.getPlayer() != null ? hpObject.getPlayer().getId() : null,
@@ -601,15 +613,19 @@ public class Game extends Subscribable implements Runnable {
                     duration,
                     appliedById,
                     requestId
-            ));
+            );
+            broadcastService.broadcastTo(this, message);
+            broadcastService.unicastTo(player, message);
         } else {
-            broadcastService.broadcastTo(this, new ItemApplicationFailedToObjectMessage(
+            ItemApplicationFailedToObjectMessage message = new ItemApplicationFailedToObjectMessage(
                     room.getRoomNumber(),
                     appliedById,
                     objectId,
                     item,
                     requestId
-            ));
+            );
+            broadcastService.broadcastTo(this, message);
+            broadcastService.unicastTo(player, message);
         }
     }
 
@@ -622,13 +638,15 @@ public class Game extends Subscribable implements Runnable {
     }
 
     public void notifyItemCleared(Player player) {
-        broadcastService.broadcastTo(this, new ItemClearedMessage(
+        ItemClearedMessage message = new ItemClearedMessage(
                 room.getRoomNumber(),
                 player.getId(),
                 null,
                 Duration.ZERO,
                 null
-        ));
+        );
+        broadcastService.broadcastTo(this, message);
+        broadcastService.unicastTo(player, message);
     }
 
     public void notifyHPItemCleared(HPObject hpObject) {
@@ -647,17 +665,18 @@ public class Game extends Subscribable implements Runnable {
         Item item = itemUseReq.getItem();
         String requestId = itemUseReq.getRequestId();
 
-        // targetId 가 없거나 비어있다면 자기자신에게 사용한다고 가정한다.
-        if (targetId == null || targetId.isEmpty()) {
-            targetId = playerId;
-        }
-
         // 아이템 타입이 자신에게 사용되는 아이템이라면
         if (item.isApplicableToPlayer()) {
+            // targetId 를 본인으로 설정해준다.
+            targetId = playerId;
             applyItemToPlayer(targetId, item, item.getDuration(), playerId, requestId);
 
             // 아이템 타입이 오브젝트에 사용되는 아이템이라면
         } else if (item.isApplicableToHPObject()) {
+
+            if (targetId == null)
+                throw new ResponseException(ErrorDetail.HP_OBJECT_NOT_FOUND);
+
             applyItemToHPObject(targetId, item, item.getDuration(), playerId, requestId);
 
             // 그 어디에도 속하지 않는 아이템이라면
@@ -787,5 +806,10 @@ public class Game extends Subscribable implements Runnable {
             Item randomItem = availableItems.get(random.nextInt(availableItems.size()));
             player.addItem(randomItem);
         }
+    }
+
+    private void broadCastGameResult(Map<String, List<PlayerStatsResp>> stats) {
+        GameResultMessage message = new GameResultMessage(stats);
+        broadcastService.broadcastTo(this, message);
     }
 }
