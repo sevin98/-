@@ -635,7 +635,7 @@ export default class GameRepository {
                  isSucceeded:
                      requestItemResult.type === "ITEM_APPLIED_TO_PLAYER",
                 speed:
-                    requestItemResult.newSpeed 
+                    requestItemResult.data.newSpeed
              });
         } 
     

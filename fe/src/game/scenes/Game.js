@@ -420,18 +420,38 @@ export class game extends Phaser.Scene {
                 if (Phaser.Input.Keyboard.JustDown(this.m_cursorKeys.Q)) {
                     if (this.interactionEffect) {
                         // interactionEFFECT있을때 가장 가까운 objectid전달
-                        this.useItemQ(closest.getData("id"))
-                            .then((speed) => {
-                                console.log("찐최종:", speed);
-                            })
-                            .catch((err) => {
-                                console.log("useItem호출에러", err);
+                        this.roomRepository
+                            .getGameRepository()
+                            .then((gameRepository) => {
+                                gameRepository
+                                    .requestItemUse(
+                                        gameRepository.getItemQ(),
+                                        closest.getData("id")
+                                    )
+                                    .then(({ isSucceeded, speed }) => {
+                                        if (isSucceeded) {
+                                            console.log(speed);
+                                            //TODO: 플레이어 스피드 변경 
+                                        }
+                                    });
                             });
                     } else {
                         // 가까운 이펙트없으면 null 전달
-                        this.useItemQ(null).then((speed) => {
-                            console.log("찐최종:", speed);
-                        });
+                        this.roomRepository
+                            .getGameRepository()
+                            .then((gameRepository) => {
+                                gameRepository
+                                    .requestItemUse(
+                                        gameRepository.getItemQ(),
+                                        null
+                                    )
+                                    .then(({ isSucceeded, speed }) => {
+                                        if (isSucceeded) {
+                                            console.log(speed);
+                                            //TODO: 플레이어 스피드 변경
+                                        }
+                                    });
+                            });
                     } // W 키 눌렀을때
                 } else if (
                     Phaser.Input.Keyboard.JustDown(this.m_cursorKeys.W)
@@ -555,21 +575,21 @@ export class game extends Phaser.Scene {
         // Q 아이템 사용 요청시
     }
     // Q아이템 사용요청
-    async useItemQ(targetId) {
-        this.roomRepository.getGameRepository().then((gameRepository) => {
-            const item = gameRepository.getItemQ();
-            // 고추일때는 targetId null값으로 변환
-            gameRepository
-                .requestItemUse(item, targetId)
-                .then(({ isSucceeded, speed }) => {
-                    //TODO: _game.js의 함수확인
-                    console.log(speed)
-                    if (isSucceeded && speed !== null ) {
-                        return speed 
-                    }
-                });
-        });
-    }
+    // async useItemQ(targetId) {
+    //     this.roomRepository.getGameRepository().then((gameRepository) => {
+    //         const item = gameRepository.getItemQ();
+    //         // 고추일때는 targetId null값으로 변환
+    //         gameRepository
+    //             .requestItemUse(item, targetId)
+    //             .then(({ isSucceeded, speed }) => {
+    //                 //TODO: _game.js의 함수확인
+    //                 console.log(speed)
+    //                 if (isSucceeded && speed !== null ) {
+    //                     return speed
+    //                 }
+    //             });
+    //     });
+    // }
 
     // W아이템 사용요청 / qW 같은템일떄 에러나는것같음
     async useItemW(targetId) {
