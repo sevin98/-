@@ -389,6 +389,12 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
         me.setDead();
     }
 
+    async isDead() {
+        const gameRepository = await this.roomRepository.getGameRepository();
+        const me = await gameRepository.getMe();
+        return me.isDead();
+    }
+
     reflectFromWall(direction) {
         this.x -= MyPlayerSprite.moveX[direction] * MyPlayerSprite.PLAYER_SPEED;
         this.y -= MyPlayerSprite.moveY[direction] * MyPlayerSprite.PLAYER_SPEED;
@@ -541,4 +547,3 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
         return this.#isFootstepSoundPlaying;
     }
 }
-
