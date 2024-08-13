@@ -437,9 +437,9 @@ export default class GameUI extends Phaser.Scene {
                 }
                 this.isTopCenterMessageVisible = true;
 
-                gameRepository.getMe().then((me) => {
+                gameRepository.getMe().then(async (me) => {
                     if (phase === Phase.READY) {
-                        if (me.isHidingTeam()) {
+                        if (await me.isHidingTeam()) {
                             messageTokens.push(
                                 `앞으로 ${restSeconds}초 동안 숨어야한다구리!`
                             );
@@ -449,8 +449,10 @@ export default class GameUI extends Phaser.Scene {
                             );
                         }
                     } else if (phase === Phase.MAIN) {
-                        const foeAnimal = me.isRacoonTeam() ? "여우" : "너구리";
-                        if (me.isHidingTeam()) {
+                        const foeAnimal = (await me.isRacoonTeam())
+                            ? "여우"
+                            : "너구리";
+                        if (await me.isHidingTeam()) {
                             messageTokens.push(
                                 `${foeAnimal}들이 쫓아오고 있다구리!`
                             );

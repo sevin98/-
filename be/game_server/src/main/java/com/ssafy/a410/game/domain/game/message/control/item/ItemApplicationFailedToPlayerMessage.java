@@ -4,15 +4,15 @@ import com.ssafy.a410.game.domain.game.Item;
 import lombok.Getter;
 
 @Getter
-public class ItemApplicationFailedToPlayerMessage extends ItemMessage{
-        private final String roomId;
-        private final String playerId;
-        private final Item item;
+public class ItemApplicationFailedToPlayerMessage extends ItemMessage {
+    private final String roomId;
+    private final String playerId;
+    private final Item item;
 
-        public ItemApplicationFailedToPlayerMessage(String roomId, String playerId, Item item, String requestId) {
-            super(ItemControlType.ITEM_APPLICATION_FAILED_TO_OBJECT, null, requestId);
-            this.roomId = roomId;
-            this.playerId = playerId;
-            this.item = item;
-        }
+    public ItemApplicationFailedToPlayerMessage(String roomId, String playerId, Item item, String requestId) {
+        super(ItemControlType.ITEM_APPLICATION_FAILED_TO_PLAYER, null, requestId);
+        this.roomId = roomId;
+        this.playerId = playerId;
+        this.item = item;
     }
+}
