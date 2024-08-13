@@ -659,17 +659,18 @@ public class Game extends Subscribable implements Runnable {
         Item item = itemUseReq.getItem();
         String requestId = itemUseReq.getRequestId();
 
-        // targetId 가 없거나 비어있다면 자기자신에게 사용한다고 가정한다.
-        if (targetId == null || targetId.isEmpty()) {
-            targetId = playerId;
-        }
-
         // 아이템 타입이 자신에게 사용되는 아이템이라면
-        if (item.isApplicableToPlayer() && targetId.equals(playerId)) {
+        if (item.isApplicableToPlayer()) {
+            // targetId 를 본인으로 설정해준다.
+            targetId = playerId;
             applyItemToPlayer(targetId, item, item.getDuration(), playerId, requestId);
 
             // 아이템 타입이 오브젝트에 사용되는 아이템이라면
-        } else if (item.isApplicableToHPObject() && !targetId.equals(playerId)) {
+        } else if (item.isApplicableToHPObject()) {
+
+            if (targetId == null)
+                throw new ResponseException(ErrorDetail.HP_OBJECT_NOT_FOUND);
+
             applyItemToHPObject(targetId, item, item.getDuration(), playerId, requestId);
 
             // 그 어디에도 속하지 않는 아이템이라면
