@@ -270,11 +270,12 @@ public class Game extends Subscribable implements Runnable {
                 Player player = hidingTeam.getPlayerWithId(request.getPlayerId());
                 request.handle(player, hidingTeam, this, broadcastService);
             }
-
-            // 봇 플레이어들의 위치 전송
+        }
+    }
+    // 봇 플레이어들의 위치 전송
 //            for (Player player : hidingTeam.getPlayers().values()) {
 //                if (player.isBot()) {
-            // 현재 위치를 기준으로 랜덤하게 옆으로 위치 옮겨주기
+    // 현재 위치를 기준으로 랜덤하게 옆으로 위치 옮겨주기
 //                    player.setX(player.getPos().getX() + 0.0001);
 //                    player.setY(player.getPos().getY() + 0.0001);
 //                    // 방향 랜덤 지정
@@ -282,8 +283,6 @@ public class Game extends Subscribable implements Runnable {
 //                    broadcastService.broadcastTo(hidingTeam, new PlayerPositionMessage(new PlayerPosition(player)));
 //                }
 //            }
-        }
-    }
 
     // Bot 들을 현재 위치 기반으로 가장 가까운 숨을 수 있는 HPObjects에 숨김
     private void hideBotPlayers() {
@@ -380,11 +379,12 @@ public class Game extends Subscribable implements Runnable {
                 Player player = seekingTeam.getPlayerWithId(request.getPlayerId());
                 request.handle(player, seekingTeam, this, broadcastService);
             }
-
-            // 봇 플레이어들의 위치 전송
+        }
+    }
+    // 봇 플레이어들의 위치 전송
 //            for (Player player : seekingTeam.getPlayers().values()) {
 //                if (player.isBot()) {
-            // 현재 위치를 기준으로 랜덤하게 옆으로 위치 옮겨주기
+    // 현재 위치를 기준으로 랜덤하게 옆으로 위치 옮겨주기
 //                    player.setX(player.getPos().getX() + 0.0001);
 //                    player.setY(player.getPos().getY() + 0.0001);
 //                    player.setDirection(PlayerDirection.values()[(int) (Math.random() * 4)]);
@@ -393,8 +393,6 @@ public class Game extends Subscribable implements Runnable {
 //                    broadcastService.broadcastTo(hidingTeam, message);
 //                }
 //            }
-        }
-    }
 
     private void runEndPhase() {
         this.currentPhase = Phase.END;
@@ -564,7 +562,6 @@ public class Game extends Subscribable implements Runnable {
     // 자기 자신에게 아이템 적용
     public void applyItemToPlayer(String playerId, Item item, Duration duration, String appliedById, String requestId) {
         Player player = room.getPlayerWith(playerId);
-//        Player player = getPlayerById(playerId);
         ItemInfo itemInfo = new ItemInfo(room.getRoomNumber(), playerId, playerId, item, duration, player.getSpeed(), appliedById);
 
         // 플레이어에게 현재 적용된 아이템이 없다면 아이템을 적용시킨다.
@@ -583,19 +580,18 @@ public class Game extends Subscribable implements Runnable {
     }
 
     public void applyItemToHPObject(String objectId, Item item, Duration duration, String appliedById, String requestId) {
+        if (objectId == null) objectId = appliedById;
         HPObject hpObject = gameMap.getHpObjects().get(objectId);
         Player player = room.getPlayerWith(appliedById);
-//        Player player = getPlayerById(appliedById);
         ItemInfo itemInfo = new ItemInfo(room.getRoomNumber(), appliedById, objectId, item, duration, 0, appliedById);
-        if (objectId == null){
-            ItemAppliedToHPObjectMessage message = new ItemAppliedToHPObjectMessage(itemInfo, requestId);
-            broadcastService.broadcastTo(this, message);
-            broadcastService.unicastTo(player, message);
-        }
-        else if (objectId.equals(player.getId()) || hpObject == null || !hpObject.isEmpty() || hpObject.getAppliedItem() != null) {
+
+        // 오브젝트아이디가 584줄 if문에 걸렸거나, 오브젝트가 없거나 비어있지 않으면 실패
+        if (objectId.equals(player.getId()) || hpObject == null || !hpObject.isEmpty()) {
             ItemApplicationFailedToObjectMessage message = new ItemApplicationFailedToObjectMessage(itemInfo, requestId);
             broadcastService.broadcastTo(this, message);
             broadcastService.unicastTo(player, message);
+
+            // 오브젝트가 비어있으면 성공
         } else {
             hpObject.applyItem(item, duration, appliedById);
             ItemAppliedToHPObjectMessage message = new ItemAppliedToHPObjectMessage(itemInfo, requestId);
@@ -604,21 +600,13 @@ public class Game extends Subscribable implements Runnable {
         }
     }
 
-    private Player getPlayerById(String playerId) {
-        for (Team team : List.of(hidingTeam, seekingTeam)) {
-            Player player = team.getPlayerWithId(playerId);
-            if (player != null) return player;
-        }
-        throw new ResponseException(PLAYER_NOT_IN_ROOM);
-    }
-
     public void notifyItemCleared(Player player) {
         ItemClearedMessage message = new ItemClearedMessage(
                 room.getRoomNumber(),
                 player.getId(),
-                null,
+                "NO_OBJECT",
                 Duration.ZERO,
-                null
+                "SYSTEM"
         );
         broadcastService.broadcastTo(this, message);
         broadcastService.unicastTo(player, message);
@@ -627,10 +615,10 @@ public class Game extends Subscribable implements Runnable {
     public void notifyHPItemCleared(HPObject hpObject) {
         broadcastService.broadcastTo(this, new ItemClearedMessage(
                 room.getRoomNumber(),
-                null,
+                "NO_PLAYER",
                 hpObject.getId(),
                 Duration.ZERO,
-                null
+                "SYSTEM"
         ));
     }
 
