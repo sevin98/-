@@ -9,12 +9,13 @@ import java.util.List;
 import java.util.Map;
 
 public class PlayerInitializeMessage extends PlayerControlMessage {
-    public PlayerInitializeMessage(PlayerPosition playerPosition, Team team, List<Item> items) {
+    public PlayerInitializeMessage(PlayerPosition playerPosition, Team team, List<Item> items, String playerNickname) {
         super(PlayerControlType.INITIALIZE_PLAYER, Map.of(
                 "teamCharacter", team.getCharacter(),
                 "playerPositionInfo", playerPosition,
                 "teamSubscriptionInfo", new SubscriptionInfoResp(team),
-                "items", items
+                "items", items,
+                "playerNickname", playerNickname
         ));
     }
 }

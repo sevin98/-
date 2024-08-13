@@ -39,7 +39,6 @@ export const PhaserGame = forwardRef(function PhaserGame(
     }, [ref]);
 
     useEffect(() => {
-        // Phaser 게임 생성 및 current-scene-ready 이벤트 리스너 설정
         eventBus.on("current-scene-ready", (currentScene) => {
             if (currentActiveScene instanceof Function) {
                 currentActiveScene(currentScene);
@@ -150,3 +149,4 @@ export default PhaserGame;
 PhaserGame.propTypes = {
     currentActiveScene: PropTypes.func,
 };
+
