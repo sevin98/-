@@ -5,15 +5,15 @@ import "/public/rpgui/rpgui.css";
 
 const slides = [
     {
-        text: <h2>게임 방법 1</h2>,
+        text: <h2 className="custom-heading">게임 방법 1</h2>,
         image: "/image/SlideSample1.png"
     },
     {
-        text: <h2>게임 방법 2</h2>,
+        text: <h2 className="custom-heading">게임 방법 2</h2>,
         image: "/image/SlideSample2.png"
     },
     {
-        text: <h2>게임 방법 3</h2>,
+        text: <h2 className="custom-heading">게임 방법 3</h2>,
         image: "/image/SlideSample3.png"
     }
 ];
@@ -22,7 +22,10 @@ const GameInformation = () => {
     const [informationIsOpen, setInformationIsOpen] = useState(false);
     const [currentSlide, setCurrentSlide] = useState(0);
 
-    const openInformation = () => setInformationIsOpen(true);
+    const openInformation = () => {
+        setCurrentSlide(0);
+        setInformationIsOpen(true); //설명을 열 때 슬라이드를 처음부터 다시 보기
+    };
     const closeInformation = () => setInformationIsOpen(false);
 
     const handleNext = () => {
@@ -41,7 +44,7 @@ const GameInformation = () => {
             <Modal
                 isOpen={informationIsOpen}
                 onRequestClose={closeInformation}
-                className="modal-content rpgui-container framed-golden-2"
+                className="modal-content rpgui-container framed"
                 overlayClassName="modal-overlay"
                 closeTimeoutMS={300}
             >
