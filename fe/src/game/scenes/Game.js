@@ -34,6 +34,7 @@ export class game extends Phaser.Scene {
         this.modalShown = false;
 
         this.updatePaused = false;
+        this.gameResults = [];
     }
 
     preload() {
@@ -533,6 +534,7 @@ export class game extends Phaser.Scene {
                     gameRepository.getIsEnd() === true &&
                     this.modalShown === false
                 ) {
+                    this.gameResults = gameRepository.getGameResults();
                     this.showEndGameModal();
                     this.modalShown = true;
                 }
@@ -547,10 +549,37 @@ export class game extends Phaser.Scene {
 
     showEndGameModal() {
         console.log("End Game Modal");
-
+    
         // RPGUI 모달을 표시
-        document.getElementById("rpgui-modal").style.display = "block";
+        const modalElement = document.getElementById("rpgui-modal");
+        modalElement.style.display = "block";
+    
+        // 게임 결과를 HTML로 변환
+        let resultsHtml = ` 
+            <h3 style="font-size: 2em; text-align: center; margin-bottom: 20px; margin-top: 20px">Game Results</h3>
+            <ul style="list-style: none; padding: 0;">
+        `;
+        this.gameResults.forEach((result) => {
+            resultsHtml += `
+                <li style="margin-bottom: 15px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; background-color: #f9f9f9;">
+                    <h2 style="font-size: 0.8em; margin: 0;">${result.nickname}</h2>
+                    <p style="margin: 5px 0;">
+                        <strong>Team:</strong> ${result.team} &nbsp; | &nbsp; 
+                        <strong>Catches:</strong> ${result.catchCount} &nbsp; | &nbsp; 
+                        <strong>Play Time:</strong> ${result.playTime} seconds
+                    </p>
+                </li>
+            `;
+        });
+        resultsHtml += "</ul>";
 
+    
+        // 모달 내의 stats-text 요소에 결과 추가
+        const statsTextElement = document.getElementById("stats-text");
+        if (statsTextElement) {
+            statsTextElement.innerHTML = resultsHtml;
+        }
+    
         // 로비 버튼 클릭 이벤트
         document.getElementById("lobby-button").onclick = () => {
             window.dispatchEvent(
@@ -562,7 +591,7 @@ export class game extends Phaser.Scene {
                 })
             );
         };
-
+    
         // 이전 방으로 돌아가기 버튼 클릭 이벤트
         document.getElementById("back-to-room-button").onclick = () => {
             window.dispatchEvent(
@@ -575,11 +604,13 @@ export class game extends Phaser.Scene {
                 })
             );
         };
+    
         // Phaser 씬이 종료될 때 모달을 숨기거나 제거
         this.events.once("shutdown", () => {
-            document.getElementById("rpgui-modal").style.display = "none";
+            modalElement.style.display = "none";
         });
     }
+    
 
     // 맵타일단위를 pix로 변환
     tileToPixel(tileCoord) {
