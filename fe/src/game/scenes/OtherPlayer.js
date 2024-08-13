@@ -58,7 +58,7 @@ export default class OtherPlayerSprite extends Phaser.Physics.Arcade.Sprite {
                     suffix: ".png",
                 }),
                 repeat: -1,
-                frameRate: 5,
+                frameRate: 1,
             });
 
             this.anims.create({
@@ -70,7 +70,7 @@ export default class OtherPlayerSprite extends Phaser.Physics.Arcade.Sprite {
                     suffix: ".png",
                 }),
                 repeat: -1,
-                frameRate: 5,
+                frameRate: 1,
             });
             this.anims.create({
                 key: "racoon-idle-left",
@@ -81,7 +81,7 @@ export default class OtherPlayerSprite extends Phaser.Physics.Arcade.Sprite {
                     suffix: ".png",
                 }),
                 repeat: -1,
-                frameRate: 5,
+                frameRate: 1,
             });
 
             this.anims.create({
@@ -93,7 +93,7 @@ export default class OtherPlayerSprite extends Phaser.Physics.Arcade.Sprite {
                     suffix: ".png",
                 }),
                 repeat: -1,
-                frameRate: 5,
+                frameRate: 1,
             });
 
             this.anims.create({
@@ -154,7 +154,7 @@ export default class OtherPlayerSprite extends Phaser.Physics.Arcade.Sprite {
                     suffix: ".png",
                 }),
                 repeat: -1,
-                frameRate: 5,
+                frameRate: 1,
             });
 
             this.anims.create({
@@ -166,7 +166,7 @@ export default class OtherPlayerSprite extends Phaser.Physics.Arcade.Sprite {
                     suffix: ".png",
                 }),
                 repeat: -1,
-                frameRate: 5,
+                frameRate: 1,
             });
             this.anims.create({
                 key: "fox-idle-left",
@@ -177,7 +177,7 @@ export default class OtherPlayerSprite extends Phaser.Physics.Arcade.Sprite {
                     suffix: ".png",
                 }),
                 repeat: -1,
-                frameRate: 5,
+                frameRate: 1,
             });
 
             this.anims.create({
@@ -189,7 +189,7 @@ export default class OtherPlayerSprite extends Phaser.Physics.Arcade.Sprite {
                     suffix: ".png",
                 }),
                 repeat: -1,
-                frameRate: 5,
+                frameRate: 1,
             });
 
             this.anims.create({

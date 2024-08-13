@@ -40,12 +40,16 @@ class StompClientProxy {
     }
 
     async #waitUntilConnected(callback) {
-        let retrial = setInterval(() => {
-            if (this._stompClient.connected) {
-                clearTimeout(retrial);
-                return callback();
-            }
-        }, 50);
+        if (this._stompClient.connected) {
+            return callback();
+        } else {
+            let retrial = setInterval(() => {
+                if (this._stompClient.connected) {
+                    clearTimeout(retrial);
+                    return callback();
+                }
+            }, 50);
+        }
     }
 
     async subscribe(subscriptionInfo, callback, additionalHeaders) {

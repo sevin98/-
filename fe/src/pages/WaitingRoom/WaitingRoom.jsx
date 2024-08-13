@@ -210,4 +210,3 @@ export default function WaitingRoom() {
 }
 
 export const WAITING_ROOM_ROUTE_PATH = "/WaitingRoom";
-

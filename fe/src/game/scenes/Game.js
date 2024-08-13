@@ -80,6 +80,14 @@ export class game extends Phaser.Scene {
                 );
                 playercam.startFollow(this.localPlayer);
 
+                // player.js 에서 player 키조작이벤트 불러옴
+                this.playerMoveHandler = new HandlePlayerMove(
+                    this.cursors,
+                    this.localPlayer,
+                    this.headDir,
+                    this.moving
+                );
+
                 // 죽은 플레이어는 충돌 처리 안함
                 const passDeadPlayerCollider = (wall, playerSprite) => {
                     return !me.isDead();
@@ -384,18 +392,10 @@ export class game extends Phaser.Scene {
 
                             this.shownHintForCurrentPhase = true;
                         }
-                    } else {
                     }
                 }
 
-                // player.js 에서 player 키조작이벤트 불러옴
-                const playerMoveHandler = new HandlePlayerMove(
-                    this.cursors,
-                    this.localPlayer,
-                    this.headDir,
-                    this.moving
-                );
-                playerMoveHandler.update(this.footstepSound);
+                this.playerMoveHandler.update(this.footstepSound);
 
                 // 플레이어에서 물리적으로 가장 가까운 거리 찾는 객체
                 const closest = this.physics.closest(
@@ -409,17 +409,6 @@ export class game extends Phaser.Scene {
                     this.localPlayer.x,
                     this.localPlayer.y
                 );
-
-                // 시각적으로 가까운 오브젝트와의 선 표시, 나중에 지우면되는코드
-                this.graphics
-                    .clear()
-                    .lineStyle(1, 0xff3300)
-                    .lineBetween(
-                        closest.body.center.x,
-                        closest.body.center.y,
-                        this.localPlayer.x,
-                        this.localPlayer.y
-                    );
 
                 // 30px 이하로 가까이 있을때 상호작용 표시 로직
                 if (minDistance < 30) {

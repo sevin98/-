@@ -445,14 +445,18 @@ export default class GameRepository {
 
     // 내 플레이어 정보
     getMe() {
-        return new Promise((resolve) => {
-            const interval = setInterval(() => {
-                if (this.#me) {
-                    clearInterval(interval);
-                    resolve(this.#me);
-                }
-            }, 10);
-        });
+        if (this.#me) {
+            return Promise.resolve(this.#me);
+        } else {
+            return new Promise((resolve) => {
+                const interval = setInterval(() => {
+                    if (this.#me) {
+                        clearInterval(interval);
+                        resolve(this.#me);
+                    }
+                }, 10);
+            });
+        }
     }
 
     // 해당 id를 가지는 플레이어를 찾아 반환
