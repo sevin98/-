@@ -186,7 +186,7 @@ export default class GameUI extends Phaser.Scene {
         });
 
         // 아군 사망 사운드
-        this.allyDeadSound = this.sound.add("player-dead", {
+        this.allyDeadSound = this.sound.add("hp-seek-fail", {
             volume: 1,
         });
     }

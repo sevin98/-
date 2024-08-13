@@ -11,7 +11,7 @@ public class ItemApplicationFailedToObjectMessage extends ItemMessage {
     private final Item item;
 
     public ItemApplicationFailedToObjectMessage(String roomId, String playerId, String hpObjectId, Item item, String requestId) {
-        super(ItemControlType.ITEM_APPLICATION_FAILED_TO_PLAYER, null, requestId);
+        super(ItemControlType.ITEM_APPLICATION_FAILED_TO_OBJECT, null, requestId);
         this.roomId = roomId;
         this.playerId = playerId;
         this.hpObjectId = hpObjectId;

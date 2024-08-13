@@ -579,28 +579,31 @@ export default class GameRepository {
     }
 
     #handlePlayerDeath(reasonType, data) {
-        const { playerId } = data;
+        const { playerId, foundPlayerId } = data;
 
-        // 탈락한 플레이어의 닉네임을 담고
         this.getMe().then((me) => {
-            if (me.getPlayerId() === playerId) {
-                me.setDead();
-                data.victimPlayerNickname = me.getPlayerNickname();
-            } else {
-                const player = this.getPlayerWithId(playerId);
+            // 잡혀서 죽은거면
+            if (reasonType === PLAYER_ELIMINATION_REASON.CAUGHT) {
+                // 해당 플레이어를 탈락 처리
+                const player = this.getPlayerWithId(foundPlayerId);
                 player.setDead();
                 data.victimPlayerNickname = player.getPlayerNickname();
-            }
-
-            // 탐색에 의해 발견되어 탈락된 경우
-            if (reasonType === PLAYER_ELIMINATION_REASON.CAUGHT) {
-                // 탐색한 플레이어의 닉네임 추가
+                // 공격자 정보 추가
                 data.attackerNickname = this.getPlayerWithId(
                     data.playerId
                 ).getPlayerNickname();
-                data.victimPlayerNickname = this.getPlayerWithId(
-                    data.foundPlayerId
-                ).getPlayerNickname();
+            }
+            // 발견 당한 플레이어 정보가 없는데 playerId가 나이면
+            else if (me.getPlayerId() === playerId) {
+                // 나를 탈락 처리
+                me.setDead();
+                data.victimPlayerNickname = me.getPlayerNickname();
+            }
+            // 이외의 경우 다른 플레이어의 탈락을 의미함
+            else {
+                const player = this.getPlayerWithId(playerId);
+                player.setDead();
+                data.victimPlayerNickname = player.getPlayerNickname();
             }
 
             // 사망 메시지 표시
