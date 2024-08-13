@@ -580,12 +580,14 @@ public class Game extends Subscribable implements Runnable {
 
             // 이미 적용된 아이템이 있다면 아이템 적용 실패
         } else {
-            broadcastService.broadcastTo(this, new ItemApplicationFailedToPlayerMessage(
+            ItemApplicationFailedToPlayerMessage message = new ItemApplicationFailedToPlayerMessage(
                     room.getRoomNumber(),
                     playerId,
                     item,
                     requestId
-            ));
+            );
+            broadcastService.broadcastTo(this, message);
+            broadcastService.unicastTo(player, message);
         }
     }
 
