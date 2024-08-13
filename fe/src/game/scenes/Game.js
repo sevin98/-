@@ -35,6 +35,7 @@ export class game extends Phaser.Scene {
 
         this.updatePaused = false;
         this.gameResults = [];
+        this.winningTeam = null;
     }
 
     preload() {
@@ -49,6 +50,10 @@ export class game extends Phaser.Scene {
 
     create() {
         this.m_cursorKeys = this.input.keyboard.createCursorKeys();
+
+        // 키 입력 이벤트 추가
+        this.m_cursorKeys.Q = this.input.keyboard.addKey("Q");
+        this.m_cursorKeys.W = this.input.keyboard.addKey("W");
 
         this.text = new TextGroup(this); // 팝업텍스트 객체
 
@@ -433,7 +438,60 @@ export class game extends Phaser.Scene {
                         this.interactionEffect = null;
                     }
                 }
-                // this.input.keyboard.enabled = false;
+
+                // 아이템 사용 코드추가: Q눌렀을때
+                if (Phaser.Input.Keyboard.JustDown(this.m_cursorKeys.Q)) {
+                    if (this.interactionEffect) {
+                        // interactionEFFECT있을때 가장 가까운 objectid전달
+                        this.roomRepository
+                            .getGameRepository()
+                            .then((gameRepository) => {
+                                gameRepository
+                                    .requestItemUse(
+                                        gameRepository.getItemQ(),
+                                        closest.getData("id")
+                                    )
+                                    .then(({ isSucceeded, speed }) => {
+                                        if (isSucceeded) {
+                                            console.log(speed);
+                                            //TODO: 플레이어 스피드 변경 
+                                        }
+                                    });
+                            });
+                    } else {
+                        // 가까운 이펙트없으면 null 전달
+                        this.roomRepository
+                            .getGameRepository()
+                            .then((gameRepository) => {
+                                gameRepository
+                                    .requestItemUse(
+                                        gameRepository.getItemQ(),
+                                        null
+                                    )
+                                    .then(({ isSucceeded, speed }) => {
+                                        if (isSucceeded) {
+                                            console.log(speed);
+                                            //TODO: 플레이어 스피드 변경
+                                        }
+                                    });
+                            });
+                    } // W 키 눌렀을때
+                } else if (
+                    Phaser.Input.Keyboard.JustDown(this.m_cursorKeys.W)
+                ) {
+                    if (this.interactionEffect) {
+                        // interactionEFFECT있을때 가장 가까운 objectid전달
+                        this.useItemW(closest.getData("id")).then((data) => {
+                            console.log("찐최종:", data);
+                        });
+                    } else {
+                        // 가까운 이펙트없으면 null 전달
+                        this.useItemW(null).then((data) => {
+                            console.log("찐최종:", data);
+                        });
+                    }
+                }
+
                 // 상호작용 표시가 있고, space 키 이벤트 있는 경우
                 // 죽어 있는 상태면 상호작용 불가
                 if (
@@ -494,7 +552,7 @@ export class game extends Phaser.Scene {
                         } else {
                             gameRepository
                                 .requestSeek(objectId)
-                                .then(({ isSucceeded, catchCount }) => {
+                                .then(({ isSucceeded }) => {
                                     if (isSucceeded) {
                                         console.log("탐색 성공");
                                         this.hpSeekSuccessSound.play();
@@ -510,7 +568,6 @@ export class game extends Phaser.Scene {
                                             closest.body.x + 10,
                                             closest.body.y + 10
                                         );
-                                        // console.log('탐색 성공 횟수':catchCount)
                                     } else {
                                         console.log("탐색 실패");
                                         this.hpSeekFailSound.play();
@@ -541,6 +598,7 @@ export class game extends Phaser.Scene {
                     this.modalShown === false
                 ) {
                     this.gameResults = gameRepository.getGameResults();
+                    this.winningTeam = gameRepository.getWinningTeam();
                     this.showEndGameModal();
                     this.modalShown = true;
 
@@ -560,11 +618,28 @@ export class game extends Phaser.Scene {
                 }
             });
         });
-
         // 맵축소
         this.createMapWall();
+    }
 
-        //닭등장
+
+    // W아이템 사용요청 / qW 같은템일떄 에러나는것같음
+    async useItemW(targetId) {
+        this.roomRepository.getGameRepository().then((gameRepository) => {
+            const item = gameRepository.getItemW();
+            // 고추일때는 targetId null값으로 변환
+            if (item === "RED_PEPPER" || item === "MUSHROOM") {
+                targetId = null;
+            }
+            gameRepository
+                .requestItemUse(item, targetId)
+                .then(({ isSucceeded }) => {
+                    //TODO: _game.js의 함수확인
+                    if (isSucceeded) {
+                        console.log("리턴값ㅇ");
+                    }
+                });
+        });
     }
 
     showEndGameModal() {
@@ -577,23 +652,59 @@ export class game extends Phaser.Scene {
         modalElement.style.display = "block";
 
         // 게임 결과를 HTML로 변환
-        let resultsHtml = ` 
-            <h3 style="font-size: 2em; text-align: center; margin-bottom: 20px; margin-top: 20px">Game Results</h3>
-            <ul style="list-style: none; padding: 0;">
+        let resultsHtml = `
+        <h3 style="font-size: 1.8em; text-align: center; margin-bottom: 1.2em; margin-top: 1.2em;">
+            Game Results - ${this.winningTeam} Win!
+        </h3>
+        <div style="display: flex; justify-content: space-between;">
+            <div style="width: 48%;">
+                <h4 style="text-align: center;">Team RACOON</h4>
+                <ul style="list-style: none; padding: 0;">
         `;
+
+        // 팀에 따라 결과를 나누어 표시
         this.gameResults.forEach((result) => {
-            resultsHtml += `
-                <li style="margin-bottom: 15px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; background-color: #f9f9f9;">
-                    <h2 style="font-size: 0.8em; margin: 0;">${result.nickname}</h2>
-                    <p style="margin: 5px 0;">
-                        <strong>Team:</strong> ${result.team} &nbsp; | &nbsp; 
-                        <strong>Catches:</strong> ${result.catchCount} &nbsp; | &nbsp; 
-                        <strong>Play Time:</strong> ${result.playTime} seconds
-                    </p>
-                </li>
-            `;
+            if (result.team === "RACOON") {
+                resultsHtml += `
+                    <li style="margin-bottom: 0.9em; margin-right: 1.2em; padding: 0.3em; border: 0.1em solid #ccc; border-radius: 0.3em;">
+                        <h2 style="font-size: 0.8em; margin-top: 0.7em;">${result.nickname}</h2>
+                        <p style="margin: 0.3em 0; text-align: center; font-size: 0.8em;">
+                            <strong>Catches: ${result.catchCount}</strong></br>
+                            <strong>Survival Time: ${result.playTime} s</strong>
+                        </p>
+                    </li>
+                `;
+            }
         });
-        resultsHtml += "</ul>";
+
+        resultsHtml += `
+                </ul>
+            </div>
+            <div style="width: 48%;">
+                <h4 style="text-align: center;">Team FOX</h4>
+                <ul style="list-style: none; padding: 0;">
+        `;
+
+        this.gameResults.forEach((result) => {
+            if (result.team === "FOX") {
+                resultsHtml += `
+                    <li style="margin-bottom: 0.9em; margin-right: 1.2em; padding: 0.3em; border: 0.1em solid #ccc; border-radius: 0.3em;">
+                        <h2 style="font-size: 0.8em; margin-top: 0.7em;">${result.nickname}</h2>
+                        <p style="margin: 0.3em 0; text-align: center; font-size: 0.8em;">
+                            <strong>Catches: ${result.catchCount}</strong></br>
+                            <strong>Survival Time: ${result.playTime} s</strong>
+                        </p>
+                    </li>
+                `;
+            }
+        });
+
+        resultsHtml += `
+                </ul>
+            </div>
+        </div>
+        `;
+
 
         // 모달 내의 stats-text 요소에 결과 추가
         const statsTextElement = document.getElementById("stats-text");
@@ -658,7 +769,7 @@ export class game extends Phaser.Scene {
             });
         });
     }
-    // 맞췄을떄 물체위에 동그라미(success) 이미지 넣는 함수
+    // 틀렸을때 물체위에 실패(failed) 이미지 넣는 함수
     showFailedImage(x, y) {
         const image = this.add.image(x, y, "failed");
         image.setDepth(10); //

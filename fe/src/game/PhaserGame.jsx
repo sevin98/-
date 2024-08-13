@@ -115,45 +115,50 @@ export const PhaserGame = forwardRef(function PhaserGame(
                     top: "50%",
                     left: "50%",
                     transform: "translate(-50%, -50%)",
-                    zIndex: 1000,
+                    zIndex: 1000,   
                     paddingBottom: "50px", // 하단 공간 확보
                 }}
             >
-                <div
-                    id="stats-text"
-                    className="rpgui-content"
-                    style={{
-                        maxHeight: "500px",
-                        overflowY: "auto",
-                        marginBottom: "20px",
-                    }}
-                >
-                    Loading stats...
-                </div>
-                <div
-                    className="rpgui-buttons"
-                    style={{
-                        position: "absolute",
-                        bottom: "20px",
-                        width: "100%",
-                        textAlign: "center",
-                    }}
-                >
-                    <button id="lobby-button" className="rpgui-button">
-                        <h2>로비로</h2>
-                    </button>
-                    <button
-                        id="back-to-room-button"
-                        className="rpgui-button"
-                        style={{ marginLeft: "10px" }}
-                    >
-                        <h2>이전 방으로 돌아가기</h2>
-                    </button>
+                <div id="container" className="rpgui-cursor-default">
+                    <div className="rpgui-content">
+                        <div
+                            id="stats-text"
+                            style={{
+                                maxHeight: "500px",
+                                overflowY: "auto",
+                                marginBottom: "20px",
+                                padding: "10px",
+                                boxSizing: "border-box",
+                                imageRendering: "auto"
+                            }}
+                        >
+                            Loading stats...
+                        </div>
+                        <div
+                            className="rpgui-buttons"
+                            style={{
+                                position: "absolute",
+                                bottom: "20px",
+                                width: "100%",
+                                textAlign: "center",
+                            }}
+                        >
+                            <button id="lobby-button" className="rpgui-button">
+                                <h2>로비로</h2>
+                            </button>
+                            <button
+                                id="back-to-room-button"
+                                className="rpgui-button"
+                                style={{ marginLeft: "10px" }}
+                            >
+                                <h2>이전 방으로 돌아가기</h2>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     );
-    
 });
 
 export const PHASER_GAME_ROUTE_PATH = "/GameStart";
@@ -163,4 +168,3 @@ export default PhaserGame;
 PhaserGame.propTypes = {
     currentActiveScene: PropTypes.func,
 };
-

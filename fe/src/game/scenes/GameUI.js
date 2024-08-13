@@ -4,6 +4,7 @@ import uiControlQueue, { MESSAGE_TYPE } from "../../util/UIControlQueue";
 import { getRoomRepository } from "../../repository";
 import { Phase } from "../../repository/_game";
 import { game } from "./Game";
+import { isFirstPress } from "../../util/keyStroke";
 import { PLAYER_ELIMINATION_REASON } from "../../repository/interface";
 
 export default class GameUI extends Phaser.Scene {
@@ -51,17 +52,23 @@ export default class GameUI extends Phaser.Scene {
             "timer-progress-bar-background",
             `assets/ui/timer-progress-bar/background.png`
         );
-
         this.load.image("magnifier-item", "assets/object/item/glassItem.png");
 
-        this.load.image(
-            "chickenEffectImage",
-            "assets/object/chickenEffectImage.png"
-        );
-        this.load.image(
-            "chickenEffectPhoto",
-            "assets/object/chickenEffectPhoto.png"
-        );
+        //바나나: 속도 100
+        this.load.image("banana", "assets/object/item/bananaItem.png");
+
+        // 벌통: 속도 0(멈춤)
+        this.load.image("beeHive", "assets/object/item/beehiveItem.png");
+
+        // 표고 버섯: 다른 플레이어 위치 화살표 다시 보여줌
+        this.load.image("mushroom", "assets/object/item/mushroomItem.png");
+
+        // 매운고추: 속도 빨라짐
+        this.load.image("pepper", "assets/object/item/pepperItem.png");
+
+        // 독버섯: 키반전
+
+        // 나뭇잎: 다른 물체로 변신
     }
 
     async #getNumOfRacoons() {
@@ -103,6 +110,9 @@ export default class GameUI extends Phaser.Scene {
     }
 
     create() {
+        //초기 아이템 이미지 업데이트
+        this.createInitialItems();
+        
         //초기화
         this.prevPlayer = null;
 
@@ -176,6 +186,116 @@ export default class GameUI extends Phaser.Scene {
         this.allyDeadSound = this.sound.add("hp-seek-fail", {
             volume: 1,
         });
+    }
+
+    // 아이템 이미지 화면에 렌더링 
+    createInitialItemImage(itemName, itemIndex) {
+
+        // 둥근 모서리의 아이템 박스 디자인 설정
+        const boxSize = 70; // 박스 크기
+        const cornerRadius = 15; // 모서리 반경
+        const box = this.add.graphics();
+        box.fillStyle(0xcccccc,0.7); // 연한 회색, 50% 투명도
+
+        const spacing = 75; // 아이템 두개 사이의 간격
+        const height = this.cameras.main.height - 90; // 맨밑보다 좀 위에 띄우기
+        let width;
+
+        if (itemIndex === 0) {
+            // 키다운 글자 Q,E 화면 생성
+            width = (this.cameras.main.width - spacing) / 2; //첫번쨰 아이템
+            this.add.text(width - 30, height + 10, "Q", {
+                    font: "bold 20px sans-serif",
+                    fill: "#000000",
+                }).setDepth(1);
+        } else {
+            width = (this.cameras.main.width + spacing) / 2; // 두번째 아이템
+            this.add.text(width - 30, height + 10, "W", {
+                    font: "bold 20px sans-serif",
+                    fill: "#000000",
+                }).setDepth(1);
+        }
+        switch (itemName) {
+            // 바나나
+            case "BANANA":
+                this.add.image(width, height, "banana").setScale(1.8);
+                box.fillRoundedRect(
+                    width - boxSize / 2,
+                    height - boxSize / 2,
+                    boxSize,
+                    boxSize,
+                    cornerRadius
+                );
+                break;
+            // 벌통
+            case "BEEHIVE":
+                this.add.image(width, height, "beeHive").setScale(1.8);
+                box.fillRoundedRect(
+                    width - boxSize / 2,
+                    height - boxSize / 2,
+                    boxSize,
+                    boxSize,
+                    cornerRadius
+                );
+                break;
+            // 독버섯
+            case "POISON_MUSHROOM":
+                box.fillRoundedRect(
+                    width - boxSize / 2,
+                    height - boxSize / 2,
+                    boxSize,
+                    boxSize,
+                    cornerRadius
+                );
+                break;
+            // 고추
+            case "RED_PEPPER":
+                this.add.image(width, height, "pepper").setScale(1.8);
+                box.fillRoundedRect(
+                    width - boxSize / 2,
+                    height - boxSize / 2,
+                    boxSize,
+                    boxSize,
+                    cornerRadius
+                );
+                break;
+            // 표고버섯
+            case "MUSHROOM":
+                this.add.image(width, height, "mushroom").setScale(1.8);
+                box.fillRoundedRect(
+                    width - boxSize / 2,
+                    height - boxSize / 2,
+                    boxSize,
+                    boxSize,
+                    cornerRadius
+                );
+                break;
+            // 나뭇잎
+            case "LEAF":
+                box.fillRoundedRect(
+                    width - boxSize / 2,
+                    height - boxSize / 2,
+                    boxSize,
+                    boxSize,
+                    cornerRadius
+                );
+                break;
+        }
+    }
+
+    // 아이템 이미지 서버에서 받아오기, gamerepo 생긴 뒤에 실행
+    async createInitialItems() {
+        getRoomRepository()
+            .getGameRepository()
+            .then((gameRepository) => {
+                // console.log(
+                //     `async함수내 반환:${gameRepository.getInitialItems()}`
+                // );
+                const items = gameRepository.getInitialItems();
+                items.forEach((item, idx) => {
+                    this.createInitialItemImage(item, idx);
+                });
+            });
     }
 
     initializeChickenHeads() {
@@ -254,6 +374,7 @@ export default class GameUI extends Phaser.Scene {
     }
 
     interpolateColor(color1, color2, color3, factor) {
+        //progress 색깔조정
         let r1, g1, b1, r2, g2, b2;
 
         if (factor <= 0.5) {
@@ -301,9 +422,7 @@ export default class GameUI extends Phaser.Scene {
         getRoomRepository()
             .getGameRepository()
             .then((gameRepository) => {
-                //ui 이미지 추가
                 this.updateImage();
-
                 if (uiControlQueue.hasGameUiControlMessage()) {
                     const message = uiControlQueue.getGameUiControlMessage();
                     switch (message.type) {
@@ -341,6 +460,7 @@ export default class GameUI extends Phaser.Scene {
                     this.updateProgressBar();
                 }
             });
+
     }
 
     async updateImage() {
