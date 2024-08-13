@@ -585,6 +585,11 @@ public class Game extends Subscribable implements Runnable {
         HPObject hpObject = gameMap.getHpObjects().get(objectId);
         Player player = getPlayerById(appliedById);
         ItemInfo itemInfo = new ItemInfo(room.getRoomNumber(), appliedById, objectId, item, duration, 0, appliedById);
+        if (objectId == null){
+            ItemAppliedToHPObjectMessage message = new ItemAppliedToHPObjectMessage(itemInfo, requestId);
+            broadcastService.broadcastTo(this, message);
+            broadcastService.unicastTo(player, message);
+        }
 
         if (objectId.equals(player.getId()) || hpObject == null || !hpObject.isEmpty() || hpObject.getAppliedItem() != null) {
             ItemApplicationFailedToObjectMessage message = new ItemApplicationFailedToObjectMessage(itemInfo, requestId);
