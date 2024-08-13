@@ -135,14 +135,18 @@ export class Player {
     }
 
     getSprite() {
-        return new Promise((resolve) => {
-            const interval = setInterval(() => {
-                if (this.#sprite) {
-                    clearInterval(interval);
-                    resolve(this.#sprite);
-                }
-            }, 10);
-        });
+        if (this.#sprite) {
+            return Promise.resolve(this.#sprite);
+        } else {
+            return new Promise((resolve) => {
+                const interval = setInterval(() => {
+                    if (this.#sprite) {
+                        clearInterval(interval);
+                        resolve(this.#sprite);
+                    }
+                }, 10);
+            });
+        }
     }
 
     setIsHiding(isHiding) {

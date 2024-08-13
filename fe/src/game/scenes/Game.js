@@ -11,6 +11,9 @@ import { Phase } from "../../repository/_game";
 import uiControlQueue from "../../util/UIControlQueue";
 
 import eventBus from "../EventBus"; //씬 간 소통위한 이벤트리스너 호출
+import { LOBBY_ROUTE_PATH } from "../../pages/Lobby/Lobby";
+import axios from "../../network/AxiosClient";
+import { WAITING_ROOM_ROUTE_PATH } from "../../pages/WaitingRoom/WaitingRoom";
 
 export class game extends Phaser.Scene {
     //cursor = this.cursor.c
@@ -28,6 +31,10 @@ export class game extends Phaser.Scene {
         this.lastWallPos = {};
         this.hintImages = {};
         this.shownHintForCurrentPhase = false;
+        this.modalShown = false;
+
+        this.updatePaused = false;
+        this.gameResults = [];
     }
 
     preload() {
@@ -72,6 +79,14 @@ export class game extends Phaser.Scene {
                     true
                 );
                 playercam.startFollow(this.localPlayer);
+
+                // player.js 에서 player 키조작이벤트 불러옴
+                this.playerMoveHandler = new HandlePlayerMove(
+                    this.cursors,
+                    this.localPlayer,
+                    this.headDir,
+                    this.moving
+                );
 
                 // 죽은 플레이어는 충돌 처리 안함
                 const passDeadPlayerCollider = (wall, playerSprite) => {
@@ -182,6 +197,9 @@ export class game extends Phaser.Scene {
     }
 
     update() {
+        if (this.updatePaused) {
+            return;
+        }
         // 로컬플레이어 포지션 트래킹 , 이후 위치는 x,y,headDir로 접근
         this.roomRepository.getGameRepository().then((gameRepository) => {
             gameRepository.getMe().then((me) => {
@@ -374,18 +392,10 @@ export class game extends Phaser.Scene {
 
                             this.shownHintForCurrentPhase = true;
                         }
-                    } else {
                     }
                 }
 
-                // player.js 에서 player 키조작이벤트 불러옴
-                const playerMoveHandler = new HandlePlayerMove(
-                    this.cursors,
-                    this.localPlayer,
-                    this.headDir,
-                    this.moving
-                );
-                playerMoveHandler.update(this.footstepSound);
+                this.playerMoveHandler.update(this.footstepSound);
 
                 // 플레이어에서 물리적으로 가장 가까운 거리 찾는 객체
                 const closest = this.physics.closest(
@@ -399,17 +409,6 @@ export class game extends Phaser.Scene {
                     this.localPlayer.x,
                     this.localPlayer.y
                 );
-
-                // 시각적으로 가까운 오브젝트와의 선 표시, 나중에 지우면되는코드
-                this.graphics
-                    .clear()
-                    .lineStyle(1, 0xff3300)
-                    .lineBetween(
-                        closest.body.center.x,
-                        closest.body.center.y,
-                        this.localPlayer.x,
-                        this.localPlayer.y
-                    );
 
                 // 30px 이하로 가까이 있을때 상호작용 표시 로직
                 if (minDistance < 30) {
@@ -537,6 +536,14 @@ export class game extends Phaser.Scene {
                         }
                     }
                 }
+                if (
+                    gameRepository.getIsEnd() === true &&
+                    this.modalShown === false
+                ) {
+                    this.gameResults = gameRepository.getGameResults();
+                    this.showEndGameModal();
+                    this.modalShown = true;
+                }
             });
         });
 
@@ -545,6 +552,71 @@ export class game extends Phaser.Scene {
 
         //닭등장
     }
+
+    showEndGameModal() {
+        console.log("End Game Modal");
+    
+        // RPGUI 모달을 표시
+        const modalElement = document.getElementById("rpgui-modal");
+        modalElement.style.display = "block";
+    
+        // 게임 결과를 HTML로 변환
+        let resultsHtml = ` 
+            <h3 style="font-size: 2em; text-align: center; margin-bottom: 20px; margin-top: 20px">Game Results</h3>
+            <ul style="list-style: none; padding: 0;">
+        `;
+        this.gameResults.forEach((result) => {
+            resultsHtml += `
+                <li style="margin-bottom: 15px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; background-color: #f9f9f9;">
+                    <h2 style="font-size: 0.8em; margin: 0;">${result.nickname}</h2>
+                    <p style="margin: 5px 0;">
+                        <strong>Team:</strong> ${result.team} &nbsp; | &nbsp; 
+                        <strong>Catches:</strong> ${result.catchCount} &nbsp; | &nbsp; 
+                        <strong>Play Time:</strong> ${result.playTime} seconds
+                    </p>
+                </li>
+            `;
+        });
+        resultsHtml += "</ul>";
+
+    
+        // 모달 내의 stats-text 요소에 결과 추가
+        const statsTextElement = document.getElementById("stats-text");
+        if (statsTextElement) {
+            statsTextElement.innerHTML = resultsHtml;
+        }
+    
+        // 로비 버튼 클릭 이벤트
+        document.getElementById("lobby-button").onclick = () => {
+            window.dispatchEvent(
+                new CustomEvent("phaser-route-lobby", {
+                    detail: {
+                        path: LOBBY_ROUTE_PATH,
+                        roomNumber: this.roomRepository.getRoomNumber(),
+                    },
+                })
+            );
+        };
+    
+        // 이전 방으로 돌아가기 버튼 클릭 이벤트
+        document.getElementById("back-to-room-button").onclick = () => {
+            window.dispatchEvent(
+                new CustomEvent("phaser-route-back-to-room", {
+                    detail: {
+                        path: WAITING_ROOM_ROUTE_PATH,
+                        roomNumber: this.roomRepository.getRoomNumber(),
+                        password: this.roomRepository.getRoomPassword(),
+                    },
+                })
+            );
+        };
+    
+        // Phaser 씬이 종료될 때 모달을 숨기거나 제거
+        this.events.once("shutdown", () => {
+            modalElement.style.display = "none";
+        });
+    }
+    
 
     // 맵타일단위를 pix로 변환
     tileToPixel(tileCoord) {

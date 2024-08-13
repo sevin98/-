@@ -64,7 +64,7 @@ function RankingPage() {
     };
 
     return (
-        <div id="container" className="ranking-page">
+        <div id="container" className="rpgui-cursor-default ranking-page">
             <h1>Ranking</h1>
 
             <div className="ranking-controls">

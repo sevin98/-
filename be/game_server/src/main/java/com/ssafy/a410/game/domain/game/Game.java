@@ -203,6 +203,12 @@ public class Game extends Subscribable implements Runnable {
 
         room.endGame();
         resetAllItems();
+        runFinishedPhase();
+    }
+
+    private void runFinishedPhase() {
+        this.currentPhase = Phase.FINISHED;
+        broadcastService.broadcastTo(this, new PhaseChangeControlMessage(Phase.FINISHED));
     }
 
     private boolean isTimeToSwitch(long timeToSwitchPhase) {
