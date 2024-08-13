@@ -1,7 +1,12 @@
+import React, { useState, useEffect } from "react";
 import { RouterProvider } from "react-router-dom";
 import router from "../src/router/router";
-import { ToastContainer } from "react-toastify"; // ToastContainer import
-import "react-toastify/dist/ReactToastify.css"; // ToastContainer 스타일 import
+import axios from "../src/network/AxiosClient";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Popup from "./components/Popup";
+import { LOBBY_ROUTE_PATH } from "../src/pages/Lobby/Lobby";
+import { ROOM_JOIN_ROUTE_PATH } from "./pages/Lobby/RoomJoin";
 import MusicPlayer from "./components/MusicPlayer/MusicPlayer";
 import GameInformation from './components/GameInformation/GameInformation';
 
@@ -15,5 +20,6 @@ function App() {
         </div>
     );
 }
+
 export default App;
 

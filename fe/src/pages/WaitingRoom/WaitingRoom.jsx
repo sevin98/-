@@ -95,7 +95,6 @@ export default function WaitingRoom() {
                             // 카운트다운 시작
                             setIsCountdownStarted(true);
                             startCountdown(roomRepository.getGameStartsAt());
-                        } else if (isCountdownStarted) {
                             clearInterval(updateDataIntervalId);
                         }
                     }, 10);

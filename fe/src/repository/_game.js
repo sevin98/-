@@ -32,6 +32,8 @@ const PLAYER_DISCONNECTED = "PLAYER_DISCONNECTED";
 const SAFE_ZONE_UPDATE = "SAFE_ZONE_UPDATE";
 // 안전구역밖으로 나간 플레이어 게임 탈락 이벤트
 const ELIMINATION_OUT_OF_SAFE_ZONE = "ELIMINATION_OUT_OF_SAFE_ZONE";
+// 게임 종료 시 게임 결과 수신 이벤트
+const GAME_RESULT = "GAME_RESULT";
 
 // 화면 가리기 명령 이벤트
 const COVER_SCREEN = "COVER_SCREEN";
@@ -59,7 +61,7 @@ export class Phase {
     // 다음 라운드를 위해 기존의 게임 상태를 정리하고 있는 상태
     static END = "END";
     // 게임이 끝난 상태
-    static FINISHED = "FINISHED";
+    static GAME_END = "GAME_END";
 }
 
 export default class GameRepository {
@@ -75,6 +77,7 @@ export default class GameRepository {
     #currentPhaseFinishAfterMilliSec;
     #currentSafeZone;
     #isGameEnd = false;
+    #gameResults = [];
 
     #isInitialized = false;
     #currentEliminatedPlayerAndTeam; //ui업데이트
@@ -172,6 +175,10 @@ export default class GameRepository {
                 this.#handleSafeZoneUpdateEvent(data);
                 console.log(`안전 지역이 변경되었습니다.`);
                 break;
+            case GAME_RESULT:
+                this.#handleGameResultEvent(data);
+                console.log("게임 결과를 수신했습니다.");
+                break;
             default:
                 console.error("Received unknown message:", message);
                 throw new Error(
@@ -212,6 +219,8 @@ export default class GameRepository {
             // 한 라운드가 끝나면 역할 반전
             this.#racoonTeam.setIsHidingTeam(!this.#racoonTeam.isHidingTeam());
             this.#foxTeam.setIsHidingTeam(!this.#foxTeam.isHidingTeam());
+        } else if (this.#currentPhase === Phase.GAME_END) {
+            this.#setIsEnd();
         }
 
         this.getMe().then((me) => {
@@ -403,6 +412,25 @@ export default class GameRepository {
             const player = this.getPlayerWithId(playerId);
             player.setPosition({ x, y, direction });
         }
+    }
+
+    #handleGameResultEvent(data){
+        console.log(data);
+        Object.keys(data).forEach(team => {
+            data[team].forEach(player => {
+                this.#gameResults.push({
+                    nickname: player.nickname,
+                    catchCount: player.catchCount,
+                    playTime: player.playTimeInSeconds,
+                    team: player.team,
+                });
+            });
+        });
+    }
+
+    // gameResults getter
+    getGameResults(){
+        return this.#gameResults;
     }
 
     // 게임 시작 시각
