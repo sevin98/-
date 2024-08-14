@@ -722,7 +722,7 @@ export default class GameRepository {
     }
 
     async requestItemUse(item, targetId) {
-        console.log("_game에 들어옴:", item, targetId);
+        console.log(item,"사용,", targetId,"에 요청");
         const requestId = uuid();
 
         this.#stompClient.publish({
@@ -739,7 +739,6 @@ export default class GameRepository {
         if (item === "MUSHROOM") {
             this.setIsMushroomUsed(true);
         }
-
         const requestItemResult = await asyncResponses.get(requestId);
         return Promise.resolve({
             isSucceeded: requestItemResult.type === "ITEM_APPLIED_TO_PLAYER",

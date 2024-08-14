@@ -597,15 +597,18 @@ export class game extends Phaser.Scene {
                                             closest.body.y + 10
                                         );
                                     } else {
-                                        console.log("obj에 아이템 등장");
+                                        console.log(
+                                            "obj에 아이템:",
+                                            gameRepository.getItemAppliedFromObject()
+                                        );
                                         this.hpSeekFailSound.play();
+
                                         if (
                                             gameRepository.getItemAppliedFromObject() ===
                                             "BANANA"
                                         ) {
                                             //TODO:아이템이 obj에서 발견됐을때 애니메이션 추가, 머리 위 아이템 이미지 띄우기
-                                        }
-                                        else if (
+                                        } else if (
                                             gameRepository.getItemAppliedFromObject() ===
                                             "BEEHIVE"
                                         ) {
@@ -627,7 +630,7 @@ export class game extends Phaser.Scene {
                                                     false
                                                 );
                                                 console.log("키반전 취소");
-                                            }, 5 * 1000);
+                                            }, 5 * 1000); // 키반전이 더 빨리 풀리는것같은데 ? 
                                         } else {
                                             console.log("탐색실패");
                                             this.text.showTextFailFind(
@@ -673,7 +676,7 @@ export class game extends Phaser.Scene {
                         );
                     });
                 }
-                // 아이템 사용 코드 
+                // 아이템 사용 코드
                 if (Phaser.Input.Keyboard.JustDown(this.m_cursorKeys.Q)) {
                     if (this.interactionEffect) {
                         // interactionEFFECT있을때 가장 가까운 objectid전달
@@ -722,7 +725,7 @@ export class game extends Phaser.Scene {
                                         gameRepository.getItemQ() ===
                                         "RED_PEPPER"
                                     ) {
-                                        //TODO: 고추 아이템 사용 중일때 머리 위 아이템 띄우기 
+                                        //TODO: 고추 아이템 사용 중일때 머리 위 아이템 띄우기
                                         this.time.delayedCall(10 * 1000, () => {
                                             console.log("RED_PEPPER END");
                                             gameRepository.setItemSpeed(200);
