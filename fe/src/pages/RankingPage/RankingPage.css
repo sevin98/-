@@ -1,159 +1,34 @@
-.wrapper {
-    display: flex;
-    width: 25rem;
-    overflow: hidden;
-    margin: 0 auto;
-    background-color: transparent;
-}
-
-.wrapper .form-box {
-    position: absolute;
-    left: 0;
-    width: 25rem;
-    transition: transform 0.3s ease;
-}
-
-.wrapper .form-box.login {
-    transform: translateX(0);
-}
-
-.wrapper.active .form-box.login {
-    transform: translateX(-100%);
-}
-
-.wrapper .form-box.register {
-    transform: translateX(100%);
-}
-
-.wrapper.active .form-box.register {
-    transform: translateX(0);
-}
-
-.input-form {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 1rem;
-}
-
-.form-box h1 {
-    margin: 0.625rem;
-    color: white;
-    text-align: center;
-    font-family: "MoveSans-Bold";
-}
-
-.form-box .input-box {
+.ranking-wrapper {
     position: relative;
-    width: calc(100% - 1.563rem);
-    height: 3rem;
-    display: flex;
-    justify-content: center;
-}
-
-.form-box .input-box input {
-    height: 2rem;
-    margin-left: 1rem;
-}
-
-.form-box .input-box ::placeholder {
-    color: rgba(74, 69, 69, 0.776);
-    height: 2rem;
-    margin-left: 1rem;
-}
-
-form .register-link {
-    position: relative;
-    text-align: center;
-}
-
-.wrapper .button-box {
-    position: relative;
-    align-items: center;
-}
-
-.wrapper .button-box-top {
-    display: flex;
-    justify-content: space-around;
-}
-
-.button-box .guest {
-    width: 18.938rem;
-}
-
-.ranking-page {
     display: flex;
     flex-direction: column;
     align-items: center;
+    text-align: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.ranking-section {
     width: 100%;
-    padding: 1.25rem;
-    background-color: rgba(255, 255, 255, 0.8);
-    border-radius: 0.625rem;
+    margin: 1rem 0;
+    flex-grow: 1;
+    overflow-y: auto;
 }
 
 .ranking-controls {
     display: flex;
     justify-content: center;
-    margin-bottom: 1.25rem;
+    margin-bottom: 5rem;
 }
 
-.ranking-controls .rpgui-button {
-    margin: 0 0.625rem;
-    padding: 0.625rem 1.25rem;
-    font-size: 1rem;
-    font-weight: bold;
-}
-
-.back-to-lobby-button {
-    margin-top: 1.25rem;
-    font-size: 1rem;
-}
-
-.ranking-section {
-    margin-bottom: 1.25rem;
-    width: 100%;
-    max-width: 50rem;
-}
-
-.ranking-section h2 {
-    font-size: 1.5rem;
-    margin-bottom: 0.625rem;
-    color: #8B4513;
-    text-align: center;
-}
-
-.ranking-section ul {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-}
-
-.ranking-section li {
-    background-color: rgba(245, 245, 245, 0.9);
-    padding: 0.938rem;
-    margin-bottom: 0.625rem;
-    border: 0.125rem solid #8B4513;
-    border-radius: 0.313rem;
-    font-family: 'Arial', sans-serif;
-    color: #333;
-    text-align: center;
-    max-width: 37.5rem;
-    margin-left: auto;
-    margin-right: auto;
+.ranking-controls .rpgui-button h2 {
+    font-size: 1.7em !important;
+    font-family: "MoveSans-Bold";
+    flex-direction: column;
+    margin: 10px;
 }
 
 .my-ranking {
-    width: 100%;
-    max-width: 50rem;
-    background-color: rgba(255, 255, 255, 0.9);
-    padding: 0.625rem;
-    border-top: 0.188rem solid #8B4513;
-    text-align: center;
-    font-family: 'Arial', sans-serif;
-    color: #333;
-}
-
-.back-to-lobby-button {
-    margin-top: 1.25rem;
-    font-size: 1rem;
+    margin-top: 10rem;
+    width: 40%;
 }

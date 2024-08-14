@@ -73,9 +73,31 @@ function RankingPage() {
     };
 
     return (
-        <div id="container" className="rpgui-cursor-default ranking-page">
-            <h1>Ranking</h1>
+            <div className="ranking-wrapper rpgui-content">
+                <BackToLobbyButton onClick={onBackToLobbyBtnClicked} />
+                <div className="ranking-section">
+                <ul>
+                    {Array.isArray(ranking) &&
+                        ranking.map((user, index) => (
+                            <li key={index}>
+                                {index + 1}. {user.nickname} - Wins: {user.wins}
+                                , Catch Count: {user.catchCount}, Survival Time:{" "}
+                                {user.survivalTime}
+                            </li>
+                        ))}
+                    <div ref={ref} />
+                    </ul>
+                </div>
 
+            {myRanking && (
+                <div className="my-ranking rpgui-container framed">
+                    <h2>Your Ranking</h2>
+                    <p>Nickname : {myRanking.nickname}</p>
+                    <p>Wins : {myRanking.wins}</p>
+                    <p>Catch Count: {myRanking.catchCount}</p>
+                    <p>Survival Time: {myRanking.survivalTime}</p>
+                </div>
+                    )}
             <div className="ranking-controls">
                 <button
                     className="rpgui-button"
@@ -96,41 +118,7 @@ function RankingPage() {
                     <h2>생존 시간 순</h2>
                 </button>
             </div>
-
-            <BackToLobbyButton
-                onClick={onBackToLobbyBtnClicked}
-                className="rpgui-button"
-                isDisabled={false}
-            />
-
-            <div className="ranking-section">
-                <ul>
-                    {Array.isArray(ranking) &&
-                        ranking.map((user, index) => (
-                            <li key={index}>
-                                {index + 1}. {user.nickname} - Wins: {user.wins}
-                                , Catch Count: {user.catchCount}, Survival Time:{" "}
-                                {user.survivalTime}
-                            </li>
-                        ))}
-                    <div ref={ref} />
-                </ul>
-            </div>
-
-            {myRanking && (
-                <div className="my-ranking">
-                    <h2>Your Ranking</h2>
-                    <ul>
-                        <li>
-                            나의 전적 - {myRanking.nickname} - Wins:{" "}
-                            {myRanking.wins}, Catch Count:{" "}
-                            {myRanking.catchCount}, Survival Time:{" "}
-                            {myRanking.survivalTime}
-                        </li>
-                    </ul>
-                </div>
-            )}
-        </div>
+    </div>
     );
 }
 
