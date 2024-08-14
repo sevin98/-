@@ -65,8 +65,12 @@ export default class GameUI extends Phaser.Scene {
 
         // 매운고추: 속도 빨라짐
         this.load.image("pepper", "assets/object/item/pepperItem.png");
-
+        
         // 독버섯: 키반전
+        this.load.image(
+            "poisonMushroom",
+            "assets/object/item/poisonMushroomItem.png"
+        );
 
         // 나뭇잎: 다른 물체로 변신
     }
@@ -200,7 +204,6 @@ export default class GameUI extends Phaser.Scene {
         const spacing = 75; // 아이템 두개 사이의 간격
         const height = this.cameras.main.height - 90; // 맨밑보다 좀 위에 띄우기
         let width;
-
         if (itemIndex === 0) {
             // 키다운 글자 Q,E 화면 생성
             width = (this.cameras.main.width - spacing) / 2; //첫번쨰 아이템
@@ -240,6 +243,7 @@ export default class GameUI extends Phaser.Scene {
                 break;
             // 독버섯
             case "POISON_MUSHROOM":
+                this.add.image(width, height, "poisonMushroom").setScale(0.6);
                 box.fillRoundedRect(
                     width - boxSize / 2,
                     height - boxSize / 2,

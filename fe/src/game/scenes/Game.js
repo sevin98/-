@@ -54,6 +54,7 @@ export class game extends Phaser.Scene {
         // 키 입력 이벤트 추가
         this.m_cursorKeys.Q = this.input.keyboard.addKey("Q");
         this.m_cursorKeys.W = this.input.keyboard.addKey("W");
+        this.m_cursorKeys.R = this.input.keyboard.addKey("R");
 
         this.text = new TextGroup(this); // 팝업텍스트 객체
 
@@ -84,15 +85,14 @@ export class game extends Phaser.Scene {
                     true
                 );
                 playercam.startFollow(this.localPlayer);
-
                 // player.js 에서 player 키조작이벤트 불러옴
                 this.playerMoveHandler = new HandlePlayerMove(
                     this.cursors,
                     this.localPlayer,
                     this.headDir,
                     this.moving
+                    // this.isReversed,//preload에 false로 시작, this.localPlayer.isReversed = false;
                 );
-
                 // 죽은 플레이어는 충돌 처리 안함
                 const passDeadPlayerCollider = (wall, playerSprite) => {
                     return !me.isDead();
@@ -205,6 +205,7 @@ export class game extends Phaser.Scene {
         if (this.updatePaused) {
             return;
         }
+        this.localPlayer.update();
         // 로컬플레이어 포지션 트래킹 , 이후 위치는 x,y,headDir로 접근
         this.roomRepository.getGameRepository().then((gameRepository) => {
             gameRepository.getMe().then(async (me) => {
@@ -262,7 +263,6 @@ export class game extends Phaser.Scene {
                         }
                     }
                 }
-
                 // 죽었으면 무조건 숨기고 움직임 허용
                 if (me.isDead()) {
                     this.localPlayer.visible = false;
@@ -396,6 +396,88 @@ export class game extends Phaser.Scene {
                             });
 
                             this.shownHintForCurrentPhase = true;
+                        }
+                        if (gameRepository.getIsMushroomUsed() === true) {
+                            gameRepository.setIsMushroomUsed(false);
+                            const directionHints =
+                                this.roomRepository.getDirectionHints();
+                            directionHints.forEach((direction) => {
+                                if (!this.hintImages[direction]) {
+                                    if (direction === "DOWN")
+                                        this.hintImages[direction] =
+                                            this.add.image(
+                                                this.localPlayer.x,
+                                                this.localPlayer.y + 20,
+                                                direction
+                                            );
+                                    if (direction === "UP")
+                                        this.hintImages[direction] =
+                                            this.add.image(
+                                                this.localPlayer.x,
+                                                this.localPlayer.y - 20,
+                                                direction
+                                            );
+                                    if (direction === "LEFT")
+                                        this.hintImages[direction] =
+                                            this.add.image(
+                                                this.localPlayer.x - 20,
+                                                this.localPlayer.y,
+                                                direction
+                                            );
+                                    if (direction === "RIGHT")
+                                        this.hintImages[direction] =
+                                            this.add.image(
+                                                this.localPlayer.x + 20,
+                                                this.localPlayer.y,
+                                                direction
+                                            );
+                                    if (direction === "UP_LEFT")
+                                        this.hintImages[direction] =
+                                            this.add.image(
+                                                this.localPlayer.x - 20,
+                                                this.localPlayer.y - 20,
+                                                direction
+                                            );
+                                    if (direction === "UP_RIGHT")
+                                        this.hintImages[direction] =
+                                            this.add.image(
+                                                this.localPlayer.x + 20,
+                                                this.localPlayer.y - 20,
+                                                direction
+                                            );
+                                    if (direction === "DOWN_LEFT")
+                                        this.hintImages[direction] =
+                                            this.add.image(
+                                                this.localPlayer.x - 20,
+                                                this.localPlayer.y + 20,
+                                                direction
+                                            );
+                                    if (direction === "DOWN_RIGHT")
+                                        this.hintImages[direction] =
+                                            this.add.image(
+                                                this.localPlayer.x + 20,
+                                                this.localPlayer.y + 20,
+                                                direction
+                                            );
+
+                                    this.hintImages[direction].setScale(0.04);
+
+                                    // 5초 후에 이미지를 제거
+                                    this.time.addEvent({
+                                        delay: 5000,
+                                        callback: () => {
+                                            if (this.hintImages[direction]) {
+                                                this.hintImages[
+                                                    direction
+                                                ].destroy();
+                                                this.hintImages[direction] =
+                                                    null;
+                                            }
+                                        },
+                                        callbackScope: this,
+                                    });
+                                }
+                            });
                         }
                     }
                 }
@@ -534,6 +616,21 @@ export class game extends Phaser.Scene {
                                         if (Math.random() < 0.5) {
                                             uiControlQueue.addSurpriseChickenMessage();
                                         }
+                                        // true면 잠깐동안 키반전
+                                        if (
+                                            gameRepository.getIsPoisonMushroomUsed()
+                                        ) {
+                                            // 키반전 이벤트
+                                            console.log("키반전");
+                                            this.playerMoveHandler.setReversed(true);
+                                            setTimeout(() => {
+                                                // 이후 set false
+                                                this.playerMoveHandler.setReversed(false);
+                                                gameRepository.setIsPoisonMushroomUsed(false);
+                                                console.log("키반전 취소");
+                                            }, 5 * 1000);
+
+                                        }
                                     }
                                 });
                         }
@@ -575,8 +672,25 @@ export class game extends Phaser.Scene {
                             )
                             .then(({ isSucceeded, speed }) => {
                                 if (isSucceeded) {
-                                    console.log(speed);
-                                    //TODO: 플레이어 스피드 변경
+                                    console.log("speed: " + speed);
+                                    gameRepository.setItemSpeed(speed);
+                                    if (
+                                        gameRepository.getItemQ() ===
+                                        "RED_PEPPER"
+                                    ) {
+                                        this.time.delayedCall(10 * 1000, () => {
+                                            console.log("RED_PEPPER END");
+                                            gameRepository.setItemSpeed(200);
+                                        });
+                                    }
+                                    if (
+                                        gameRepository.getItemQ() !==
+                                        "RED_PEPPER"
+                                    ) {
+                                        this.time.delayedCall(5 * 1000, () => {
+                                            gameRepository.setItemSpeed(200);
+                                        });
+                                    }
                                 }
                             });
                     } else {
@@ -588,12 +702,30 @@ export class game extends Phaser.Scene {
                             )
                             .then(({ isSucceeded, speed }) => {
                                 if (isSucceeded) {
-                                    console.log(speed);
-                                    //TODO: 플레이어 스피드 변경
+                                    console.log("speed: " + speed);
+                                    gameRepository.setItemSpeed(speed);
+                                    if (
+                                        gameRepository.getItemQ() ===
+                                        "RED_PEPPER"
+                                    ) {
+                                        this.time.delayedCall(10 * 1000, () => {
+                                            console.log("RED_PEPPER END");
+                                            gameRepository.setItemSpeed(200);
+                                        });
+                                    }
+                                    if (
+                                        gameRepository.getItemQ() !==
+                                        "RED_PEPPER"
+                                    ) {
+                                        this.time.delayedCall(5 * 1000, () => {
+                                            gameRepository.setItemSpeed(200);
+                                        });
+                                    }
                                 }
                             });
                     }
-                } else if ( // W키
+                } else if (
+                    // W키
                     Phaser.Input.Keyboard.JustDown(this.m_cursorKeys.W)
                 ) {
                     if (this.interactionEffect) {
@@ -605,8 +737,25 @@ export class game extends Phaser.Scene {
                             )
                             .then(({ isSucceeded, speed }) => {
                                 if (isSucceeded) {
-                                    console.log(speed);
-                                    //TODO: 플레이어 스피드 변경
+                                    console.log("speed: " + speed);
+                                    gameRepository.setItemSpeed(speed);
+                                    if (
+                                        gameRepository.getItemW() ===
+                                        "RED_PEPPER"
+                                    ) {
+                                        this.time.delayedCall(10 * 1000, () => {
+                                            console.log("RED_PEPPER END");
+                                            gameRepository.setItemSpeed(200);
+                                        });
+                                    }
+                                    if (
+                                        gameRepository.getItemW() !==
+                                        "RED_PEPPER"
+                                    ) {
+                                        this.time.delayedCall(5 * 1000, () => {
+                                            gameRepository.setItemSpeed(200);
+                                        });
+                                    }
                                 }
                             });
                     } else {
@@ -618,8 +767,25 @@ export class game extends Phaser.Scene {
                             )
                             .then(({ isSucceeded, speed }) => {
                                 if (isSucceeded) {
-                                    console.log(speed);
-                                    //TODO: 플레이어 스피드 변경
+                                    console.log("speed: " + speed);
+                                    gameRepository.setItemSpeed(speed);
+                                    if (
+                                        gameRepository.getItemW() ===
+                                        "RED_PEPPER"
+                                    ) {
+                                        this.time.delayedCall(10 * 1000, () => {
+                                            console.log("RED_PEPPER END");
+                                            gameRepository.setItemSpeed(200);
+                                        });
+                                    }
+                                    if (
+                                        gameRepository.getItemW() !==
+                                        "RED_PEPPER"
+                                    ) {
+                                        this.time.delayedCall(5 * 1000, () => {
+                                            gameRepository.setItemSpeed(200);
+                                        });
+                                    }
                                 }
                             });
                     }
@@ -745,8 +911,8 @@ export class game extends Phaser.Scene {
     showSuccessImage(x, y) {
         const image = this.add.image(x, y, "success");
         image.setDepth(10); //
-        // 1초후에 이미지를 페이드 아웃하고 제거
-        this.time.delayedCall(3000, () => {
+        // 2초후에 이미지를 페이드 아웃하고 제거
+        this.time.delayedCall(2000, () => {
             this.tweens.add({
                 targets: image,
                 alpha: 0,
@@ -762,8 +928,8 @@ export class game extends Phaser.Scene {
     showFailedImage(x, y) {
         const image = this.add.image(x, y, "failed");
         image.setDepth(10); //
-        // 1초후에 이미지를 페이드 아웃하고 제거
-        this.time.delayedCall(3000, () => {
+        // 2초후에 이미지를 페이드 아웃하고 제거
+        this.time.delayedCall(2000, () => {
             this.tweens.add({
                 targets: image,
                 alpha: 0,
