@@ -576,6 +576,8 @@ export default class GameRepository {
         // 남은 시도 횟수 갱신
         requestedPlayer.setRestSeekCount(restCatchCount);
 
+        this.#seekFailCatchCount= data.catchCount;
+
         uiControlQueue.addUpdateSeekCountUiMessage(restCatchCount);
         this.#seekFailCatchCount = data.catchCount;
 
