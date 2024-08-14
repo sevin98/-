@@ -85,7 +85,7 @@ public class InteractSeekReq extends InteractReq {
         if (installedItem != null) {
             requestedPlayer.applyItem(installedItem, installedItem.getDuration(), playerId);
             // 브로드캐스팅
-            ItemInfo itemInfo = new ItemInfo(roomId, requestedPlayer.getId(), hpObject.getId(), installedItem, installedItem.getDuration(), requestedPlayer.getSpeed(), hpObject.getId());
+            ItemInfo itemInfo = new ItemInfo(roomId, requestedPlayer.getId(), hpObject.getId(), installedItem, installedItem.getDuration(), requestedPlayer.getSpeed(), playerId);
             ItemAppliedMessage itemMessage = new ItemAppliedMessage(itemInfo, this.getRequestId());
             broadcastService.broadcastTo(game, itemMessage);
         }
