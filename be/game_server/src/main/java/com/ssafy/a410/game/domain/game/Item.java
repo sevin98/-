@@ -10,23 +10,19 @@ public enum Item {
     BANANA,
     // 벌통
     BEEHIVE,
-    // 독버섯
-//    POISON_MUSHROOM,
     // 고추
     RED_PEPPER,
     // 표고버섯
-    MUSHROOM;
-    // 나뭇잎
-//    LEAF;
+    MUSHROOM,
+    // 독버섯
+    POISON_MUSHROOM;
 
     public boolean isApplicableToPlayer() {
         return this == MUSHROOM || this == RED_PEPPER;
-//        || this == LEAF;
     }
 
     public boolean isApplicableToHPObject() {
-        return this == BANANA || this == BEEHIVE;
-//                || this == POISON_MUSHROOM;
+        return this == BANANA || this == BEEHIVE || this == POISON_MUSHROOM;
     }
 
     public Duration getDuration() {
@@ -35,14 +31,12 @@ public enum Item {
                 return Duration.ofSeconds(5);
             case RED_PEPPER:
                 return Duration.ofSeconds(10);
-//            case LEAF:
-//                return Duration.ofSeconds(60);
             case BANANA:
                 return Duration.ofSeconds(5);
             case BEEHIVE:
                 return Duration.ofSeconds(5);
-//            case POISON_MUSHROOM:
-//                return Duration.ofSeconds(5);
+            case POISON_MUSHROOM:
+                return Duration.ofSeconds(10);
             default:
                 throw new ResponseException(ErrorDetail.UNKNOWN_ITEM);
         }

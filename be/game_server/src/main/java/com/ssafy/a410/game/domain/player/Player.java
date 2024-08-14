@@ -235,10 +235,13 @@ public class Player extends Subscribable {
         this.appliedById = null;
     }
 
-    // 현재 아이템이 적용중인지 확인
-    public boolean isItemActive() {
-        return currentItem != null
-                && Duration.between(itemAppliedTime, LocalDateTime.now()).compareTo(itemDuration) < 0;
+    public boolean useItem(Item item) {
+        if (items.contains(item)) {
+            currentItem = item;
+            items.remove(item);
+            return true;
+        }
+        return false; // 이미 사용된 아이템이거나 존재하지 않으면 false 반환
     }
 
     private void scheduleItemRemoval(Duration duration) {
