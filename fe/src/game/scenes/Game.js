@@ -89,7 +89,7 @@ export class game extends Phaser.Scene {
                     this.cursors,
                     this.localPlayer,
                     this.headDir,
-                    this.moving,
+                    this.moving
                     // this.isReversed,//preload에 false로 시작, this.localPlayer.isReversed = false;
                 );
                 // 죽은 플레이어는 충돌 처리 안함
@@ -201,19 +201,6 @@ export class game extends Phaser.Scene {
     }
 
     update() {
-        // R누르고 현재 reversed가 false면
-        if (Phaser.Input.Keyboard.JustDown(this.m_cursorKeys.R)) {
-            console.log('R눌림')
-
-            if (!this.playerMoveHandler.isReversed) {
-                this.playerMoveHandler.setReversed(true)
-                console.log("키반전");
-            } else {
-                this.playerMoveHandler.setReversed(false)
-                console.log("원래대로");
-            }
-        }
-
         if (this.updatePaused) {
             return;
         }
@@ -408,7 +395,8 @@ export class game extends Phaser.Scene {
                             });
 
                             this.shownHintForCurrentPhase = true;
-                        } if (gameRepository.getIsMushroomUsed() === true) {
+                        }
+                        if (gameRepository.getIsMushroomUsed() === true) {
                             gameRepository.setIsMushroomUsed(false);
                             const directionHints =
                                 this.roomRepository.getDirectionHints();
@@ -627,6 +615,21 @@ export class game extends Phaser.Scene {
                                         if (Math.random() < 0.5) {
                                             uiControlQueue.addSurpriseChickenMessage();
                                         }
+                                        // true면 잠깐동안 키반전
+                                        if (
+                                            gameRepository.getIsPoisonMushroomUsed()
+                                        ) {
+                                            // 키반전 이벤트
+                                            console.log("키반전");
+                                            this.playerMoveHandler.setReversed(true);
+                                            setTimeout(() => {
+                                                // 이후 set false
+                                                this.playerMoveHandler.setReversed(false);
+                                                gameRepository.setIsPoisonMushroomUsed(false);
+                                                console.log("키반전 취소");
+                                            }, 5 * 1000);
+
+                                        }
                                     }
                                 });
                         }
@@ -669,13 +672,19 @@ export class game extends Phaser.Scene {
                                 if (isSucceeded) {
                                     console.log("speed: " + speed);
                                     gameRepository.setItemSpeed(speed);
-                                    if(gameRepository.getItemQ() === "RED_PEPPER"){
+                                    if (
+                                        gameRepository.getItemQ() ===
+                                        "RED_PEPPER"
+                                    ) {
                                         this.time.delayedCall(10 * 1000, () => {
-                                            console.log("RED_PEPPER END")
+                                            console.log("RED_PEPPER END");
                                             gameRepository.setItemSpeed(200);
                                         });
                                     }
-                                    if(gameRepository.getItemQ() !== "RED_PEPPER"){
+                                    if (
+                                        gameRepository.getItemQ() !==
+                                        "RED_PEPPER"
+                                    ) {
                                         this.time.delayedCall(5 * 1000, () => {
                                             gameRepository.setItemSpeed(200);
                                         });
@@ -693,13 +702,19 @@ export class game extends Phaser.Scene {
                                 if (isSucceeded) {
                                     console.log("speed: " + speed);
                                     gameRepository.setItemSpeed(speed);
-                                    if(gameRepository.getItemQ() === "RED_PEPPER"){
+                                    if (
+                                        gameRepository.getItemQ() ===
+                                        "RED_PEPPER"
+                                    ) {
                                         this.time.delayedCall(10 * 1000, () => {
-                                            console.log("RED_PEPPER END")
+                                            console.log("RED_PEPPER END");
                                             gameRepository.setItemSpeed(200);
                                         });
                                     }
-                                    if(gameRepository.getItemQ() !== "RED_PEPPER"){
+                                    if (
+                                        gameRepository.getItemQ() !==
+                                        "RED_PEPPER"
+                                    ) {
                                         this.time.delayedCall(5 * 1000, () => {
                                             gameRepository.setItemSpeed(200);
                                         });
@@ -722,13 +737,19 @@ export class game extends Phaser.Scene {
                                 if (isSucceeded) {
                                     console.log("speed: " + speed);
                                     gameRepository.setItemSpeed(speed);
-                                    if(gameRepository.getItemW() === "RED_PEPPER"){
+                                    if (
+                                        gameRepository.getItemW() ===
+                                        "RED_PEPPER"
+                                    ) {
                                         this.time.delayedCall(10 * 1000, () => {
-                                            console.log("RED_PEPPER END")
+                                            console.log("RED_PEPPER END");
                                             gameRepository.setItemSpeed(200);
                                         });
                                     }
-                                    if(gameRepository.getItemW() !== "RED_PEPPER"){
+                                    if (
+                                        gameRepository.getItemW() !==
+                                        "RED_PEPPER"
+                                    ) {
                                         this.time.delayedCall(5 * 1000, () => {
                                             gameRepository.setItemSpeed(200);
                                         });
@@ -746,13 +767,19 @@ export class game extends Phaser.Scene {
                                 if (isSucceeded) {
                                     console.log("speed: " + speed);
                                     gameRepository.setItemSpeed(speed);
-                                    if(gameRepository.getItemW() === "RED_PEPPER"){
+                                    if (
+                                        gameRepository.getItemW() ===
+                                        "RED_PEPPER"
+                                    ) {
                                         this.time.delayedCall(10 * 1000, () => {
-                                            console.log("RED_PEPPER END")
+                                            console.log("RED_PEPPER END");
                                             gameRepository.setItemSpeed(200);
                                         });
                                     }
-                                    if(gameRepository.getItemW() !== "RED_PEPPER"){
+                                    if (
+                                        gameRepository.getItemW() !==
+                                        "RED_PEPPER"
+                                    ) {
                                         this.time.delayedCall(5 * 1000, () => {
                                             gameRepository.setItemSpeed(200);
                                         });

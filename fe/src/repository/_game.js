@@ -87,6 +87,7 @@ export default class GameRepository {
     #itemSpeed = 200; // 현재의 아이템 스피드
     #gameResults = [];
     #isMushroomUsed = false;
+    #isPoisonMushroomUsed = false; 
 
     #seekFailCatchCount = 0; // 기본값 0
 
@@ -583,10 +584,8 @@ export default class GameRepository {
             this.#handleSeekFailResult(seekResult.data);
         }
 
-        // TODO: 아이템 처리 필요
         return Promise.resolve({
             isSucceeded: seekResult.type === INTERACT_SEEK_SUCCESS,
-            // 
         });
     }
 
@@ -688,18 +687,21 @@ export default class GameRepository {
     #handleItemAppliedObjectFailed(data) {
         console.log("handle:아이템object에 적용 실패");
     }
-    #handleItemAppliedPlayerSuccess(message){
+    // 탐색결과로 아이템 찾은 플레이어에게 아이템 적용 
+    #handleItemAppliedPlayerSuccess(message) {
         this.setItemSpeed(message.data.newSpeed);
-        if(message.data.item === "BEEHIVE"){
+        if (message.data.item === "BEEHIVE") {
             setTimeout(() => {
                 this.setItemSpeed(200);
             }, 5 * 1000);
-            
         }
-        if(message.data.item === "BANANA"){
+        if (message.data.item === "BANANA") {
             setTimeout(() => {
                 this.setItemSpeed(200);
             }, 5 * 1000);
+        }
+        if (message.data.item === "POISON_MUSHROOM") {
+            this.#isPoisonMushroomUsed = true; 
         }
     }
 
@@ -723,7 +725,7 @@ export default class GameRepository {
             }),
         });
 
-        if(item === "MUSHROOM"){
+        if (item === "MUSHROOM") {
             this.setIsMushroomUsed(true);
         }
 
@@ -741,16 +743,25 @@ export default class GameRepository {
     getItemW() {
         return this.#itemW;
     }
-    getItemSpeed(){
+    getItemSpeed() {
         return this.#itemSpeed;
     }
-    setItemSpeed(speed){
+    setItemSpeed(speed) {
         this.#itemSpeed = speed;
     }
-    getIsMushroomUsed(){
+    getIsMushroomUsed() {
         return this.#isMushroomUsed;
     }
-    setIsMushroomUsed(isUsed){
+    setIsMushroomUsed(isUsed) {
         this.#isMushroomUsed = isUsed;
     }
+
+    getIsPoisonMushroomUsed() {
+        return this.#isPoisonMushroomUsed;
+    }
+
+    setIsPoisonMushroomUsed(isUsed) {
+        this.#isPoisonMushroomUsed = isUsed;
+    }
+
 }
