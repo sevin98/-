@@ -11,8 +11,8 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 80vw;
-    height: 90vh;
+    width: 60vw;
+    height: 75vh;
     transform: translate(-50%, -50%);
     background-color: rgba(235, 235, 226, 0.6);
     z-index: -1;
@@ -38,16 +38,8 @@
     margin: 1rem 0;
 }
 
-/* .player-grid {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 1rem;
-    margin: 1rem 0;
-} */
-
 .player-slot.rpgui-container.framed {
-    width: 13rem;
+    width: 12rem;
     height: 10rem;
     display: flex !important;
     flex-direction: column !important;
@@ -62,34 +54,6 @@
     clear: none !important;
 }
 
-/* 플레이어 슬롯 스타일 */
-/* .player-slot {
-    display: flex;
-    width: 12rem;
-    height: 10rem;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 0.5rem;
-    text-align: center;
-    background-color: rgb(100, 96, 93);
-    border: 2px solid rgb(71, 54, 35);
-    border-radius: 4px;
-    position: relative;
-}
-
-.player-slot::before {
-    content: "";
-    position: absolute;
-    top: -5px;
-    left: -5px;
-    right: -5px;
-    bottom: -5px;
-    border: 2px solid rgb(65, 39, 0);
-    border-radius: 6px;
-    pointer-events: none;
-} */
-
 .player-ready-status.not-ready {
     color: #f3da4b;
 }
@@ -103,7 +67,7 @@
 }
 
 /* 채팅창 */
-.chat-box {
+/* .chat-box {
     border: 0.5rem solid #000;
     height: 5rem;
     overflow-y: auto;
@@ -113,17 +77,17 @@
     font-family: "MoveSans-Bold";
     color: white;
 
-}
+} */
 
 /* 카운트다운 표시 */
-.countdown-display,
+/* .countdown-display,
 .countdown-message {
     font-size: 1.2em;
     font-weight: bold;
     font-family: "MoveSans-Bold";
     color: white;
 
-}
+} */
 
 button.rpgui-button {
     align-items: center;
@@ -134,4 +98,27 @@ button.rpgui-button {
 button.rpgui-button h2 {
     margin: 0;
     font-size: 1em;
+}
+
+.modal {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50%;
+    padding: 2rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    font-family: "MoveSans-Bold";
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    font-family: "MoveSans-Bold";
 }

@@ -6,6 +6,7 @@ import { getRoomRepository, userRepository } from "../../repository";
 import EventBus from "../../game/EventBus";
 import axios, { updateAxiosAccessToken } from "../../network/AxiosClient";
 import { getStompClient } from "../../network/StompClient";
+import Modal from 'react-modal';
 
 import { LOGIN_FORM_ROUTE_PATH } from "../LoginForm/LoginForm";
 import { PHASER_GAME_ROUTE_PATH } from "../../game/PhaserGame";
@@ -13,7 +14,6 @@ import { LOBBY_ROUTE_PATH } from "../Lobby/Lobby";
 
 import {
     BackToLobbyButton,
-    ChatBox,
     PlayerGrid,
     ReadyButton,
     ShareRoomCodeButton,
@@ -39,10 +39,12 @@ export default function WaitingRoom() {
     const [joinedPlayers, setJoinedPlayers] = useState([]);
     const [isPlayerReady, setIsPlayerReady] = useState(false); // 접속한 사용자의 레디 여부
 
-    const [leftSecondsToStart, setLeftSecondsToStart] = useState(Infinity);
-    const [countdownMessage, setCountdownMessage] = useState(""); // 카운트다운 완료 메시지 상태
+    // const [leftSecondsToStart, setLeftSecondsToStart] = useState(Infinity);
+    // const [countdownMessage, setCountdownMessage] = useState(""); // 카운트다운 완료 메시지 상태
     const [roomRepository, setRoomRepository] = useState(null);
     let [isCountdownStarted, setIsCountdownStarted] = useState(false);
+    const [countdownTime, setCountdownTime] = useState(null);
+    const [showModal, setShowModal] = useState(false);
 
     const playerReadySoundAudio = new Audio(
         "/sounds/effect/classic-arcade-sfx/Jump_6.wav"
@@ -136,35 +138,61 @@ export default function WaitingRoom() {
         }
     };
 
-    const startCountdown = (gameStartsAt) => {
-        setCountdownMessage("게임이 곧 시작됩니다!");
+    // const startCountdown = (gameStartsAt) => {
+    //     setCountdownMessage("게임이 곧 시작됩니다!");
 
-        // 매우 짧은 주기로 남은 시간을 초 단위로 계산하여 줄여 나감
-        const leftSecondsToStart = Math.ceil(
-            (gameStartsAt - Date.now()) / 1000
-        );
-        setLeftSecondsToStart(leftSecondsToStart);
+    //     // 매우 짧은 주기로 남은 시간을 초 단위로 계산하여 줄여 나감
+    //     const leftSecondsToStart = Math.ceil(
+    //         (gameStartsAt - Date.now()) / 1000
+    //     );
+    //     setLeftSecondsToStart(leftSecondsToStart);
 
-        const countdownTimer = setInterval(() => {
-            // 남은 시간(초)이 바뀌었으면
-            const curLeftSeconds = Math.ceil(
-                (gameStartsAt - Date.now()) / 1000
-            );
-            if (leftSecondsToStart > curLeftSeconds) {
-                // 반영해주고
-                setLeftSecondsToStart(curLeftSeconds);
-                // 시작 시간이 되었으면
-                if (gameStartsAt <= Date.now()) {
-                    // 카운트다운 종료하고 게임 시작
-                    clearInterval(countdownTimer);
-                    setCountdownMessage("");
-                    navigate(PHASER_GAME_ROUTE_PATH, {
-                        state: { roomNumber },
-                    });
-                }
-            }
-        }, 10);
-    };
+    //     const countdownTimer = setInterval(() => {
+    //         // 남은 시간(초)이 바뀌었으면
+    //         const curLeftSeconds = Math.ceil(
+    //             (gameStartsAt - Date.now()) / 1000
+    //         );
+    //         if (leftSecondsToStart > curLeftSeconds) {
+    //             // 반영해주고
+    //             setLeftSecondsToStart(curLeftSeconds);
+    //             // 시작 시간이 되었으면
+    //             if (gameStartsAt <= Date.now()) {
+    //                 // 카운트다운 종료하고 게임 시작
+    //                 clearInterval(countdownTimer);
+    //                 setCountdownMessage("");
+    //                 navigate(PHASER_GAME_ROUTE_PATH, {
+    //                     state: { roomNumber },
+    //                 });
+    //             }
+    //         }
+    //     }, 10);
+    // };
+
+
+const startCountdown = (gameStartsAt) => {
+    const countdownIntervalId = setInterval(() => {
+        const now = new Date().getTime();
+        const countdown = gameStartsAt - now;
+
+        if (countdown <= 0) {
+            // 카운트다운이 종료되었을 때
+            setCountdownTime(0);
+            setShowModal(false);
+            clearInterval(countdownIntervalId);
+
+            navigate(PHASER_GAME_ROUTE_PATH, { 
+                state: { roomNumber }
+            });
+            return;
+        }
+
+        setCountdownTime(Math.ceil(countdown / 1000));
+    }, 1000);
+
+    setShowModal(true);
+};
+
+
 
     const onReadyBtnClicked = async () => {
         // 이미 준비 상태면 아무 작업도 하지 않음
@@ -190,6 +218,16 @@ export default function WaitingRoom() {
             <div className="wrapper rpgui-content">
                 <div className="waitingRoom-background-overlay"></div>
                 <div className="rpgui-container">
+                    <Modal
+                        isOpen={showModal}
+                        onRequestClose={() => setShowModal(false)}
+                        contentLabel="Game Start Countdown"
+                        className="modal"
+                        overlayClassName="modal-overlay"
+                    >
+                        <h2>게임이 곧 시작됩니다!</h2>
+                        <h3>{countdownTime !== null ? `남은 시간: ${countdownTime}초` : '계산 중...'}</h3>
+                    </Modal>
                     <BackToLobbyButton
                         onClick={onBackToLobbyBtnClicked}
                         isDisabled={isPlayerReady}
@@ -200,10 +238,10 @@ export default function WaitingRoom() {
                         onClick={onReadyBtnClicked}
                         isReady={isPlayerReady}
                     />
-                    <ChatBox
+                    {/* <ChatBox
                         leftSecondsToStart={leftSecondsToStart}
                         countdownMessage={countdownMessage}
-                    />
+                    /> */}
                 </div>
             </div>
         </div>

@@ -20,30 +20,30 @@ BackToLobbyButton.propTypes = {
     onClick: PropTypes.func.isRequired,
 };
 
-// ChatBox 컴포넌트
-function ChatBox({ leftSecondsToStart, countdownMessage }) {
-    const leftSoundsToStartDisplayingText =
-        leftSecondsToStart === Infinity || leftSecondsToStart === null
-            ? ""
-            : leftSecondsToStart;
-    return (
-        <div className="rpgui-container framed-grey chat-box">
-            <div className="countdown-display">
-                {leftSoundsToStartDisplayingText}
-            </div>
-            <h2 className="countdown-message">{countdownMessage}</h2>
-        </div>
-    );
-}
+// // ChatBox 컴포넌트
+// function ChatBox({ leftSecondsToStart, countdownMessage }) {
+//     const leftSoundsToStartDisplayingText =
+//         leftSecondsToStart === Infinity || leftSecondsToStart === null
+//             ? ""
+//             : leftSecondsToStart;
+//     return (
+//         <div className="rpgui-container framed-grey chat-box">
+//             <div className="countdown-display">
+//                 {leftSoundsToStartDisplayingText}
+//             </div>
+//             <h2 className="countdown-message">{countdownMessage}</h2>
+//         </div>
+//     );
+// }
 
-ChatBox.propTypes = {
-    leftSecondsToStart: PropTypes.number,
-    countdownMessage: PropTypes.oneOfType([
-        // 수정된 부분
-        PropTypes.string,
-        PropTypes.element, // JSX 요소도 허용
-    ]),
-};
+// ChatBox.propTypes = {
+//     leftSecondsToStart: PropTypes.number,
+//     countdownMessage: PropTypes.oneOfType([
+//         // 수정된 부분
+//         PropTypes.string,
+//         PropTypes.element, // JSX 요소도 허용
+//     ]),
+// };
 
 // PlayerSlot 컴포넌트
 function PlayerSlot({ player, isMe }) {
@@ -137,7 +137,6 @@ function ShareRoomCodeButton() {
 // 모든 컴포넌트를 내보냄
 export {
     BackToLobbyButton,
-    ChatBox,
     PlayerGrid,
     ReadyButton,
     ShareRoomCodeButton,
