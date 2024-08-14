@@ -583,6 +583,7 @@ export default class GameRepository {
         // TODO: 아이템 처리 필요
         return Promise.resolve({
             isSucceeded: seekResult.type === INTERACT_SEEK_SUCCESS,
+            // 
         });
     }
 
