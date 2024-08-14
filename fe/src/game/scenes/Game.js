@@ -597,64 +597,56 @@ export class game extends Phaser.Scene {
                                             closest.body.y + 10
                                         );
                                     } else {
-                                        console.log("탐색 실패");
+                                        console.log(
+                                            "obj에 아이템:",
+                                            gameRepository.getItemAppliedFromObject()
+                                        );
                                         this.hpSeekFailSound.play();
 
-                                        //여기 숨은 사람 없습니다 메세지
-                                        this.text.showTextFailFind(
-                                            this,
-                                            closest.body.x - 40,
-                                            closest.body.y - 40
-                                        );
-                                        // 이미지 넣었다가 사라지기
-                                        this.showFailedImage(
-                                            closest.body.x + 10,
-                                            closest.body.y + 10
-                                        );
+                                        if (
+                                            gameRepository.getItemAppliedFromObject() ===
+                                            "BANANA"
+                                        ) {
+                                            //TODO:아이템이 obj에서 발견됐을때 애니메이션 추가, 머리 위 아이템 이미지 띄우기
+                                        } else if (
+                                            gameRepository.getItemAppliedFromObject() ===
+                                            "BEEHIVE"
+                                        ) {
+                                            //TODO:아이템이 obj에서 발견됐을때 애니메이션 추가, 머리 위 아이템 이미지 띄우기
+                                        }
+                                        // 독버섯
+                                        else if (
+                                            gameRepository.getItemAppliedFromObject() ===
+                                            "POISON_MUSHROOM"
+                                        ) {
+                                            //TODO:아이템이 obj에서 발견됐을때 애니메이션 추가, 머리 위 아이템 이미지 띄우기
+                                            console.log("키반전");
+                                            this.playerMoveHandler.setReversed(
+                                                true
+                                            );
+                                            setTimeout(() => {
+                                                // 이후 set false
+                                                this.playerMoveHandler.setReversed(
+                                                    false
+                                                );
+                                                console.log("키반전 취소");
+                                            }, 5 * 1000); // 키반전이 더 빨리 풀리는것같은데 ? 
+                                        } else {
+                                            console.log("탐색실패");
+                                            this.text.showTextFailFind(
+                                                this,
+                                                closest.body.x - 40,
+                                                closest.body.y - 40
+                                            );
+                                            this.showFailedImage(
+                                                closest.body.x + 10,
+                                                closest.body.y + 10
+                                            );
 
-                                        // 50% 확률로 닭 출현
-                                        if (Math.random() < 0.5) {
-                                            uiControlQueue.addSurpriseChickenMessage();
-                                        }
-                                        // true면 잠깐동안 키반전
-                                        if (
-                                            gameRepository.getIsPoisonMushroomUsed()
-                                        ) {
-                                            // 키반전 이벤트
-                                            console.log("키반전");
-                                            this.playerMoveHandler.setReversed(
-                                                true
-                                            );
-                                            setTimeout(() => {
-                                                // 이후 set false
-                                                this.playerMoveHandler.setReversed(
-                                                    false
-                                                );
-                                                gameRepository.setIsPoisonMushroomUsed(
-                                                    false
-                                                );
-                                                console.log("키반전 취소");
-                                            }, 5 * 1000);
-                                        }
-                                        // true면 잠깐동안 키반전
-                                        if (
-                                            gameRepository.getIsPoisonMushroomUsed()
-                                        ) {
-                                            // 키반전 이벤트
-                                            console.log("키반전");
-                                            this.playerMoveHandler.setReversed(
-                                                true
-                                            );
-                                            setTimeout(() => {
-                                                // 이후 set false
-                                                this.playerMoveHandler.setReversed(
-                                                    false
-                                                );
-                                                gameRepository.setIsPoisonMushroomUsed(
-                                                    false
-                                                );
-                                                console.log("키반전 취소");
-                                            }, 5 * 1000);
+                                            // 50% 확률로 닭 출현
+                                            if (Math.random() < 0.5) {
+                                                uiControlQueue.addSurpriseChickenMessage();
+                                            }
                                         }
                                     }
                                 });
@@ -684,9 +676,7 @@ export class game extends Phaser.Scene {
                         );
                     });
                 }
-
-                // 이미 상위에서 gamerespo 생성되어있음,
-                // 아이템 사용 코드추가: Q눌렀을때
+                // 아이템 사용 코드
                 if (Phaser.Input.Keyboard.JustDown(this.m_cursorKeys.Q)) {
                     if (this.interactionEffect) {
                         // interactionEFFECT있을때 가장 가까운 objectid전달
@@ -703,6 +693,7 @@ export class game extends Phaser.Scene {
                                         gameRepository.getItemQ() ===
                                         "RED_PEPPER"
                                     ) {
+                                        //TODO: 고추 아이템 사용 중일때 머리 위 아이템 띄우기
                                         this.time.delayedCall(10 * 1000, () => {
                                             console.log("RED_PEPPER END");
                                             gameRepository.setItemSpeed(200);
@@ -712,6 +703,7 @@ export class game extends Phaser.Scene {
                                         gameRepository.getItemQ() !==
                                         "RED_PEPPER"
                                     ) {
+                                        //TODO: 방향버섯 아이템 사용 중일때 머리 위 아이템 띄우기
                                         this.time.delayedCall(5 * 1000, () => {
                                             gameRepository.setItemSpeed(200);
                                         });
@@ -733,6 +725,7 @@ export class game extends Phaser.Scene {
                                         gameRepository.getItemQ() ===
                                         "RED_PEPPER"
                                     ) {
+                                        //TODO: 고추 아이템 사용 중일때 머리 위 아이템 띄우기
                                         this.time.delayedCall(10 * 1000, () => {
                                             console.log("RED_PEPPER END");
                                             gameRepository.setItemSpeed(200);
@@ -742,6 +735,7 @@ export class game extends Phaser.Scene {
                                         gameRepository.getItemQ() !==
                                         "RED_PEPPER"
                                     ) {
+                                        //TODO: 방향버섯 아이템 사용 중일때 머리 위 아이템 띄우기
                                         this.time.delayedCall(5 * 1000, () => {
                                             gameRepository.setItemSpeed(200);
                                         });
@@ -768,6 +762,7 @@ export class game extends Phaser.Scene {
                                         gameRepository.getItemW() ===
                                         "RED_PEPPER"
                                     ) {
+                                        //TODO: 고추 아이템 사용 중일때 머리 위 아이템 띄우기
                                         this.time.delayedCall(10 * 1000, () => {
                                             console.log("RED_PEPPER END");
                                             gameRepository.setItemSpeed(200);
@@ -777,6 +772,7 @@ export class game extends Phaser.Scene {
                                         gameRepository.getItemW() !==
                                         "RED_PEPPER"
                                     ) {
+                                        //TODO: 방향버섯 아이템 사용 중일때 머리 위 아이템 띄우기
                                         this.time.delayedCall(5 * 1000, () => {
                                             gameRepository.setItemSpeed(200);
                                         });
@@ -798,6 +794,7 @@ export class game extends Phaser.Scene {
                                         gameRepository.getItemW() ===
                                         "RED_PEPPER"
                                     ) {
+                                        //TODO: 고추 아이템 사용 중일때 머리 위 아이템 띄우기
                                         this.time.delayedCall(10 * 1000, () => {
                                             console.log("RED_PEPPER END");
                                             gameRepository.setItemSpeed(200);
@@ -807,6 +804,7 @@ export class game extends Phaser.Scene {
                                         gameRepository.getItemW() !==
                                         "RED_PEPPER"
                                     ) {
+                                        //TODO: 방향버섯 아이템 사용 중일때 머리 위 아이템 띄우기
                                         this.time.delayedCall(5 * 1000, () => {
                                             gameRepository.setItemSpeed(200);
                                         });
