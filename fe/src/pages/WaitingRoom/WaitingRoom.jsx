@@ -188,7 +188,8 @@ export default function WaitingRoom() {
     return (
         <div id="container" className="rpgui-cursor-default">
             <div className="wrapper rpgui-content">
-                <div className="rpgui-container framed">
+                <div className="waitingRoom-background-overlay"></div>
+                <div className="rpgui-container">
                     <BackToLobbyButton
                         onClick={onBackToLobbyBtnClicked}
                         isDisabled={isPlayerReady}

@@ -49,7 +49,7 @@ ChatBox.propTypes = {
 function PlayerSlot({ player, isMe }) {
     if (!player) {
         return (
-            <div className="player-slot empty">
+            <div className="rpgui-container framed player-slot empty">
                 <h2 className="empty-slot">기다리는 중</h2>
             </div>
         );
@@ -57,7 +57,7 @@ function PlayerSlot({ player, isMe }) {
 
     return (
         <div
-            className={`player-slot ${
+            className={`rpgui-container framed player-slot ${
                 player.getIsReady() ? "ready" : ""
             } ${isMe ? "me" : ""}`}
         >
@@ -90,7 +90,7 @@ function PlayerGrid({ players }) {
             {slots.map((player, index) => (
                 <PlayerSlot key={index} player={player} isMe={index === 0} />
             ))}
-        </div>
+            </div>
     );
 }
 
