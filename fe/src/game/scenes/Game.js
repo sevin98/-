@@ -35,7 +35,6 @@ export class game extends Phaser.Scene {
 
         this.updatePaused = false;
         this.gameResults = [];
-        this.winningTeam = null;
     }
 
     preload() {
@@ -54,6 +53,7 @@ export class game extends Phaser.Scene {
         // 키 입력 이벤트 추가
         this.m_cursorKeys.Q = this.input.keyboard.addKey("Q");
         this.m_cursorKeys.W = this.input.keyboard.addKey("W");
+        this.m_cursorKeys.R = this.input.keyboard.addKey("R");
 
         this.text = new TextGroup(this); // 팝업텍스트 객체
 
@@ -84,15 +84,14 @@ export class game extends Phaser.Scene {
                     true
                 );
                 playercam.startFollow(this.localPlayer);
-
                 // player.js 에서 player 키조작이벤트 불러옴
                 this.playerMoveHandler = new HandlePlayerMove(
                     this.cursors,
                     this.localPlayer,
                     this.headDir,
-                    this.moving
+                    this.moving,
+                    // this.isReversed,//preload에 false로 시작, this.localPlayer.isReversed = false;
                 );
-
                 // 죽은 플레이어는 충돌 처리 안함
                 const passDeadPlayerCollider = (wall, playerSprite) => {
                     return !me.isDead();
@@ -202,6 +201,19 @@ export class game extends Phaser.Scene {
     }
 
     update() {
+        // R누르고 현재 reversed가 false면
+        if (Phaser.Input.Keyboard.JustDown(this.m_cursorKeys.R)) {
+            console.log('R눌림')
+
+            if (!this.playerMoveHandler.isReversed) {
+                this.playerMoveHandler.setReversed(true)
+                console.log("키반전");
+            } else {
+                this.playerMoveHandler.setReversed(false)
+                console.log("원래대로");
+            }
+        }
+
         if (this.updatePaused) {
             return;
         }
@@ -263,7 +275,6 @@ export class game extends Phaser.Scene {
                         }
                     }
                 }
-
                 // 죽었으면 무조건 숨기고 움직임 허용
                 if (me.isDead()) {
                     this.localPlayer.visible = false;
@@ -626,7 +637,6 @@ export class game extends Phaser.Scene {
                     this.modalShown === false
                 ) {
                     this.gameResults = gameRepository.getGameResults();
-                    this.winningTeam = gameRepository.getWinningTeam();
                     this.showEndGameModal();
                     this.modalShown = true;
 
@@ -697,7 +707,8 @@ export class game extends Phaser.Scene {
                                 }
                             });
                     }
-                } else if ( // W키
+                } else if (
+                    // W키
                     Phaser.Input.Keyboard.JustDown(this.m_cursorKeys.W)
                 ) {
                     if (this.interactionEffect) {
@@ -769,9 +780,7 @@ export class game extends Phaser.Scene {
 
         // 게임 결과를 HTML로 변환
         let resultsHtml = `
-        <h3 style="font-size: 1.8em; text-align: center; margin-bottom: 1.2em; margin-top: 1.2em;">
-            Game Results - ${this.winningTeam} Win!
-        </h3>
+        <h3 style="font-size: 2.0em; text-align: center; margin-bottom: 1.2em; margin-top: 1.2em;">Game Results</h3>
         <div style="display: flex; justify-content: space-between;">
             <div style="width: 48%;">
                 <h4 style="text-align: center;">Team RACOON</h4>
@@ -871,8 +880,8 @@ export class game extends Phaser.Scene {
     showSuccessImage(x, y) {
         const image = this.add.image(x, y, "success");
         image.setDepth(10); //
-        // 1초후에 이미지를 페이드 아웃하고 제거
-        this.time.delayedCall(3000, () => {
+        // 2초후에 이미지를 페이드 아웃하고 제거
+        this.time.delayedCall(2000, () => {
             this.tweens.add({
                 targets: image,
                 alpha: 0,
@@ -888,8 +897,8 @@ export class game extends Phaser.Scene {
     showFailedImage(x, y) {
         const image = this.add.image(x, y, "failed");
         image.setDepth(10); //
-        // 1초후에 이미지를 페이드 아웃하고 제거
-        this.time.delayedCall(3000, () => {
+        // 2초후에 이미지를 페이드 아웃하고 제거
+        this.time.delayedCall(2000, () => {
             this.tweens.add({
                 targets: image,
                 alpha: 0,

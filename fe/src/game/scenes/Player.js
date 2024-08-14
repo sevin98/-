@@ -15,13 +15,20 @@ export const Direction = Object.freeze({
 
 export class HandlePlayerMove {
     //player 키조작
+
     constructor(cursors, player, headDir, moving) {
         this.m_cursorKeys = cursors;
         this.localPlayer = player;
         this.headDir = headDir;
         this.moving = moving;
+        this.isReversed = false;
+        // this.isReversed = reverse; // true 면 반대로 움직임
 
         this.roomRepository = getRoomRepository();
+    }
+    // isReversed를 설정하는 메서드 추가
+    setReversed(value) {
+        this.isReversed = value;
     }
 
     freezePlayerMovement() {
@@ -36,6 +43,7 @@ export class HandlePlayerMove {
     }
 
     update(footstepSound) {
+        // 못움직일때
         if (!this.canMove()) {
             this.freezePlayerMovement();
             if (this.localPlayer.getIsFootstepSoundPlaying()) {
@@ -44,6 +52,7 @@ export class HandlePlayerMove {
             return;
         }
 
+        // 키가 안눌려있을때
         if (
             this.m_cursorKeys.left.isUp &&
             this.m_cursorKeys.right.isUp &&
@@ -51,55 +60,109 @@ export class HandlePlayerMove {
             this.m_cursorKeys.up.isUp
         ) {
             this.moving = 0;
+        } else {
+            if (!this.isReversed) {
+                // 원래 움직임 코드
+                if (this.m_cursorKeys.left.isDown) {
+                    if (
+                        (this.moving == 1 && this.headDir == 3) ||
+                        this.moving == 0
+                    ) {
+                        this.localPlayer.move(Direction.Left);
+                        this.headDir = 3;
+                        this.moving = 1;
+                    }
+                }
+                if (this.m_cursorKeys.right.isDown) {
+                    if (
+                        (this.moving == 1 && this.headDir == 1) ||
+                        this.moving == 0
+                    ) {
+                        this.localPlayer.move(Direction.Right);
+                        this.headDir = 1;
+                        this.moving = 1;
+                    }
+                }
+                if (this.m_cursorKeys.up.isDown) {
+                    if (
+                        (this.moving == 1 && this.headDir == 0) ||
+                        this.moving == 0
+                    ) {
+                        this.localPlayer.move(Direction.Up);
+                        this.headDir = 0;
+                        this.moving = 1;
+                    }
+                }
+                if (this.m_cursorKeys.down.isDown) {
+                    if (
+                        (this.moving == 1 && this.headDir == 2) ||
+                        this.moving == 0
+                    ) {
+                        this.localPlayer.move(Direction.Down);
+                        this.headDir = 2;
+                        this.moving = 1;
+                    }
+                }
+            } else {
+                // 키반전 이벤트
+                if (this.m_cursorKeys.left.isDown) {
+                    if (
+                        (this.moving == 1 && this.headDir == 3) ||
+                        this.moving == 0
+                    ) {
+                        this.localPlayer.move(Direction.Right);
+                        this.headDir = 3;
+                        this.moving = 1;
+                    }
+                }
+                if (this.m_cursorKeys.right.isDown) {
+                    if (
+                        (this.moving == 1 && this.headDir == 1) ||
+                        this.moving == 0
+                    ) {
+                        this.localPlayer.move(Direction.Left);
+                        this.headDir = 1;
+                        this.moving = 1;
+                    }
+                }
+                if (this.m_cursorKeys.up.isDown) {
+                    if (
+                        (this.moving == 1 && this.headDir == 0) ||
+                        this.moving == 0
+                    ) {
+                        this.localPlayer.move(Direction.Down);
+                        this.headDir = 0;
+                        this.moving = 1;
+                    }
+                }
+                if (this.m_cursorKeys.down.isDown) {
+                    if (
+                        (this.moving == 1 && this.headDir == 2) ||
+                        this.moving == 0
+                    ) {
+                        this.localPlayer.move(Direction.Up);
+                        this.headDir = 2;
+                        this.moving = 1;
+                    }
+                }
+            }
+        }
+        // 움직임에 따른 소리 코드 분리
+        if (
+            this.m_cursorKeys.left.isUp &&
+            this.m_cursorKeys.right.isUp &&
+            this.m_cursorKeys.down.isUp &&
+            this.m_cursorKeys.up.isUp
+        ) {
             if (this.localPlayer.getIsFootstepSoundPlaying()) {
                 footstepSound.stop();
                 this.localPlayer.setIsFootstepSoundPlaying(false);
             }
         } else {
+            // 키가 눌려있을때
             if (!this.localPlayer.getIsFootstepSoundPlaying()) {
                 footstepSound.play();
                 this.localPlayer.setIsFootstepSoundPlaying(true);
-            }
-
-            if (this.m_cursorKeys.left.isDown) {
-                if (
-                    (this.moving == 1 && this.headDir == 3) ||
-                    this.moving == 0
-                ) {
-                    this.localPlayer.move(Direction.Left);
-                    this.headDir = 3;
-                    this.moving = 1;
-                }
-            }
-            if (this.m_cursorKeys.right.isDown) {
-                if (
-                    (this.moving == 1 && this.headDir == 1) ||
-                    this.moving == 0
-                ) {
-                    this.localPlayer.move(Direction.Right);
-                    this.headDir = 1;
-                    this.moving = 1;
-                }
-            }
-            if (this.m_cursorKeys.up.isDown) {
-                if (
-                    (this.moving == 1 && this.headDir == 0) ||
-                    this.moving == 0
-                ) {
-                    this.localPlayer.move(Direction.Up);
-                    this.headDir = 0;
-                    this.moving = 1;
-                }
-            }
-            if (this.m_cursorKeys.down.isDown) {
-                if (
-                    (this.moving == 1 && this.headDir == 2) ||
-                    this.moving == 0
-                ) {
-                    this.localPlayer.move(Direction.Down);
-                    this.headDir = 2;
-                    this.moving = 1;
-                }
             }
         }
 
@@ -131,6 +194,7 @@ export class HandlePlayerMove {
             });
         });
     }
+
     getDirectionOfPlayer() {
         switch (this.headDir) {
             case 0:
@@ -153,7 +217,6 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
     
     constructor(scene, x, y, texture) {
         super(scene, x, y, texture);
-        
         this.PLAYER_SPEED = 200;
         this.scale = 1;
         this.alpha = 1;

@@ -81,19 +81,19 @@ function RankingPage() {
                     className="rpgui-button"
                     onClick={() => setSortCriteria("wins")}
                 >
-                    승수 순
+                    <h2>승수 순</h2>
                 </button>
                 <button
                     className="rpgui-button"
                     onClick={() => setSortCriteria("catch-count")}
                 >
-                    잡은 수 순
+                    <h2>잡은 수 순</h2>
                 </button>
                 <button
                     className="rpgui-button"
                     onClick={() => setSortCriteria("survival-time")}
                 >
-                    생존 시간 순
+                    <h2>생존 시간 순</h2>
                 </button>
             </div>
 
