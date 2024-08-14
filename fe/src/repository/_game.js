@@ -86,6 +86,7 @@ export default class GameRepository {
     #itemW;
     #itemSpeed = 200; // 현재의 아이템 스피드
     #gameResults = [];
+    #isMushroomUsed = false;
 
     #seekFailCatchCount = 0; // 기본값 0
 
@@ -721,6 +722,10 @@ export default class GameRepository {
             }),
         });
 
+        if(item === "MUSHROOM"){
+            this.setIsMushroomUsed(true);
+        }
+
         const requestItemResult = await asyncResponses.get(requestId);
         return Promise.resolve({
             isSucceeded: requestItemResult.type === "ITEM_APPLIED_TO_PLAYER",
@@ -740,5 +745,11 @@ export default class GameRepository {
     }
     setItemSpeed(speed){
         this.#itemSpeed = speed;
+    }
+    getIsMushroomUsed(){
+        return this.#isMushroomUsed;
+    }
+    setIsMushroomUsed(isUsed){
+        this.#isMushroomUsed = isUsed;
     }
 }
