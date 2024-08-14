@@ -39,7 +39,6 @@ public class Game extends Subscribable implements Runnable {
 
     private static final int SAFE_ZONE_REDUCE_AMOUNT = 100;
     private static final int SAFE_ZONE_REDUCE_DURATION = 10;
-
     private static final int TOTAL_ROUND = 100;
     // 게임 맵
     private final GameMap gameMap;
@@ -568,17 +567,19 @@ public class Game extends Subscribable implements Runnable {
     // 자기 자신에게 아이템 적용
     public void applyItemToPlayer(String playerId, Item item, Duration duration, String appliedById, String requestId) {
         Player player = room.getPlayerWith(playerId);
-        ItemInfo itemInfo = new ItemInfo(room.getRoomNumber(), playerId, playerId, item, duration, player.getSpeed(), appliedById);
+//        ItemInfo itemInfo = new ItemInfo(room.getRoomNumber(), playerId, playerId, item, duration, player.getSpeed(), appliedById);
 
         // 플레이어에게 현재 적용된 아이템이 없다면 아이템을 적용시킨다.
         if (player.getCurrentItem() == null) {
             player.applyItem(item, duration, appliedById);
+            ItemInfo itemInfo = new ItemInfo(room.getRoomNumber(), playerId, playerId, item, duration, player.getSpeed(), appliedById);
             ItemAppliedMessage message = new ItemAppliedMessage(itemInfo, requestId);
             broadcastService.broadcastTo(this, message);
             broadcastService.unicastTo(player, message);
 
             // 이미 적용된 아이템이 있다면 아이템 적용 실패
         } else {
+            ItemInfo itemInfo = new ItemInfo(room.getRoomNumber(), playerId, playerId, item, duration, player.getSpeed(), appliedById);
             ItemApplicationFailedToPlayerMessage message = new ItemApplicationFailedToPlayerMessage(itemInfo, requestId);
             broadcastService.broadcastTo(this, message);
             broadcastService.unicastTo(player, message);
@@ -637,7 +638,7 @@ public class Game extends Subscribable implements Runnable {
         // 아이템 타입이 자신에게 사용되는 아이템이라면 고추, 버섯
         if (item.isApplicableToPlayer()) {
             // targetId 를 본인으로 설정해준다.
-            applyItemToPlayer(targetId, item, item.getDuration(), playerId, requestId);
+            applyItemToPlayer(playerId, item, item.getDuration(), playerId, requestId);
 
             // 아이템 타입이 오브젝트에 사용되는 아이템이라면 바나나, 벌통
         } else if (item.isApplicableToHPObject()) {
@@ -765,9 +766,15 @@ public class Game extends Subscribable implements Runnable {
         Random random = new Random();
         // 일단 아이템 칸수는 2개로 하고, 추후 조정 가능하게끔 상수로 관리
         int numItems = 2;
-        for (int i = 0; i < numItems; i++) {
+
+        Set<Item> randomItems = new HashSet<>();
+        while (randomItems.size() < numItems) {
             Item randomItem = availableItems.get(random.nextInt(availableItems.size()));
-            player.addItem(randomItem);
+            randomItems.add(randomItem);
+        }
+
+        for (Item item : randomItems) {
+            player.addItem(item);
         }
     }
 
