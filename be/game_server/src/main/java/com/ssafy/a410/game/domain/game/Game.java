@@ -631,7 +631,7 @@ public class Game extends Subscribable implements Runnable {
         // 아이템 타입이 자신에게 사용되는 아이템이라면 고추, 버섯
         if (item.isApplicableToPlayer()) {
             // targetId 를 본인으로 설정해준다.
-            applyItemToPlayer(targetId, item, item.getDuration(), playerId, requestId);
+            applyItemToPlayer(playerId, item, item.getDuration(), playerId, requestId);
 
             // 아이템 타입이 오브젝트에 사용되는 아이템이라면 바나나, 벌통
         } else if (item.isApplicableToHPObject()) {
