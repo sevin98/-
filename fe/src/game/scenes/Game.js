@@ -82,7 +82,7 @@ export class game extends Phaser.Scene {
                     x,
                     y,
                     "fauna-idle-down",
-                    true
+                    me.getPlayerNickname()
                 );
                 playercam.startFollow(this.localPlayer);
                 // player.js 에서 player 키조작이벤트 불러옴
@@ -622,14 +622,39 @@ export class game extends Phaser.Scene {
                                         ) {
                                             // 키반전 이벤트
                                             console.log("키반전");
-                                            this.playerMoveHandler.setReversed(true);
+                                            this.playerMoveHandler.setReversed(
+                                                true
+                                            );
                                             setTimeout(() => {
                                                 // 이후 set false
-                                                this.playerMoveHandler.setReversed(false);
-                                                gameRepository.setIsPoisonMushroomUsed(false);
+                                                this.playerMoveHandler.setReversed(
+                                                    false
+                                                );
+                                                gameRepository.setIsPoisonMushroomUsed(
+                                                    false
+                                                );
                                                 console.log("키반전 취소");
                                             }, 5 * 1000);
-
+                                        }
+                                        // true면 잠깐동안 키반전
+                                        if (
+                                            gameRepository.getIsPoisonMushroomUsed()
+                                        ) {
+                                            // 키반전 이벤트
+                                            console.log("키반전");
+                                            this.playerMoveHandler.setReversed(
+                                                true
+                                            );
+                                            setTimeout(() => {
+                                                // 이후 set false
+                                                this.playerMoveHandler.setReversed(
+                                                    false
+                                                );
+                                                gameRepository.setIsPoisonMushroomUsed(
+                                                    false
+                                                );
+                                                console.log("키반전 취소");
+                                            }, 5 * 1000);
                                         }
                                     }
                                 });
