@@ -76,6 +76,7 @@ export class Preloader extends Scene {
 
         // 로딩 화면 배경색
         this.cameras.main.setBackgroundColor("#028af8");
+
         // HP 탐색 성공
         this.load.audio(
             "hp-seek-success",
@@ -84,6 +85,12 @@ export class Preloader extends Scene {
 
         // HP 탐색 실패
         this.load.audio("hp-seek-fail", "sounds/effect/etc/hp-seek-fail.wav");
+
+        // 숨기 성공
+        this.load.audio(
+            "hide-success-sound",
+            "sounds/effect/etc/open-door.mp3"
+        );
     }
 
     create() {

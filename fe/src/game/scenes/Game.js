@@ -199,6 +199,10 @@ export class game extends Phaser.Scene {
         this.hpSeekFailSound = this.sound.add("hp-seek-fail", {
             volume: 1,
         });
+
+        this.hideSuccessSound = this.sound.add("hide-success-sound", {
+            volume: 1,
+        });
     }
 
     update() {
@@ -549,6 +553,7 @@ export class game extends Phaser.Scene {
                                             closest.body.x - 40,
                                             closest.body.y - 40
                                         );
+                                        this.hideSuccessSound.play();
                                         //숨었을때 로컬플레이어 숨음으로 상태 변경
                                         // this.getGameRepository.getMe().setIsHiding();
                                     } else {
@@ -622,14 +627,19 @@ export class game extends Phaser.Scene {
                                         ) {
                                             // 키반전 이벤트
                                             console.log("키반전");
-                                            this.playerMoveHandler.setReversed(true);
+                                            this.playerMoveHandler.setReversed(
+                                                true
+                                            );
                                             setTimeout(() => {
                                                 // 이후 set false
-                                                this.playerMoveHandler.setReversed(false);
-                                                gameRepository.setIsPoisonMushroomUsed(false);
+                                                this.playerMoveHandler.setReversed(
+                                                    false
+                                                );
+                                                gameRepository.setIsPoisonMushroomUsed(
+                                                    false
+                                                );
                                                 console.log("키반전 취소");
                                             }, 5 * 1000);
-
                                         }
                                     }
                                 });
