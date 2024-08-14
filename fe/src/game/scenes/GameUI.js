@@ -54,10 +54,6 @@ export default class GameUI extends Phaser.Scene {
         );
 
         this.load.image(
-            "chickenEffectImage",
-            "assets/object/chickenEffectImage.png"
-        );
-        this.load.image(
             "chickenEffectPhoto",
             "assets/object/chickenEffectPhoto.png"
         );
@@ -126,8 +122,6 @@ export default class GameUI extends Phaser.Scene {
     create() {
         //초기 아이템 이미지 업데이트
         this.createInitialItems();
-        // 치킨 이펙트 관리할 배열, 초기 찾기 실패 횟수
-        this.chickenEffects = [];
         this.prevseekFailCount = 0;
 
         //초기화
@@ -507,16 +501,11 @@ export default class GameUI extends Phaser.Scene {
     }
 
     showChickenEffect(isHidingTeam, seekFailCount) {
-        // if (!this.chickenEffects) {
-        //     this.chickenEffects = [];
-        // }
         if (isHidingTeam) {
             // 전부 안보이게 하기
-            this.chickenEffects.forEach((effect) => effect.setVisible(false));
             return;
         }
         // 전부 보이게 만들기
-        // this.chickenEffects.forEach((effect) => effect.setVisible(true));
         if (seekFailCount > this.prevseekFailCount) {
             console.log("실패이펙트 함수 실행");
             console.log("카메라 찾기");
@@ -543,8 +532,6 @@ export default class GameUI extends Phaser.Scene {
             const newEffect = this.add
                 .image(x, y, "chickenEffectImage")
                 .setOrigin(0.5);
-            // 배열에 추가
-            this.chickenEffects.push(newEffect);
             // 탐색 횟수 업데이트
             this.prevseekFailCount = seekFailCount;
         }
