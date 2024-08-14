@@ -168,6 +168,16 @@ export default function WaitingRoom() {
     //     }, 10);
     // };
 
+const getImageSrc = (time) => {
+        switch (time) {
+            case 5: return '/image/one.png';
+            case 4: return '/image/two.png';
+            case 3: return '/image/three.png';
+            case 2: return '/image/two.png';
+            case 1: return '/image/one.png';
+            default: return null;
+        }
+    };
 
 const startCountdown = (gameStartsAt) => {
     const countdownIntervalId = setInterval(() => {
@@ -216,23 +226,33 @@ const startCountdown = (gameStartsAt) => {
     return (
         <div id="container" className="rpgui-cursor-default">
             <div className="wrapper rpgui-content">
-                <div className="waitingRoom-background-overlay"></div>
                 <div className="rpgui-container">
                     <Modal
                         isOpen={showModal}
                         onRequestClose={() => setShowModal(false)}
                         contentLabel="Game Start Countdown"
-                        className="modal"
-                        overlayClassName="modal-overlay"
+                        className="countdown-modal"
+                        overlayClassName="countdown-modal-overlay"
                     >
-                        <h2>게임이 곧 시작됩니다!</h2>
-                        <h3>{countdownTime !== null ? `남은 시간: ${countdownTime}초` : '계산 중...'}</h3>
+                    <div className="countdown-modal-content">
+                        <img src="/image/countdown-logo.png" alt="Logo" className="countdown-logo" />
+                            {/* <h3>{countdownTime !== null ? `남은 시간: ${countdownTime}초` : '계산 중...'}</h3> */}
+                            {countdownTime > 0 && (
+                            <img 
+                                src={getImageSrc(countdownTime)} 
+                                alt={`Countdown ${countdownTime}`} 
+                                className="countdown-image" 
+                            />
+                    )}
+                    </div>
                     </Modal>
+                    <div className="button-group">
                     <BackToLobbyButton
                         onClick={onBackToLobbyBtnClicked}
                         isDisabled={isPlayerReady}
                     />
                     <ShareRoomCodeButton />
+                    </div>
                     <PlayerGrid players={joinedPlayers} />
                     <ReadyButton
                         onClick={onReadyBtnClicked}
