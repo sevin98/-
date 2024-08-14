@@ -88,6 +88,7 @@ export default class GameRepository {
     #itemSpeed = 200; // 현재의 아이템 스피드
     #gameResults = [];
     #isMushroomUsed = false;
+    #isPoisonMushroomUsed = false;
 
     #seekFailCatchCount = 0; // 기본값 0
 
@@ -237,9 +238,7 @@ export default class GameRepository {
 
     #handlePhaseChangeEvent(data) {
         this.#currentPhase = data.phase;
-        this.#nextPhaseChangeAt = new Date(
-            Date.now() + data.finishAfterMilliSec
-        );
+        this.#nextPhaseChangeAt = Date.parse(data.changeAt);
         this.#currentPhaseFinishAfterMilliSec = data.finishAfterMilliSec;
 
         console.log(
@@ -455,7 +454,7 @@ export default class GameRepository {
     }
 
     #handleGameResultEvent(data) {
-        if(this.#gameResultFlag === true) return;
+        if (this.#gameResultFlag === true) return;
         this.#gameResultFlag = true;
         console.log("게임 결과 수신 : " + data);
         Object.keys(data).forEach((team) => {
@@ -586,10 +585,8 @@ export default class GameRepository {
             this.#handleSeekFailResult(seekResult.data);
         }
 
-        // TODO: 아이템 처리 필요
         return Promise.resolve({
             isSucceeded: seekResult.type === INTERACT_SEEK_SUCCESS,
-            // 
         });
     }
 
@@ -623,6 +620,8 @@ export default class GameRepository {
         // 남은 시도 횟수 갱신
         requestedPlayer.setRestSeekCount(restCatchCount);
 
+        this.#seekFailCatchCount = data.catchCount;
+
         uiControlQueue.addUpdateSeekCountUiMessage(restCatchCount);
 
         // TODO : HP에 뭔 짓을 해줘야 함?
@@ -640,6 +639,7 @@ export default class GameRepository {
     getCurrentPhaseFinishAfterMilliSec() {
         return this.#currentPhaseFinishAfterMilliSec;
     }
+
     //맵축소
     #handleSafeZoneUpdateEvent(data) {
         const safeZone = data; //[0, 0, 1600, 1600],
@@ -691,18 +691,21 @@ export default class GameRepository {
     #handleItemAppliedObjectFailed(data) {
         console.log("handle:아이템object에 적용 실패");
     }
-    #handleItemAppliedPlayerSuccess(message){
+    // 탐색결과로 아이템 찾은 플레이어에게 아이템 적용
+    #handleItemAppliedPlayerSuccess(message) {
         this.setItemSpeed(message.data.newSpeed);
-        if(message.data.item === "BEEHIVE"){
+        if (message.data.item === "BEEHIVE") {
             setTimeout(() => {
                 this.setItemSpeed(200);
             }, 5 * 1000);
-            
         }
-        if(message.data.item === "BANANA"){
+        if (message.data.item === "BANANA") {
             setTimeout(() => {
                 this.setItemSpeed(200);
             }, 5 * 1000);
+        }
+        if (message.data.item === "POISON_MUSHROOM") {
+            this.#isPoisonMushroomUsed = true;
         }
     }
 
@@ -726,7 +729,7 @@ export default class GameRepository {
             }),
         });
 
-        if(item === "MUSHROOM"){
+        if (item === "MUSHROOM") {
             this.setIsMushroomUsed(true);
         }
 
@@ -744,16 +747,24 @@ export default class GameRepository {
     getItemW() {
         return this.#itemW;
     }
-    getItemSpeed(){
+    getItemSpeed() {
         return this.#itemSpeed;
     }
-    setItemSpeed(speed){
+    setItemSpeed(speed) {
         this.#itemSpeed = speed;
     }
-    getIsMushroomUsed(){
+    getIsMushroomUsed() {
         return this.#isMushroomUsed;
     }
-    setIsMushroomUsed(isUsed){
+    setIsMushroomUsed(isUsed) {
         this.#isMushroomUsed = isUsed;
+    }
+
+    getIsPoisonMushroomUsed() {
+        return this.#isPoisonMushroomUsed;
+    }
+
+    setIsPoisonMushroomUsed(isUsed) {
+        this.#isPoisonMushroomUsed = isUsed;
     }
 }

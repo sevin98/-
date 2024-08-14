@@ -202,19 +202,6 @@ export class game extends Phaser.Scene {
     }
 
     update() {
-        // R누르고 현재 reversed가 false면
-        if (Phaser.Input.Keyboard.JustDown(this.m_cursorKeys.R)) {
-            console.log("R눌림");
-
-            if (!this.playerMoveHandler.isReversed) {
-                this.playerMoveHandler.setReversed(true);
-                console.log("키반전");
-            } else {
-                this.playerMoveHandler.setReversed(false);
-                console.log("원래대로");
-            }
-        }
-
         if (this.updatePaused) {
             return;
         }
@@ -628,6 +615,46 @@ export class game extends Phaser.Scene {
                                         // 50% 확률로 닭 출현
                                         if (Math.random() < 0.5) {
                                             uiControlQueue.addSurpriseChickenMessage();
+                                        }
+                                        // true면 잠깐동안 키반전
+                                        if (
+                                            gameRepository.getIsPoisonMushroomUsed()
+                                        ) {
+                                            // 키반전 이벤트
+                                            console.log("키반전");
+                                            this.playerMoveHandler.setReversed(
+                                                true
+                                            );
+                                            setTimeout(() => {
+                                                // 이후 set false
+                                                this.playerMoveHandler.setReversed(
+                                                    false
+                                                );
+                                                gameRepository.setIsPoisonMushroomUsed(
+                                                    false
+                                                );
+                                                console.log("키반전 취소");
+                                            }, 5 * 1000);
+                                        }
+                                        // true면 잠깐동안 키반전
+                                        if (
+                                            gameRepository.getIsPoisonMushroomUsed()
+                                        ) {
+                                            // 키반전 이벤트
+                                            console.log("키반전");
+                                            this.playerMoveHandler.setReversed(
+                                                true
+                                            );
+                                            setTimeout(() => {
+                                                // 이후 set false
+                                                this.playerMoveHandler.setReversed(
+                                                    false
+                                                );
+                                                gameRepository.setIsPoisonMushroomUsed(
+                                                    false
+                                                );
+                                                console.log("키반전 취소");
+                                            }, 5 * 1000);
                                         }
                                     }
                                 });
