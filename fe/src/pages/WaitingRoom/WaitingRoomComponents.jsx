@@ -20,49 +20,47 @@ BackToLobbyButton.propTypes = {
     onClick: PropTypes.func.isRequired,
 };
 
-// ChatBox 컴포넌트
-function ChatBox({ leftSecondsToStart, countdownMessage }) {
-    const leftSoundsToStartDisplayingText =
-        leftSecondsToStart === Infinity || leftSecondsToStart === null
-            ? ""
-            : leftSecondsToStart;
-    return (
-        <div className="rpgui-container framed-grey chat-box">
-            <div className="countdown-display">
-                {leftSoundsToStartDisplayingText}
-            </div>
-            <h2 className="countdown-message">{countdownMessage}</h2>
-        </div>
-    );
-}
+// // ChatBox 컴포넌트
+// function ChatBox({ leftSecondsToStart, countdownMessage }) {
+//     const leftSoundsToStartDisplayingText =
+//         leftSecondsToStart === Infinity || leftSecondsToStart === null
+//             ? ""
+//             : leftSecondsToStart;
+//     return (
+//         <div className="rpgui-container framed-grey chat-box">
+//             <div className="countdown-display">
+//                 {leftSoundsToStartDisplayingText}
+//             </div>
+//             <h2 className="countdown-message">{countdownMessage}</h2>
+//         </div>
+//     );
+// }
 
-ChatBox.propTypes = {
-    leftSecondsToStart: PropTypes.number,
-    countdownMessage: PropTypes.oneOfType([
-        // 수정된 부분
-        PropTypes.string,
-        PropTypes.element, // JSX 요소도 허용
-    ]),
-};
+// ChatBox.propTypes = {
+//     leftSecondsToStart: PropTypes.number,
+//     countdownMessage: PropTypes.oneOfType([
+//         // 수정된 부분
+//         PropTypes.string,
+//         PropTypes.element, // JSX 요소도 허용
+//     ]),
+// };
 
 // PlayerSlot 컴포넌트
 function PlayerSlot({ player, isMe }) {
     if (!player) {
         return (
-            <div className="rpgui-container framed-grey player-slot empty">
-                <div className="rpgui-icon empty-slot"></div>
-                <h2 className="empty-slot">빈 슬롯</h2>
+            <div className="rpgui-container framed player-slot empty">
+                <h2 className="empty-slot">기다리는 중</h2>
             </div>
         );
     }
 
     return (
         <div
-            className={`rpgui-container framed-grey player-slot ${
+            className={`rpgui-container framed player-slot ${
                 player.getIsReady() ? "ready" : ""
             } ${isMe ? "me" : ""}`}
         >
-            <div className="player-icon">{player.icon}</div>
             <h2 className="player-nickname">{player.getPlayerNickname()}</h2>
             <h2
                 className={`player-ready-status ${
@@ -92,7 +90,7 @@ function PlayerGrid({ players }) {
             {slots.map((player, index) => (
                 <PlayerSlot key={index} player={player} isMe={index === 0} />
             ))}
-        </div>
+            </div>
     );
 }
 
@@ -139,7 +137,6 @@ function ShareRoomCodeButton() {
 // 모든 컴포넌트를 내보냄
 export {
     BackToLobbyButton,
-    ChatBox,
     PlayerGrid,
     ReadyButton,
     ShareRoomCodeButton,
