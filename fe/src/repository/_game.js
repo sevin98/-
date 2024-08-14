@@ -622,6 +622,8 @@ export default class GameRepository {
         // 남은 시도 횟수 갱신
         requestedPlayer.setRestSeekCount(restCatchCount);
 
+        this.#seekFailCatchCount= data.catchCount;
+
         uiControlQueue.addUpdateSeekCountUiMessage(restCatchCount);
 
         // TODO : HP에 뭔 짓을 해줘야 함?

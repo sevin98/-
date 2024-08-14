@@ -570,7 +570,7 @@ public class Game extends Subscribable implements Runnable {
 //        ItemInfo itemInfo = new ItemInfo(room.getRoomNumber(), playerId, playerId, item, duration, player.getSpeed(), appliedById);
 
         // 플레이어에게 현재 적용된 아이템이 없다면 아이템을 적용시킨다.
-        if (player.getCurrentItem() == null) {
+        if (player.getCurrentItem() == null && player.useItem(item)) {
             player.applyItem(item, duration, appliedById);
             ItemInfo itemInfo = new ItemInfo(room.getRoomNumber(), playerId, playerId, item, duration, player.getSpeed(), appliedById);
             ItemAppliedMessage message = new ItemAppliedMessage(itemInfo, requestId);
@@ -593,7 +593,7 @@ public class Game extends Subscribable implements Runnable {
         ItemInfo itemInfo = new ItemInfo(room.getRoomNumber(), appliedById, objectId, item, duration, 0, appliedById);
 
         // 오브젝트아이디가 584줄 if문에 걸렸거나, 오브젝트가 없거나 비어있지 않으면 실패
-        if (objectId.equals(player.getId()) || hpObject == null || !hpObject.isEmpty()) {
+        if (objectId.equals(player.getId()) || hpObject == null || !hpObject.isEmpty() || !player.useItem(item)) {
             ItemApplicationFailedToObjectMessage message = new ItemApplicationFailedToObjectMessage(itemInfo, requestId);
             broadcastService.broadcastTo(this, message);
             broadcastService.unicastTo(player, message);
@@ -601,6 +601,7 @@ public class Game extends Subscribable implements Runnable {
             // 오브젝트가 비어있으면 성공
         } else {
             hpObject.applyItem(item, duration, appliedById);
+            player.useItem(item);
             ItemAppliedToHPObjectMessage message = new ItemAppliedToHPObjectMessage(itemInfo, requestId);
             broadcastService.broadcastTo(this, message);
             broadcastService.unicastTo(player, message);
@@ -683,6 +684,7 @@ public class Game extends Subscribable implements Runnable {
 
     // MUSHROOM 아이템 적용 메소드
     public void applyMushroomEffect(Player player) {
+        System.out.println("applyMushRoomEffect 성공 !");
         List<DirectionArrow> directions = getDirectionsOfHiders(player);
         broadcastService.unicastTo(player, new DirectionHintMessage(player.getId(), directions));
     }
