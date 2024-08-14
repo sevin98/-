@@ -84,7 +84,7 @@ export default class GameRepository {
     #initialItems;
     #itemQ;
     #itemW;
-    #itemSpeed; // 현재의 아이템 스피드
+    #itemSpeed = 200; // 현재의 아이템 스피드
     #gameResults = [];
 
     #seekFailCatchCount = 0; // 기본값 0
@@ -718,5 +718,11 @@ export default class GameRepository {
     }
     getItemW() {
         return this.#itemW;
+    }
+    getItemSpeed(){
+        return this.#itemSpeed;
+    }
+    setItemSpeed(speed){
+        this.#itemSpeed = speed;
     }
 }

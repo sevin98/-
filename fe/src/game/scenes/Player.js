@@ -209,16 +209,15 @@ export class HandlePlayerMove {
     }
 }
 export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
-    static PLAYER_SPEED = 200;
     static moveX = [0, 1, 0, -1];
     static moveY = [-1, 0, 1, 0];
-
+    
     #canMove = true;
     #isFootstepSoundPlaying = false;
-
+    
     constructor(scene, x, y, texture) {
         super(scene, x, y, texture);
-        
+        this.PLAYER_SPEED = 200;
         this.scale = 1;
         this.alpha = 1;
 
@@ -248,7 +247,7 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
                             suffix: ".png",
                         }),
                         repeat: -1,
-                        frameRate: 1,
+                        frameRate: 5,
                     });
 
                     this.anims.create({
@@ -344,7 +343,7 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
                             suffix: ".png",
                         }),
                         repeat: -1,
-                        frameRate: 1,
+                        frameRate: 5,
                     });
 
                     this.anims.create({
@@ -435,6 +434,14 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
         });
     }
 
+    update() {
+        this.roomRepository.getGameRepository().then((gameRepository) => {
+            if(this.PLAYER_SPEED !== 200)
+                console.log(gameRepository.getItemSpeed());
+            this.PLAYER_SPEED = gameRepository.getItemSpeed();
+        });
+    }
+
     async isHidingTeam() {
         const gameRepository = await this.roomRepository.getGameRepository();
         const me = await gameRepository.getMe();
@@ -460,8 +467,8 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
     }
 
     reflectFromWall(direction) {
-        this.x -= MyPlayerSprite.moveX[direction] * MyPlayerSprite.PLAYER_SPEED;
-        this.y -= MyPlayerSprite.moveY[direction] * MyPlayerSprite.PLAYER_SPEED;
+        this.x -= MyPlayerSprite.moveX[direction] * this.PLAYER_SPEED;
+        this.y -= MyPlayerSprite.moveY[direction] * this.PLAYER_SPEED;
     }
 
     stopMove(headDir) {
@@ -524,7 +531,7 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
                 if (!this.canMove()) return;
                 switch (direction) {
                     case Direction.Up:
-                        this.setVelocityY(-1 * MyPlayerSprite.PLAYER_SPEED);
+                        this.setVelocityY(-1 * this.PLAYER_SPEED);
                         this.setVelocityX(0);
 
                         if (
@@ -540,7 +547,7 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
 
                         break;
                     case Direction.Down:
-                        this.setVelocityY(MyPlayerSprite.PLAYER_SPEED);
+                        this.setVelocityY(this.PLAYER_SPEED);
                         this.setVelocityX(0);
                         //this.y += Player.PLAYER_SPEED;
                         if (
@@ -556,7 +563,7 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
 
                         break;
                     case Direction.Right:
-                        this.setVelocityX(MyPlayerSprite.PLAYER_SPEED);
+                        this.setVelocityX(this.PLAYER_SPEED);
                         this.setVelocityY(0);
                         //this.x += Player.PLAYER_SPEED;
                         if (
@@ -571,7 +578,7 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
                             this.anims.play("fox-run-right");
                         break;
                     case Direction.Left:
-                        this.setVelocityX(-1 * MyPlayerSprite.PLAYER_SPEED);
+                        this.setVelocityX(-1 * this.PLAYER_SPEED);
                         this.setVelocityY(0);
                         //this.x -= Player.PLAYER_SPEED;
                         if (
