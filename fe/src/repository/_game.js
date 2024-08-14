@@ -86,6 +86,7 @@ export default class GameRepository {
     #itemW;
     #itemSpeed = 200; // 현재의 아이템 스피드
     #gameResults = [];
+    #isMushroomUsed = false;
 
     #seekFailCatchCount = 0; // 기본값 0
 
@@ -190,7 +191,8 @@ export default class GameRepository {
                 console.log("1. 아이템 플레이어에 적용 성공");
                 console.log("or 6. 탐색시 아이템 적용 성공");
                 // 넘어온 data 확인해보니 message 그대로 넘겨줘야함
-                // this.#handleItemAppliedPlayerSuccess(message);
+                this.#handleItemAppliedPlayerSuccess(message);
+                // console.log(message);
                 break;
             case "ITEM_APPLIED_TO_OBJECT":
                 console.log("2. 아이템 오브젝트에 적용 성공");
@@ -377,6 +379,7 @@ export default class GameRepository {
         if (playerId === this.#me.getPlayerId()) {
             return;
         }
+
         console.log(`플레이어 ${playerId}가 ${objectId}를 찾기 실패`);
     }
 
@@ -685,6 +688,21 @@ export default class GameRepository {
     #handleItemAppliedObjectFailed(data) {
         console.log("handle:아이템object에 적용 실패");
     }
+    #handleItemAppliedPlayerSuccess(message){
+        this.setItemSpeed(message.data.newSpeed);
+        if(message.data.item === "BEEHIVE"){
+            setTimeout(() => {
+                this.setItemSpeed(200);
+            }, 5 * 1000);
+            
+        }
+        if(message.data.item === "BANANA"){
+            setTimeout(() => {
+                this.setItemSpeed(200);
+            }, 5 * 1000);
+        }
+    }
+
     // 아이템 object에 적용결과
     #handleItemAppliedObjectSuccess(data) {
         console.log("handle:아이템object에 적용성공,결과:", data);
@@ -705,6 +723,10 @@ export default class GameRepository {
             }),
         });
 
+        if(item === "MUSHROOM"){
+            this.setIsMushroomUsed(true);
+        }
+
         const requestItemResult = await asyncResponses.get(requestId);
         return Promise.resolve({
             isSucceeded: requestItemResult.type === "ITEM_APPLIED_TO_PLAYER",
@@ -724,5 +746,11 @@ export default class GameRepository {
     }
     setItemSpeed(speed){
         this.#itemSpeed = speed;
+    }
+    getIsMushroomUsed(){
+        return this.#isMushroomUsed;
+    }
+    setIsMushroomUsed(isUsed){
+        this.#isMushroomUsed = isUsed;
     }
 }

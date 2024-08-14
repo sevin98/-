@@ -408,6 +408,87 @@ export class game extends Phaser.Scene {
                             });
 
                             this.shownHintForCurrentPhase = true;
+                        } if (gameRepository.getIsMushroomUsed() === true) {
+                            gameRepository.setIsMushroomUsed(false);
+                            const directionHints =
+                                this.roomRepository.getDirectionHints();
+                            directionHints.forEach((direction) => {
+                                if (!this.hintImages[direction]) {
+                                    if (direction === "DOWN")
+                                        this.hintImages[direction] =
+                                            this.add.image(
+                                                this.localPlayer.x,
+                                                this.localPlayer.y + 20,
+                                                direction
+                                            );
+                                    if (direction === "UP")
+                                        this.hintImages[direction] =
+                                            this.add.image(
+                                                this.localPlayer.x,
+                                                this.localPlayer.y - 20,
+                                                direction
+                                            );
+                                    if (direction === "LEFT")
+                                        this.hintImages[direction] =
+                                            this.add.image(
+                                                this.localPlayer.x - 20,
+                                                this.localPlayer.y,
+                                                direction
+                                            );
+                                    if (direction === "RIGHT")
+                                        this.hintImages[direction] =
+                                            this.add.image(
+                                                this.localPlayer.x + 20,
+                                                this.localPlayer.y,
+                                                direction
+                                            );
+                                    if (direction === "UP_LEFT")
+                                        this.hintImages[direction] =
+                                            this.add.image(
+                                                this.localPlayer.x - 20,
+                                                this.localPlayer.y - 20,
+                                                direction
+                                            );
+                                    if (direction === "UP_RIGHT")
+                                        this.hintImages[direction] =
+                                            this.add.image(
+                                                this.localPlayer.x + 20,
+                                                this.localPlayer.y - 20,
+                                                direction
+                                            );
+                                    if (direction === "DOWN_LEFT")
+                                        this.hintImages[direction] =
+                                            this.add.image(
+                                                this.localPlayer.x - 20,
+                                                this.localPlayer.y + 20,
+                                                direction
+                                            );
+                                    if (direction === "DOWN_RIGHT")
+                                        this.hintImages[direction] =
+                                            this.add.image(
+                                                this.localPlayer.x + 20,
+                                                this.localPlayer.y + 20,
+                                                direction
+                                            );
+
+                                    this.hintImages[direction].setScale(0.04);
+
+                                    // 5초 후에 이미지를 제거
+                                    this.time.addEvent({
+                                        delay: 5000,
+                                        callback: () => {
+                                            if (this.hintImages[direction]) {
+                                                this.hintImages[
+                                                    direction
+                                                ].destroy();
+                                                this.hintImages[direction] =
+                                                    null;
+                                            }
+                                        },
+                                        callbackScope: this,
+                                    });
+                                }
+                            });
                         }
                     }
                 }
