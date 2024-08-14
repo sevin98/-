@@ -39,7 +39,6 @@ public class Game extends Subscribable implements Runnable {
 
     private static final int SAFE_ZONE_REDUCE_AMOUNT = 100;
     private static final int SAFE_ZONE_REDUCE_DURATION = 10;
-
     private static final int TOTAL_ROUND = 100;
     // 게임 맵
     private final GameMap gameMap;
@@ -759,9 +758,15 @@ public class Game extends Subscribable implements Runnable {
         Random random = new Random();
         // 일단 아이템 칸수는 2개로 하고, 추후 조정 가능하게끔 상수로 관리
         int numItems = 2;
-        for (int i = 0; i < numItems; i++) {
+
+        Set<Item> randomItems = new HashSet<>();
+        while (randomItems.size() < numItems) {
             Item randomItem = availableItems.get(random.nextInt(availableItems.size()));
-            player.addItem(randomItem);
+            randomItems.add(randomItem);
+        }
+
+        for (Item item : randomItems) {
+            player.addItem(item);
         }
     }
 
