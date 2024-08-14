@@ -52,6 +52,12 @@ export default class GameUI extends Phaser.Scene {
             "timer-progress-bar-background",
             `assets/ui/timer-progress-bar/background.png`
         );
+
+        this.load.image(
+            "chickenEffectPhoto",
+            "assets/object/chickenEffectPhoto.png"
+        );
+
         this.load.image("magnifier-item", "assets/object/item/glassItem.png");
 
         //바나나: 속도 100
@@ -65,7 +71,7 @@ export default class GameUI extends Phaser.Scene {
 
         // 매운고추: 속도 빨라짐
         this.load.image("pepper", "assets/object/item/pepperItem.png");
-        
+
         // 독버섯: 키반전
         this.load.image(
             "poisonMushroom",
@@ -116,7 +122,8 @@ export default class GameUI extends Phaser.Scene {
     create() {
         //초기 아이템 이미지 업데이트
         this.createInitialItems();
-        
+        this.prevseekFailCount = 0;
+
         //초기화
         this.prevPlayer = null;
 
@@ -192,14 +199,13 @@ export default class GameUI extends Phaser.Scene {
         });
     }
 
-    // 아이템 이미지 화면에 렌더링 
+    // 아이템 이미지 화면에 렌더링
     createInitialItemImage(itemName, itemIndex) {
-
         // 둥근 모서리의 아이템 박스 디자인 설정
         const boxSize = 70; // 박스 크기
         const cornerRadius = 15; // 모서리 반경
         const box = this.add.graphics();
-        box.fillStyle(0xcccccc,0.7); // 연한 회색, 50% 투명도
+        box.fillStyle(0xcccccc, 0.7); // 연한 회색, 50% 투명도
 
         const spacing = 75; // 아이템 두개 사이의 간격
         const height = this.cameras.main.height - 90; // 맨밑보다 좀 위에 띄우기
@@ -207,16 +213,20 @@ export default class GameUI extends Phaser.Scene {
         if (itemIndex === 0) {
             // 키다운 글자 Q,E 화면 생성
             width = (this.cameras.main.width - spacing) / 2; //첫번쨰 아이템
-            this.add.text(width - 30, height + 10, "Q", {
+            this.add
+                .text(width - 30, height + 10, "Q", {
                     font: "bold 20px sans-serif",
                     fill: "#000000",
-                }).setDepth(1);
+                })
+                .setDepth(1);
         } else {
             width = (this.cameras.main.width + spacing) / 2; // 두번째 아이템
-            this.add.text(width - 30, height + 10, "W", {
+            this.add
+                .text(width - 30, height + 10, "W", {
                     font: "bold 20px sans-serif",
                     fill: "#000000",
-                }).setDepth(1);
+                })
+                .setDepth(1);
         }
         switch (itemName) {
             // 바나나
@@ -457,6 +467,30 @@ export default class GameUI extends Phaser.Scene {
                             break;
                     }
                 }
+                if (
+                    gameRepository.getMe().then((me) => {
+                        // 닭 보여주는 이벤트, 숨는팀이면 보이지않음
+                        this.showChickenEffect(
+                            me.isHidingTeam(),
+                            gameRepository.getSeekFailCount()
+                        );
+                    })
+                )
+                    if (uiControlQueue.hasGameUiControlMessage()) {
+                        // } else{
+                        // '찾는팀'
+                        // }
+
+                        const message =
+                            uiControlQueue.getGameUiControlMessage();
+                        switch (message.type) {
+                            case MESSAGE_TYPE.TOP_CENTER_MESSAGE:
+                                this.showTopCenterMessage(message.data);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
 
                 if (gameRepository.getIsEnd()) {
                     this.progressBar.width = 0;
@@ -464,7 +498,43 @@ export default class GameUI extends Phaser.Scene {
                     this.updateProgressBar();
                 }
             });
+    }
 
+    showChickenEffect(isHidingTeam, seekFailCount) {
+        if (isHidingTeam) {
+            // 전부 안보이게 하기
+            return;
+        }
+        // 전부 보이게 만들기
+        if (seekFailCount > this.prevseekFailCount) {
+            console.log("실패이펙트 함수 실행");
+            console.log("카메라 찾기");
+            const camera = this.cameras.main;
+            const width = camera.width;
+            const height = camera.height;
+            let x, y;
+            // 1,2는 fliped 이미지로 넣기
+            switch (seekFailCount) {
+                case 1:
+                    (x = 20), (y = 20);
+                    break;
+                case 2:
+                    (x = width - 20), (y = 20);
+                    break;
+                case 3:
+                    (x = 20), (y = height - 20);
+                    break;
+                default:
+                    x = width - 20;
+                    y = height - 20;
+            }
+            console.log("이미지추가");
+            const newEffect = this.add
+                .image(x, y, "chickenEffectImage")
+                .setOrigin(0.5);
+            // 탐색 횟수 업데이트
+            this.prevseekFailCount = seekFailCount;
+        }
     }
 
     async updateImage() {

@@ -6,6 +6,7 @@ import com.ssafy.a410.game.domain.game.HPObject;
 import com.ssafy.a410.game.domain.game.Item;
 import com.ssafy.a410.game.domain.game.message.control.interact.InteractSeekMessage;
 import com.ssafy.a410.game.domain.game.message.control.item.ItemAppliedMessage;
+import com.ssafy.a410.game.domain.game.message.control.item.ItemInfo;
 import com.ssafy.a410.game.domain.player.Player;
 import com.ssafy.a410.game.domain.team.Team;
 import com.ssafy.a410.game.service.MessageBroadcastService;
@@ -82,18 +83,11 @@ public class InteractSeekReq extends InteractReq {
 
         // 해당 오브젝트에 아이템이 있었다면 탐색자에게 적용
         if (installedItem != null) {
-
-            requestedPlayer.applyItem(installedItem, installedItem.getDuration(), hpObject.getId());
-
+            requestedPlayer.applyItem(installedItem, installedItem.getDuration(), playerId);
             // 브로드캐스팅
-            broadcastService.broadcastTo(game, new ItemAppliedMessage(
-                    roomId,
-                    requestedPlayer.getId(),
-                    installedItem,
-                    installedItem.getDuration(),
-                    requestedPlayer.getSpeed(),
-                    this.getRequestId()
-            ));
+            ItemInfo itemInfo = new ItemInfo(roomId, requestedPlayer.getId(), hpObject.getId(), installedItem, installedItem.getDuration(), requestedPlayer.getSpeed(), playerId);
+            ItemAppliedMessage itemMessage = new ItemAppliedMessage(itemInfo, this.getRequestId());
+            broadcastService.broadcastTo(game, itemMessage);
         }
 
         InteractSeekMessage message = InteractSeekMessage.failureMessage(
