@@ -561,17 +561,19 @@ public class Game extends Subscribable implements Runnable {
     // 자기 자신에게 아이템 적용
     public void applyItemToPlayer(String playerId, Item item, Duration duration, String appliedById, String requestId) {
         Player player = room.getPlayerWith(playerId);
-        ItemInfo itemInfo = new ItemInfo(room.getRoomNumber(), playerId, playerId, item, duration, player.getSpeed(), appliedById);
+//        ItemInfo itemInfo = new ItemInfo(room.getRoomNumber(), playerId, playerId, item, duration, player.getSpeed(), appliedById);
 
         // 플레이어에게 현재 적용된 아이템이 없다면 아이템을 적용시킨다.
         if (player.getCurrentItem() == null) {
             player.applyItem(item, duration, appliedById);
+            ItemInfo itemInfo = new ItemInfo(room.getRoomNumber(), playerId, playerId, item, duration, player.getSpeed(), appliedById);
             ItemAppliedMessage message = new ItemAppliedMessage(itemInfo, requestId);
             broadcastService.broadcastTo(this, message);
             broadcastService.unicastTo(player, message);
 
             // 이미 적용된 아이템이 있다면 아이템 적용 실패
         } else {
+            ItemInfo itemInfo = new ItemInfo(room.getRoomNumber(), playerId, playerId, item, duration, player.getSpeed(), appliedById);
             ItemApplicationFailedToPlayerMessage message = new ItemApplicationFailedToPlayerMessage(itemInfo, requestId);
             broadcastService.broadcastTo(this, message);
             broadcastService.unicastTo(player, message);
