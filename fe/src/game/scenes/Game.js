@@ -438,60 +438,6 @@ export class game extends Phaser.Scene {
                         this.interactionEffect = null;
                     }
                 }
-
-                // 아이템 사용 코드추가: Q눌렀을때
-                if (Phaser.Input.Keyboard.JustDown(this.m_cursorKeys.Q)) {
-                    if (this.interactionEffect) {
-                        // interactionEFFECT있을때 가장 가까운 objectid전달
-                        this.roomRepository
-                            .getGameRepository()
-                            .then((gameRepository) => {
-                                gameRepository
-                                    .requestItemUse(
-                                        gameRepository.getItemQ(),
-                                        closest.getData("id")
-                                    )
-                                    .then(({ isSucceeded, speed }) => {
-                                        if (isSucceeded) {
-                                            console.log(speed);
-                                            //TODO: 플레이어 스피드 변경 
-                                        }
-                                    });
-                            });
-                    } else {
-                        // 가까운 이펙트없으면 null 전달
-                        this.roomRepository
-                            .getGameRepository()
-                            .then((gameRepository) => {
-                                gameRepository
-                                    .requestItemUse(
-                                        gameRepository.getItemQ(),
-                                        null
-                                    )
-                                    .then(({ isSucceeded, speed }) => {
-                                        if (isSucceeded) {
-                                            console.log(speed);
-                                            //TODO: 플레이어 스피드 변경
-                                        }
-                                    });
-                            });
-                    } // W 키 눌렀을때
-                } else if (
-                    Phaser.Input.Keyboard.JustDown(this.m_cursorKeys.W)
-                ) {
-                    if (this.interactionEffect) {
-                        // interactionEFFECT있을때 가장 가까운 objectid전달
-                        this.useItemW(closest.getData("id")).then((data) => {
-                            console.log("찐최종:", data);
-                        });
-                    } else {
-                        // 가까운 이펙트없으면 null 전달
-                        this.useItemW(null).then((data) => {
-                            console.log("찐최종:", data);
-                        });
-                    }
-                }
-
                 // 상호작용 표시가 있고, space 키 이벤트 있는 경우
                 // 죽어 있는 상태면 상호작용 불가
                 if (
@@ -616,29 +562,73 @@ export class game extends Phaser.Scene {
                         );
                     });
                 }
-            });
-        });
-        // 맵축소
-        this.createMapWall();
-    }
 
-
-    // W아이템 사용요청 / qW 같은템일떄 에러나는것같음
-    async useItemW(targetId) {
-        this.roomRepository.getGameRepository().then((gameRepository) => {
-            const item = gameRepository.getItemW();
-            // 고추일때는 targetId null값으로 변환
-            if (item === "RED_PEPPER" || item === "MUSHROOM") {
-                targetId = null;
-            }
-            gameRepository
-                .requestItemUse(item, targetId)
-                .then(({ isSucceeded }) => {
-                    //TODO: _game.js의 함수확인
-                    if (isSucceeded) {
-                        console.log("리턴값ㅇ");
+                // 이미 상위에서 gamerespo 생성되어있음,
+                // 아이템 사용 코드추가: Q눌렀을때
+                if (Phaser.Input.Keyboard.JustDown(this.m_cursorKeys.Q)) {
+                    if (this.interactionEffect) {
+                        // interactionEFFECT있을때 가장 가까운 objectid전달
+                        gameRepository
+                            .requestItemUse(
+                                gameRepository.getItemQ(),
+                                closest.getData("id")
+                            )
+                            .then(({ isSucceeded, speed }) => {
+                                if (isSucceeded) {
+                                    console.log(speed);
+                                    //TODO: 플레이어 스피드 변경
+                                }
+                            });
+                    } else {
+                        // interactionEffect 없을때 플레이어 id 전달
+                        gameRepository
+                            .requestItemUse(
+                                gameRepository.getItemQ(),
+                                me.getPlayerId()
+                            )
+                            .then(({ isSucceeded, speed }) => {
+                                if (isSucceeded) {
+                                    console.log(speed);
+                                    //TODO: 플레이어 스피드 변경
+                                }
+                            });
                     }
-                });
+                } else if ( // W키
+                    Phaser.Input.Keyboard.JustDown(this.m_cursorKeys.W)
+                ) {
+                    if (this.interactionEffect) {
+                        // interactionEFFECT있을때 가장 가까운 objectid전달
+                        gameRepository
+                            .requestItemUse(
+                                gameRepository.getItemW(),
+                                closest.getData("id")
+                            )
+                            .then(({ isSucceeded, speed }) => {
+                                if (isSucceeded) {
+                                    console.log(speed);
+                                    //TODO: 플레이어 스피드 변경
+                                }
+                            });
+                    } else {
+                        // interactionEffect 없을때 플레이어 id 전달
+                        gameRepository
+                            .requestItemUse(
+                                gameRepository.getItemW(),
+                                me.getPlayerId()
+                            )
+                            .then(({ isSucceeded, speed }) => {
+                                if (isSucceeded) {
+                                    console.log(speed);
+                                    //TODO: 플레이어 스피드 변경
+                                }
+                            });
+                    }
+                }
+
+                //update의 repo 끝나는 부분
+            });
+            // 맵축소
+            this.createMapWall();
         });
     }
 
@@ -704,7 +694,6 @@ export class game extends Phaser.Scene {
             </div>
         </div>
         `;
-
 
         // 모달 내의 stats-text 요소에 결과 추가
         const statsTextElement = document.getElementById("stats-text");
