@@ -35,6 +35,7 @@ export class game extends Phaser.Scene {
 
         this.updatePaused = false;
         this.gameResults = [];
+        this.winningTeam = null;
     }
 
     preload() {
@@ -640,6 +641,7 @@ export class game extends Phaser.Scene {
                     this.modalShown === false
                 ) {
                     this.gameResults = gameRepository.getGameResults();
+                    this.winningTeam = gameRepository.getWinningTeam();
                     this.showEndGameModal();
                     this.modalShown = true;
 
@@ -807,7 +809,9 @@ export class game extends Phaser.Scene {
 
         // 게임 결과를 HTML로 변환
         let resultsHtml = `
-        <h3 style="font-size: 2.0em; text-align: center; margin-bottom: 1.2em; margin-top: 1.2em;">Game Results</h3>
+        <h3 style="font-size: 1.8em; text-align: center; margin-bottom: 1.2em; margin-top: 1.2em;">
+            Game Results - ${this.winningTeam} Win!
+        </h3>
         <div style="display: flex; justify-content: space-between;">
             <div style="width: 48%;">
                 <h4 style="text-align: center;">Team RACOON</h4>

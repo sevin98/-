@@ -78,6 +78,7 @@ export default class GameRepository {
     #currentSafeZone;
     #isGameEnd = false;
     #winningTeam;
+    #gameResultFlag = false;
 
     #isInitialized = false;
     #currentEliminatedPlayerAndTeam; //ui업데이트
@@ -455,7 +456,9 @@ export default class GameRepository {
     }
 
     #handleGameResultEvent(data) {
-        console.log(data);
+        if(this.#gameResultFlag === true) return;
+        this.#gameResultFlag = true;
+        console.log("게임 결과 수신 : " + data);
         Object.keys(data).forEach((team) => {
             data[team].forEach((player) => {
                 this.#gameResults.push({
