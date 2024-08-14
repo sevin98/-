@@ -678,6 +678,7 @@ public class Game extends Subscribable implements Runnable {
 
     // MUSHROOM 아이템 적용 메소드
     public void applyMushroomEffect(Player player) {
+        System.out.println("applyMushRoomEffect 성공 !");
         List<DirectionArrow> directions = getDirectionsOfHiders(player);
         broadcastService.unicastTo(player, new DirectionHintMessage(player.getId(), directions));
     }
