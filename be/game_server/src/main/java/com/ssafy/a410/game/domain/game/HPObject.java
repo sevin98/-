@@ -3,7 +3,6 @@ package com.ssafy.a410.game.domain.game;
 import com.google.gson.JsonObject;
 import com.ssafy.a410.common.exception.ErrorDetail;
 import com.ssafy.a410.common.exception.ResponseException;
-import com.ssafy.a410.common.exception.UnhandledException;
 import com.ssafy.a410.game.domain.player.Player;
 import lombok.Getter;
 import lombok.Setter;
@@ -82,10 +81,8 @@ public class HPObject extends GameObject {
 
     // 해당 오브젝트에 대해 탐색
     public boolean isSeekSuccess(Player seekingPlayer) {
-        if (this.player != null)
-            return true; // 플레이어를 찾은 경우
-
-        return false; // 빈 오브젝트인 경우
+        return this.player != null; // 플레이어를 찾은 경우
+// 빈 오브젝트인 경우
     }
 
     public void applyItem(Item item, Duration duration, String appliedById) {
@@ -93,8 +90,6 @@ public class HPObject extends GameObject {
         this.itemDuration = duration;
         this.appliedById = appliedById;
         this.itemAppliedTime = null;
-
-        scheduleItemRemoval(duration);
     }
 
     public void activeItem(Player player) {
@@ -112,6 +107,8 @@ public class HPObject extends GameObject {
             default:
                 throw new ResponseException(ErrorDetail.UNKNOWN_ITEM);
         }
+        // 해당 아이템이 탐지된 후에 Duration 적용
+        scheduleItemRemoval(itemDuration);
     }
 
     // 아이템 효과 종료
@@ -133,7 +130,7 @@ public class HPObject extends GameObject {
     }
 
     // 아이템 지속시간 종료 시 효과 해제
-    private void scheduleItemRemoval(Duration duration){
+    private void scheduleItemRemoval(Duration duration) {
         Executors.newScheduledThreadPool(1).schedule(() -> {
             clearItem();
             game.notifyHPItemCleared(this);
