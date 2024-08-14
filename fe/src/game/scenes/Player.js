@@ -1,11 +1,7 @@
 import Phaser from "phaser";
-
 import { getRoomRepository } from "../../repository";
 import { Phase } from "../../repository/_game";
 
-// import webSocketClient from '../network/index'
-
-//키인식
 export const Direction = Object.freeze({
     Up: "Up",
     Down: "Down",
@@ -15,18 +11,16 @@ export const Direction = Object.freeze({
 
 export class HandlePlayerMove {
     //player 키조작
-
     constructor(cursors, player, headDir, moving) {
         this.m_cursorKeys = cursors;
         this.localPlayer = player;
         this.headDir = headDir;
         this.moving = moving;
         this.isReversed = false;
-        // this.isReversed = reverse; // true 면 반대로 움직임
 
         this.roomRepository = getRoomRepository();
     }
-    // isReversed를 설정하는 메서드 추가
+
     setReversed(value) {
         this.isReversed = value;
     }
@@ -34,6 +28,7 @@ export class HandlePlayerMove {
     freezePlayerMovement() {
         this.localPlayer.stopMove();
     }
+
     enablePlayerMovement() {
         this.isMovementEnabled = true;
     }
@@ -147,6 +142,7 @@ export class HandlePlayerMove {
                 }
             }
         }
+
         // 움직임에 따른 소리 코드 분리
         if (
             this.m_cursorKeys.left.isUp &&
@@ -159,7 +155,6 @@ export class HandlePlayerMove {
                 this.localPlayer.setIsFootstepSoundPlaying(false);
             }
         } else {
-            // 키가 눌려있을때
             if (!this.localPlayer.getIsFootstepSoundPlaying()) {
                 footstepSound.play();
                 this.localPlayer.setIsFootstepSoundPlaying(true);
@@ -208,27 +203,35 @@ export class HandlePlayerMove {
         }
     }
 }
-export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
+
+export default class MyPlayerSprite extends Phaser.GameObjects.Container {
     static moveX = [0, 1, 0, -1];
     static moveY = [-1, 0, 1, 0];
-    
+
     #canMove = true;
     #isFootstepSoundPlaying = false;
-    
-    constructor(scene, x, y, texture) {
-        super(scene, x, y, texture);
+
+    constructor(scene, x, y, texture, nickname) {
+        const playerSprite = scene.add
+            .sprite(0, 0, texture)
+            .setDisplaySize(16, 16);
+        const nicknameText = scene.add.text(-20, -20, nickname, {
+            fontSize: "10px",
+            color: "#ffffff",
+        });
+
+        super(scene, x, y, [playerSprite, nicknameText]);
+        this.scene = scene;
+        this.scene.add.existing(this);
+
+        this.playerSprite = playerSprite;
+        this.nicknameText = nicknameText;
         this.PLAYER_SPEED = 200;
-        this.scale = 1;
-        this.alpha = 1;
 
-        scene.add.existing(this);
-        scene.physics.add.existing(this);
-        //   this.body.setSize(this.width * 0.1, this.height * 0.1);
+        this.scene.physics.world.enable(this);
 
-        // 스프라이트의 표시 크기를 1px * 1px로 설정
-        this.setDisplaySize(16, 16);
-        // 물리 바디의 크기를 1px * 1px로 설정
-        this.body.setSize(28, 28);
+        this.body.setSize(16, 16);
+        this.body.setOffset(-8, -8);
 
         this.roomRepository = getRoomRepository();
 
@@ -236,199 +239,246 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
             gameRepository.getMe().then(async (me) => {
                 me.setSprite(this);
 
-                //racoon animation
                 if (await me.isRacoonTeam()) {
-                    this.anims.create({
+                    this.playerSprite.anims.create({
                         key: "racoon-idle-down",
-                        frames: this.anims.generateFrameNames("racoon", {
-                            start: 1,
-                            end: 2,
-                            prefix: "idle-down-",
-                            suffix: ".png",
-                        }),
+                        frames: this.playerSprite.anims.generateFrameNames(
+                            "racoon",
+                            {
+                                start: 1,
+                                end: 2,
+                                prefix: "idle-down-",
+                                suffix: ".png",
+                            }
+                        ),
                         repeat: -1,
                         frameRate: 5,
                     });
 
-                    this.anims.create({
+                    this.playerSprite.anims.create({
                         key: "racoon-idle-right",
-                        frames: this.anims.generateFrameNames("racoon", {
-                            start: 1,
-                            end: 2,
-                            prefix: "idle-right-",
-                            suffix: ".png",
-                        }),
+                        frames: this.playerSprite.anims.generateFrameNames(
+                            "racoon",
+                            {
+                                start: 1,
+                                end: 2,
+                                prefix: "idle-right-",
+                                suffix: ".png",
+                            }
+                        ),
                         repeat: -1,
                         frameRate: 1,
                     });
-                    this.anims.create({
+                    this.playerSprite.anims.create({
                         key: "racoon-idle-left",
-                        frames: this.anims.generateFrameNames("racoon", {
-                            start: 1,
-                            end: 2,
-                            prefix: "idle-left-",
-                            suffix: ".png",
-                        }),
+                        frames: this.playerSprite.anims.generateFrameNames(
+                            "racoon",
+                            {
+                                start: 1,
+                                end: 2,
+                                prefix: "idle-left-",
+                                suffix: ".png",
+                            }
+                        ),
                         repeat: -1,
                         frameRate: 1,
                     });
 
-                    this.anims.create({
+                    this.playerSprite.anims.create({
                         key: "racoon-idle-up",
-                        frames: this.anims.generateFrameNames("racoon", {
-                            start: 1,
-                            end: 2,
-                            prefix: "idle-up-",
-                            suffix: ".png",
-                        }),
+                        frames: this.playerSprite.anims.generateFrameNames(
+                            "racoon",
+                            {
+                                start: 1,
+                                end: 2,
+                                prefix: "idle-up-",
+                                suffix: ".png",
+                            }
+                        ),
                         repeat: -1,
                         frameRate: 1,
                     });
 
-                    this.anims.create({
+                    this.playerSprite.anims.create({
                         key: "racoon-run-down",
-                        frames: this.anims.generateFrameNames("racoon", {
-                            start: 1,
-                            end: 4,
-                            prefix: "run-down-",
-                            suffix: ".png",
-                        }),
+                        frames: this.playerSprite.anims.generateFrameNames(
+                            "racoon",
+                            {
+                                start: 1,
+                                end: 4,
+                                prefix: "run-down-",
+                                suffix: ".png",
+                            }
+                        ),
                         repeat: -1,
                         frameRate: 10,
                     });
 
-                    this.anims.create({
+                    this.playerSprite.anims.create({
                         key: "racoon-run-up",
-                        frames: this.anims.generateFrameNames("racoon", {
-                            start: 1,
-                            end: 4,
-                            prefix: "run-up-",
-                            suffix: ".png",
-                        }),
+                        frames: this.playerSprite.anims.generateFrameNames(
+                            "racoon",
+                            {
+                                start: 1,
+                                end: 4,
+                                prefix: "run-up-",
+                                suffix: ".png",
+                            }
+                        ),
                         repeat: -1,
                         frameRate: 10,
                     });
 
-                    this.anims.create({
+                    this.playerSprite.anims.create({
                         key: "racoon-run-right",
-                        frames: this.anims.generateFrameNames("racoon", {
-                            start: 1,
-                            end: 4,
-                            prefix: "run-right-",
-                            suffix: ".png",
-                        }),
+                        frames: this.playerSprite.anims.generateFrameNames(
+                            "racoon",
+                            {
+                                start: 1,
+                                end: 4,
+                                prefix: "run-right-",
+                                suffix: ".png",
+                            }
+                        ),
                         repeat: -1,
                         frameRate: 10,
                     });
-                    this.anims.create({
+                    this.playerSprite.anims.create({
                         key: "racoon-run-left",
-                        frames: this.anims.generateFrameNames("racoon", {
-                            start: 1,
-                            end: 4,
-                            prefix: "run-left-",
-                            suffix: ".png",
-                        }),
+                        frames: this.playerSprite.anims.generateFrameNames(
+                            "racoon",
+                            {
+                                start: 1,
+                                end: 4,
+                                prefix: "run-left-",
+                                suffix: ".png",
+                            }
+                        ),
                         repeat: -1,
                         frameRate: 10,
                     });
 
-                    this.anims.play("racoon-idle-down");
+                    this.playerSprite.anims.play("racoon-idle-down");
                 } else {
-                    this.anims.create({
+                    this.playerSprite.anims.create({
                         key: "fox-idle-down",
-                        frames: this.anims.generateFrameNames("fox", {
-                            start: 1,
-                            end: 2,
-                            prefix: "idle-down-",
-                            suffix: ".png",
-                        }),
+                        frames: this.playerSprite.anims.generateFrameNames(
+                            "fox",
+                            {
+                                start: 1,
+                                end: 2,
+                                prefix: "idle-down-",
+                                suffix: ".png",
+                            }
+                        ),
                         repeat: -1,
                         frameRate: 5,
                     });
 
-                    this.anims.create({
+                    this.playerSprite.anims.create({
                         key: "fox-idle-right",
-                        frames: this.anims.generateFrameNames("fox", {
-                            start: 1,
-                            end: 2,
-                            prefix: "idle-right-",
-                            suffix: ".png",
-                        }),
+                        frames: this.playerSprite.anims.generateFrameNames(
+                            "fox",
+                            {
+                                start: 1,
+                                end: 2,
+                                prefix: "idle-right-",
+                                suffix: ".png",
+                            }
+                        ),
                         repeat: -1,
                         frameRate: 1,
                     });
-                    this.anims.create({
+                    this.playerSprite.anims.create({
                         key: "fox-idle-left",
-                        frames: this.anims.generateFrameNames("fox", {
-                            start: 1,
-                            end: 2,
-                            prefix: "idle-left-",
-                            suffix: ".png",
-                        }),
+                        frames: this.playerSprite.anims.generateFrameNames(
+                            "fox",
+                            {
+                                start: 1,
+                                end: 2,
+                                prefix: "idle-left-",
+                                suffix: ".png",
+                            }
+                        ),
                         repeat: -1,
                         frameRate: 1,
                     });
 
-                    this.anims.create({
+                    this.playerSprite.anims.create({
                         key: "fox-idle-up",
-                        frames: this.anims.generateFrameNames("fox", {
-                            start: 1,
-                            end: 2,
-                            prefix: "idle-up-",
-                            suffix: ".png",
-                        }),
+                        frames: this.playerSprite.anims.generateFrameNames(
+                            "fox",
+                            {
+                                start: 1,
+                                end: 2,
+                                prefix: "idle-up-",
+                                suffix: ".png",
+                            }
+                        ),
                         repeat: -1,
                         frameRate: 1,
                     });
 
-                    this.anims.create({
+                    this.playerSprite.anims.create({
                         key: "fox-run-down",
-                        frames: this.anims.generateFrameNames("fox", {
-                            start: 1,
-                            end: 4,
-                            prefix: "run-down-",
-                            suffix: ".png",
-                        }),
+                        frames: this.playerSprite.anims.generateFrameNames(
+                            "fox",
+                            {
+                                start: 1,
+                                end: 4,
+                                prefix: "run-down-",
+                                suffix: ".png",
+                            }
+                        ),
                         repeat: -1,
                         frameRate: 10,
                     });
 
-                    this.anims.create({
+                    this.playerSprite.anims.create({
                         key: "fox-run-up",
-                        frames: this.anims.generateFrameNames("fox", {
-                            start: 1,
-                            end: 4,
-                            prefix: "run-up-",
-                            suffix: ".png",
-                        }),
+                        frames: this.playerSprite.anims.generateFrameNames(
+                            "fox",
+                            {
+                                start: 1,
+                                end: 4,
+                                prefix: "run-up-",
+                                suffix: ".png",
+                            }
+                        ),
                         repeat: -1,
                         frameRate: 10,
                     });
 
-                    this.anims.create({
+                    this.playerSprite.anims.create({
                         key: "fox-run-right",
-                        frames: this.anims.generateFrameNames("fox", {
-                            start: 1,
-                            end: 4,
-                            prefix: "run-right-",
-                            suffix: ".png",
-                        }),
+                        frames: this.playerSprite.anims.generateFrameNames(
+                            "fox",
+                            {
+                                start: 1,
+                                end: 4,
+                                prefix: "run-right-",
+                                suffix: ".png",
+                            }
+                        ),
                         repeat: -1,
                         frameRate: 10,
                     });
-                    this.anims.create({
+                    this.playerSprite.anims.create({
                         key: "fox-run-left",
-                        frames: this.anims.generateFrameNames("fox", {
-                            start: 1,
-                            end: 4,
-                            prefix: "run-left-",
-                            suffix: ".png",
-                        }),
+                        frames: this.playerSprite.anims.generateFrameNames(
+                            "fox",
+                            {
+                                start: 1,
+                                end: 4,
+                                prefix: "run-left-",
+                                suffix: ".png",
+                            }
+                        ),
                         repeat: -1,
                         frameRate: 10,
                     });
 
-                    this.anims.play("fox-idle-down");
+                    this.playerSprite.anims.play("fox-idle-down");
                 }
             });
         });
@@ -436,7 +486,7 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
 
     update() {
         this.roomRepository.getGameRepository().then((gameRepository) => {
-            if(this.PLAYER_SPEED !== 200)
+            if (this.PLAYER_SPEED !== 200)
                 console.log(gameRepository.getItemSpeed());
             this.PLAYER_SPEED = gameRepository.getItemSpeed();
         });
@@ -474,51 +524,74 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
     stopMove(headDir) {
         this.roomRepository.getGameRepository().then((gameRepository) => {
             gameRepository.getMe().then(async (me) => {
-                this.setVelocityX(0);
-                this.setVelocityY(0);
+                this.body.setVelocityX(0);
+                this.body.setVelocityY(0);
                 if (await me.isRacoonTeam()) {
                     switch (headDir) {
                         case 0:
-                            if (this.anims.currentAnim.key != "racoon-idle-up")
-                                this.anims.play("racoon-idle-up");
+                            if (
+                                this.playerSprite.anims.currentAnim.key !=
+                                "racoon-idle-up"
+                            )
+                                this.playerSprite.anims.play("racoon-idle-up");
                             break;
                         case 1:
                             if (
-                                this.anims.currentAnim.key !=
+                                this.playerSprite.anims.currentAnim.key !=
                                 "racoon-idle-right"
                             )
-                                this.anims.play("racoon-idle-right");
+                                this.playerSprite.anims.play(
+                                    "racoon-idle-right"
+                                );
                             break;
                         case 2:
                             if (
-                                this.anims.currentAnim.key != "racoon-idle-down"
+                                this.playerSprite.anims.currentAnim.key !=
+                                "racoon-idle-down"
                             )
-                                this.anims.play("racoon-idle-down");
+                                this.playerSprite.anims.play(
+                                    "racoon-idle-down"
+                                );
                             break;
                         case 3:
                             if (
-                                this.anims.currentAnim.key != "racoon-idle-left"
+                                this.playerSprite.anims.currentAnim.key !=
+                                "racoon-idle-left"
                             )
-                                this.anims.play("racoon-idle-left");
+                                this.playerSprite.anims.play(
+                                    "racoon-idle-left"
+                                );
                             break;
                     }
                 } else {
                     switch (headDir) {
                         case 0:
-                            if (this.anims.currentAnim.key != "fox-idle-up")
-                                this.anims.play("fox-idle-up");
+                            if (
+                                this.playerSprite.anims.currentAnim.key !=
+                                "fox-idle-up"
+                            )
+                                this.playerSprite.anims.play("fox-idle-up");
                             break;
                         case 1:
-                            if (this.anims.currentAnim.key != "fox-idle-right")
-                                this.anims.play("fox-idle-right");
+                            if (
+                                this.playerSprite.anims.currentAnim.key !=
+                                "fox-idle-right"
+                            )
+                                this.playerSprite.anims.play("fox-idle-right");
                             break;
                         case 2:
-                            if (this.anims.currentAnim.key != "fox-idle-down")
-                                this.anims.play("fox-idle-down");
+                            if (
+                                this.playerSprite.anims.currentAnim.key !=
+                                "fox-idle-down"
+                            )
+                                this.playerSprite.anims.play("fox-idle-down");
                             break;
                         case 3:
-                            if (this.anims.currentAnim.key != "fox-idle-left")
-                                this.anims.play("fox-idle-left");
+                            if (
+                                this.playerSprite.anims.currentAnim.key !=
+                                "fox-idle-left"
+                            )
+                                this.playerSprite.anims.play("fox-idle-left");
                             break;
                     }
                 }
@@ -531,66 +604,71 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
                 if (!this.canMove()) return;
                 switch (direction) {
                     case Direction.Up:
-                        this.setVelocityY(-1 * this.PLAYER_SPEED);
-                        this.setVelocityX(0);
+                        this.body.setVelocityY(-1 * this.PLAYER_SPEED);
+                        this.body.setVelocityX(0);
 
                         if (
                             (await me.isRacoonTeam()) &&
-                            this.anims.currentAnim.key != "racoon-run-up"
+                            this.playerSprite.anims.currentAnim.key !=
+                                "racoon-run-up"
                         )
-                            this.anims.play("racoon-run-up");
+                            this.playerSprite.anims.play("racoon-run-up");
                         if (
                             !(await me.isRacoonTeam()) &&
-                            this.anims.currentAnim.key != "fox-run-up"
+                            this.playerSprite.anims.currentAnim.key !=
+                                "fox-run-up"
                         )
-                            this.anims.play("fox-run-up");
+                            this.playerSprite.anims.play("fox-run-up");
 
                         break;
                     case Direction.Down:
-                        this.setVelocityY(this.PLAYER_SPEED);
-                        this.setVelocityX(0);
-                        //this.y += Player.PLAYER_SPEED;
+                        this.body.setVelocityY(this.PLAYER_SPEED);
+                        this.body.setVelocityX(0);
                         if (
                             (await me.isRacoonTeam()) &&
-                            this.anims.currentAnim.key != "racoon-run-down"
+                            this.playerSprite.anims.currentAnim.key !=
+                                "racoon-run-down"
                         )
-                            this.anims.play("racoon-run-down");
+                            this.playerSprite.anims.play("racoon-run-down");
                         if (
                             !(await me.isRacoonTeam()) &&
-                            this.anims.currentAnim.key != "fox-run-down"
+                            this.playerSprite.anims.currentAnim.key !=
+                                "fox-run-down"
                         )
-                            this.anims.play("fox-run-down");
+                            this.playerSprite.anims.play("fox-run-down");
 
                         break;
                     case Direction.Right:
-                        this.setVelocityX(this.PLAYER_SPEED);
-                        this.setVelocityY(0);
-                        //this.x += Player.PLAYER_SPEED;
+                        this.body.setVelocityX(this.PLAYER_SPEED);
+                        this.body.setVelocityY(0);
                         if (
                             (await me.isRacoonTeam()) &&
-                            this.anims.currentAnim.key != "racoon-run-right"
+                            this.playerSprite.anims.currentAnim.key !=
+                                "racoon-run-right"
                         )
-                            this.anims.play("racoon-run-right");
+                            this.playerSprite.anims.play("racoon-run-right");
                         if (
                             !(await me.isRacoonTeam()) &&
-                            this.anims.currentAnim.key != "fox-run-right"
+                            this.playerSprite.anims.currentAnim.key !=
+                                "fox-run-right"
                         )
-                            this.anims.play("fox-run-right");
+                            this.playerSprite.anims.play("fox-run-right");
                         break;
                     case Direction.Left:
-                        this.setVelocityX(-1 * this.PLAYER_SPEED);
-                        this.setVelocityY(0);
-                        //this.x -= Player.PLAYER_SPEED;
+                        this.body.setVelocityX(-1 * this.PLAYER_SPEED);
+                        this.body.setVelocityY(0);
                         if (
                             (await me.isRacoonTeam()) &&
-                            this.anims.currentAnim.key != "racoon-run-left"
+                            this.playerSprite.anims.currentAnim.key !=
+                                "racoon-run-left"
                         )
-                            this.anims.play("racoon-run-left");
+                            this.playerSprite.anims.play("racoon-run-left");
                         if (
                             !(await me.isRacoonTeam()) &&
-                            this.anims.currentAnim.key != "fox-run-left"
+                            this.playerSprite.anims.currentAnim.key !=
+                                "fox-run-left"
                         )
-                            this.anims.play("fox-run-left");
+                            this.playerSprite.anims.play("fox-run-left");
 
                         break;
                 }
