@@ -564,7 +564,7 @@ public class Game extends Subscribable implements Runnable {
 //        ItemInfo itemInfo = new ItemInfo(room.getRoomNumber(), playerId, playerId, item, duration, player.getSpeed(), appliedById);
 
         // 플레이어에게 현재 적용된 아이템이 없다면 아이템을 적용시킨다.
-        if (player.getCurrentItem() == null) {
+        if (player.getCurrentItem() == null && player.useItem(item)) {
             player.applyItem(item, duration, appliedById);
             ItemInfo itemInfo = new ItemInfo(room.getRoomNumber(), playerId, playerId, item, duration, player.getSpeed(), appliedById);
             ItemAppliedMessage message = new ItemAppliedMessage(itemInfo, requestId);
