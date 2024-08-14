@@ -205,6 +205,7 @@ export class game extends Phaser.Scene {
         if (this.updatePaused) {
             return;
         }
+        this.localPlayer.update();
         // 로컬플레이어 포지션 트래킹 , 이후 위치는 x,y,headDir로 접근
         this.roomRepository.getGameRepository().then((gameRepository) => {
             gameRepository.getMe().then(async (me) => {
@@ -575,8 +576,19 @@ export class game extends Phaser.Scene {
                             )
                             .then(({ isSucceeded, speed }) => {
                                 if (isSucceeded) {
-                                    console.log(speed);
-                                    //TODO: 플레이어 스피드 변경
+                                    console.log("speed: " + speed);
+                                    gameRepository.setItemSpeed(speed);
+                                    if(gameRepository.getItemQ() === "RED_PEPPER"){
+                                        this.time.delayedCall(10 * 1000, () => {
+                                            console.log("RED_PEPPER END")
+                                            gameRepository.setItemSpeed(200);
+                                        });
+                                    }
+                                    if(gameRepository.getItemQ() !== "RED_PEPPER"){
+                                        this.time.delayedCall(5 * 1000, () => {
+                                            gameRepository.setItemSpeed(200);
+                                        });
+                                    }
                                 }
                             });
                     } else {
@@ -588,8 +600,19 @@ export class game extends Phaser.Scene {
                             )
                             .then(({ isSucceeded, speed }) => {
                                 if (isSucceeded) {
-                                    console.log(speed);
-                                    //TODO: 플레이어 스피드 변경
+                                    console.log("speed: " + speed);
+                                    gameRepository.setItemSpeed(speed);
+                                    if(gameRepository.getItemQ() === "RED_PEPPER"){
+                                        this.time.delayedCall(10 * 1000, () => {
+                                            console.log("RED_PEPPER END")
+                                            gameRepository.setItemSpeed(200);
+                                        });
+                                    }
+                                    if(gameRepository.getItemQ() !== "RED_PEPPER"){
+                                        this.time.delayedCall(5 * 1000, () => {
+                                            gameRepository.setItemSpeed(200);
+                                        });
+                                    }
                                 }
                             });
                     }
@@ -605,8 +628,19 @@ export class game extends Phaser.Scene {
                             )
                             .then(({ isSucceeded, speed }) => {
                                 if (isSucceeded) {
-                                    console.log(speed);
-                                    //TODO: 플레이어 스피드 변경
+                                    console.log("speed: " + speed);
+                                    gameRepository.setItemSpeed(speed);
+                                    if(gameRepository.getItemW() === "RED_PEPPER"){
+                                        this.time.delayedCall(10 * 1000, () => {
+                                            console.log("RED_PEPPER END")
+                                            gameRepository.setItemSpeed(200);
+                                        });
+                                    }
+                                    if(gameRepository.getItemW() !== "RED_PEPPER"){
+                                        this.time.delayedCall(5 * 1000, () => {
+                                            gameRepository.setItemSpeed(200);
+                                        });
+                                    }
                                 }
                             });
                     } else {
@@ -618,8 +652,19 @@ export class game extends Phaser.Scene {
                             )
                             .then(({ isSucceeded, speed }) => {
                                 if (isSucceeded) {
-                                    console.log(speed);
-                                    //TODO: 플레이어 스피드 변경
+                                    console.log("speed: " + speed);
+                                    gameRepository.setItemSpeed(speed);
+                                    if(gameRepository.getItemW() === "RED_PEPPER"){
+                                        this.time.delayedCall(10 * 1000, () => {
+                                            console.log("RED_PEPPER END")
+                                            gameRepository.setItemSpeed(200);
+                                        });
+                                    }
+                                    if(gameRepository.getItemW() !== "RED_PEPPER"){
+                                        this.time.delayedCall(5 * 1000, () => {
+                                            gameRepository.setItemSpeed(200);
+                                        });
+                                    }
                                 }
                             });
                     }
