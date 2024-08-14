@@ -184,7 +184,7 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
                             suffix: ".png",
                         }),
                         repeat: -1,
-                        frameRate: 1,
+                        frameRate: 5,
                     });
 
                     this.anims.create({
@@ -280,7 +280,7 @@ export default class MyPlayerSprite extends Phaser.Physics.Arcade.Sprite {
                             suffix: ".png",
                         }),
                         repeat: -1,
-                        frameRate: 1,
+                        frameRate: 5,
                     });
 
                     this.anims.create({
