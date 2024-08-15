@@ -149,6 +149,16 @@ export class Preloader extends Scene {
             "poisonMushroom",
             "assets/object/item/poisonMushroomItem.png"
         );
+        this.load.spritesheet({
+            key: "dynamic-poison-mushroom-effect",
+            url: "assets/effect/Retro Impact Effect Pack 5 B.png",
+            frameConfig: {
+                frameWidth: 64,
+                frameHeight: 45,
+                startFrame: 0,
+                endFrame: 8,
+            },
+        });
 
         // 나뭇잎: 다른 물체로 변신
 
@@ -199,6 +209,19 @@ export class Preloader extends Scene {
                 start: 0,
                 end: 15,
             }),
+            frameRate: 10,
+            repeat: -1,
+        });
+
+        this.anims.create({
+            key: "dynamic-poison-mushroom-effect-animation",
+            frames: this.anims.generateFrameNumbers(
+                "dynamic-poison-mushroom-effect",
+                {
+                    start: 0,
+                    end: 8,
+                }
+            ),
             frameRate: 10,
             repeat: -1,
         });

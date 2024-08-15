@@ -653,8 +653,9 @@ export class game extends Phaser.Scene {
                                             gameRepository.getItemAppliedFromObject() ===
                                             "POISON_MUSHROOM"
                                         ) {
-                                            //TODO:아이템이 obj에서 발견됐을때 애니메이션 추가, 머리 위 아이템 이미지 띄우기
-                                            console.log("키반전");
+                                            this.localPlayer.applyItemEffect(
+                                                "POISON_MUSHROOM"
+                                            );
                                             this.playerMoveHandler.setReversed(
                                                 true
                                             );
@@ -663,8 +664,10 @@ export class game extends Phaser.Scene {
                                                 this.playerMoveHandler.setReversed(
                                                     false
                                                 );
-                                                console.log("키반전 취소");
-                                            }, 5 * 1000); // 키반전이 더 빨리 풀리는것같은데 ?
+                                                this.localPlayer.removeItemEffect(
+                                                    "POISON_MUSHROOM"
+                                                );
+                                            }, 10 * 1000); // 키반전이 더 빨리 풀리는것같은데 ?
                                         } else {
                                             console.log("탐색실패");
                                             this.text.showTextFailFind(
