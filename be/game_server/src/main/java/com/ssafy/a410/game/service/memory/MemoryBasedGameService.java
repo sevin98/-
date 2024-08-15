@@ -7,6 +7,7 @@ import com.ssafy.a410.game.domain.game.Game;
 import com.ssafy.a410.game.domain.game.message.control.GameInfo;
 import com.ssafy.a410.game.domain.game.message.control.GameInfoMessage;
 import com.ssafy.a410.game.domain.player.Player;
+import com.ssafy.a410.game.domain.player.PlayerDirection;
 import com.ssafy.a410.game.domain.player.PlayerPosition;
 import com.ssafy.a410.game.domain.player.message.request.PlayerPositionShareRequest;
 import com.ssafy.a410.game.service.GameService;
@@ -52,17 +53,18 @@ public class MemoryBasedGameService implements GameService {
     @Override
     public void sharePosition(String roomId, String userProfileUuid, PlayerPositionReq req) {
         // 해당 방에 플레이어가 있는지 먼저 확인하고
-        try {
-            Room targetRoom = roomService.getRoomById(roomId);
-            Player player = targetRoom.getPlayerWith(userProfileUuid);
-            Game game = targetRoom.playingGame;
+        Room targetRoom = roomService.getRoomById(roomId);
+        Player player = targetRoom.getPlayerWith(userProfileUuid);
+        Game game = targetRoom.playingGame;
 
-            // 위치 공유 메시지를 생성하여 Enque
-            PlayerPosition playerPosition = new PlayerPosition(userProfileUuid, req);
-            PlayerPositionShareRequest request = new PlayerPositionShareRequest(userProfileUuid, playerPosition);
-            game.pushMessage(player, request);
-        } catch (Exception e) {
-        }
+        player.setX(req.x());
+        player.setY(req.y());
+        player.setDirection(PlayerDirection.valueOf(req.direction()));
+
+//        // 위치 공유 메시지를 생성하여 Enque
+//        PlayerPosition playerPosition = new PlayerPosition(userProfileUuid, req);
+//        PlayerPositionShareRequest request = new PlayerPositionShareRequest(userProfileUuid, playerPosition);
+//        game.pushMessage(player, request);
     }
 
     @Override

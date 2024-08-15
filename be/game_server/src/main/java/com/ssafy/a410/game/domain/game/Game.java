@@ -36,10 +36,11 @@ import static com.ssafy.a410.common.exception.ErrorDetail.PLAYER_NOT_IN_ROOM;
 @Getter
 @Slf4j
 public class Game extends Subscribable implements Runnable {
-
+    // 60FPS
+    private static final long MOVEMENT_SHARE_INTERVAL = (1000/60) * 1L;
     private static final int SAFE_ZONE_REDUCE_AMOUNT = 100;
     private static final int SAFE_ZONE_REDUCE_DURATION = 10;
-    private static final int TOTAL_ROUND = 7;
+    private static final int TOTAL_ROUND = 5;
     // 게임 맵
     private final GameMap gameMap;
     // 플레이어들이 속해 있는 방
@@ -56,6 +57,8 @@ public class Game extends Subscribable implements Runnable {
     // 현재 게임이 머물러 있는 상태(단계)
     private Phase currentPhase;
     private int round;
+
+    private long lastMovementShareTime = 0L;
 
     public Game(Room room, MessageBroadcastService broadcastService, UserService userService, List<Item> availableItems) {
         this.room = room;
@@ -270,6 +273,14 @@ public class Game extends Subscribable implements Runnable {
         // 제한 시간이 끝날 때까지 루프 반복
         final long TIME_TO_SWITCH = System.currentTimeMillis() + Phase.READY.getDuration() + additionalDurationMilliSec;
         while (!isTimeToSwitch(TIME_TO_SWITCH) && !isEnd()) {
+            if (System.currentTimeMillis() - lastMovementShareTime >= MOVEMENT_SHARE_INTERVAL) {
+                for(Player player : hidingTeam.getPlayers().values()){
+                    PlayerPositionMessage message = new PlayerPositionMessage(new PlayerPosition(player));
+                    broadcastService.broadcastTo(hidingTeam, message);
+                }
+                lastMovementShareTime = System.currentTimeMillis();
+            }
+
             // 현 시점까지 들어와 있는 요청까지만 처리
             final int NUM_OF_MESSAGES = hidingTeamRequests.size();
             for (int cnt = 0; cnt < NUM_OF_MESSAGES; cnt++) {
@@ -379,6 +390,15 @@ public class Game extends Subscribable implements Runnable {
         // 제한 시간이 끝날 때까지 루프 반복
         final long TIME_TO_SWITCH = System.currentTimeMillis() + Phase.MAIN.getDuration();
         while (!isTimeToSwitch(TIME_TO_SWITCH) && !isEnd()) {
+            if (System.currentTimeMillis() - lastMovementShareTime >= MOVEMENT_SHARE_INTERVAL) {
+                for(Player player : seekingTeam.getPlayers().values()){
+                    PlayerPositionMessage message = new PlayerPositionMessage(new PlayerPosition(player));
+                    broadcastService.broadcastTo(seekingTeam, message);
+                    broadcastService.broadcastTo(hidingTeam, message);
+                }
+                lastMovementShareTime = System.currentTimeMillis();
+            }
+
             // 현 시점까지 들어와 있는 요청까지만 처리
             final int NUM_OF_MESSAGES = seekingTeamRequests.size();
             for (int cnt = 0; cnt < NUM_OF_MESSAGES; cnt++) {
