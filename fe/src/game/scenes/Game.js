@@ -217,6 +217,16 @@ export class game extends Phaser.Scene {
             .setDisplaySize(50, 50)
             .setOrigin(0.5, 0.5);
         this.hideSuccessEffect.setVisible(false);
+
+        this.itemInstallSuccessEffect = this.add
+            .sprite(0, 0, "item-install-effect")
+            .setDisplaySize(50, 50)
+            .setOrigin(0.5, 0.5);
+        this.itemInstallSuccessEffect.setVisible(false);
+    }
+
+    isInstallableItem(itemName) {
+        return ["BANANA", "BEEHIVE", "POISON_MUSHROOM"].includes(itemName);
     }
 
     update() {
@@ -563,11 +573,6 @@ export class game extends Phaser.Scene {
                                     if (isSucceeded) {
                                         console.log("숨기 성공");
                                         me.setIsHiding(true);
-                                        this.text.showTextHide(
-                                            this,
-                                            closest.body.x - 40,
-                                            closest.body.y - 40
-                                        );
                                         this.hideSuccessSound.play();
 
                                         this.hideSuccessEffect.setPosition(
@@ -752,36 +757,77 @@ export class game extends Phaser.Scene {
                             )
                             .then(({ isSucceeded, speed }) => {
                                 if (isSucceeded) {
-                                    console.log("speed: " + speed);
-                                    gameRepository.setItemSpeed(speed);
                                     if (
-                                        gameRepository.getItemQ() ===
-                                        "RED_PEPPER"
+                                        this.isInstallableItem(
+                                            gameRepository.getItemQ()
+                                        )
                                     ) {
-                                        this.localPlayer.applyItemEffect(
-                                            "RED_PEPPER"
+                                        this.itemInstallSuccessEffect.setPosition(
+                                            closest.body.x + 10,
+                                            closest.body.y - 10
                                         );
-                                        this.time.delayedCall(10 * 1000, () => {
-                                            console.log("RED_PEPPER END");
-                                            gameRepository.setItemSpeed(200);
-                                            this.localPlayer.removeItemEffect(
+                                        this.itemInstallSuccessEffect.setVisible(
+                                            true
+                                        );
+                                        this.itemInstallSuccessEffect.play(
+                                            "item-install-effect-animation"
+                                        );
+                                        this.tweens.add({
+                                            targets:
+                                                this.itemInstallSuccessEffect,
+                                            alpha: 0,
+                                            duration: 2000,
+                                            ease: "Linear",
+                                            repeat: 0,
+                                            onComplete: () => {
+                                                this.itemInstallSuccessEffect.setVisible(
+                                                    false
+                                                );
+                                                this.itemInstallSuccessEffect.stop();
+                                            },
+                                        });
+                                    } else {
+                                        gameRepository.setItemSpeed(speed);
+                                        if (
+                                            gameRepository.getItemQ() ===
+                                            "RED_PEPPER"
+                                        ) {
+                                            this.localPlayer.applyItemEffect(
                                                 "RED_PEPPER"
                                             );
-                                        });
-                                    }
-                                    if (
-                                        gameRepository.getItemQ() !==
-                                        "RED_PEPPER"
-                                    ) {
-                                        this.localPlayer.applyItemEffect(
+                                            this.time.delayedCall(
+                                                10 * 1000,
+                                                () => {
+                                                    console.log(
+                                                        "RED_PEPPER END"
+                                                    );
+                                                    gameRepository.setItemSpeed(
+                                                        200
+                                                    );
+                                                    this.localPlayer.removeItemEffect(
+                                                        "RED_PEPPER"
+                                                    );
+                                                }
+                                            );
+                                        } else if (
+                                            gameRepository.getItemQ() ===
                                             "MUSHROOM"
-                                        );
-                                        this.time.delayedCall(5 * 1000, () => {
-                                            gameRepository.setItemSpeed(200);
-                                            this.localPlayer.removeItemEffect(
+                                        ) {
+                                            this.localPlayer.applyItemEffect(
                                                 "MUSHROOM"
                                             );
-                                        });
+                                            this.time.delayedCall(
+                                                5 * 1000,
+                                                () => {
+                                                    gameRepository.setItemSpeed(
+                                                        200
+                                                    );
+                                                    this.localPlayer.removeItemEffect(
+                                                        "MUSHROOM"
+                                                    );
+                                                }
+                                            );
+                                        }
                                     }
                                 }
                             });
@@ -794,36 +840,77 @@ export class game extends Phaser.Scene {
                             )
                             .then(({ isSucceeded, speed }) => {
                                 if (isSucceeded) {
-                                    console.log("speed: " + speed);
-                                    gameRepository.setItemSpeed(speed);
                                     if (
-                                        gameRepository.getItemQ() ===
-                                        "RED_PEPPER"
+                                        this.isInstallableItem(
+                                            gameRepository.getItemQ()
+                                        )
                                     ) {
-                                        this.localPlayer.applyItemEffect(
-                                            "RED_PEPPER"
+                                        this.itemInstallSuccessEffect.setPosition(
+                                            closest.body.x + 10,
+                                            closest.body.y - 10
                                         );
-                                        this.time.delayedCall(10 * 1000, () => {
-                                            console.log("RED_PEPPER END");
-                                            gameRepository.setItemSpeed(200);
-                                            this.localPlayer.removeItemEffect(
+                                        this.itemInstallSuccessEffect.setVisible(
+                                            true
+                                        );
+                                        this.itemInstallSuccessEffect.play(
+                                            "item-install-effect-animation"
+                                        );
+                                        this.tweens.add({
+                                            targets:
+                                                this.itemInstallSuccessEffect,
+                                            alpha: 0,
+                                            duration: 2000,
+                                            ease: "Linear",
+                                            repeat: 0,
+                                            onComplete: () => {
+                                                this.itemInstallSuccessEffect.setVisible(
+                                                    false
+                                                );
+                                                this.itemInstallSuccessEffect.stop();
+                                            },
+                                        });
+                                    } else {
+                                        gameRepository.setItemSpeed(speed);
+                                        if (
+                                            gameRepository.getItemQ() ===
+                                            "RED_PEPPER"
+                                        ) {
+                                            this.localPlayer.applyItemEffect(
                                                 "RED_PEPPER"
                                             );
-                                        });
-                                    }
-                                    if (
-                                        gameRepository.getItemQ() !==
-                                        "RED_PEPPER"
-                                    ) {
-                                        this.localPlayer.applyItemEffect(
+                                            this.time.delayedCall(
+                                                10 * 1000,
+                                                () => {
+                                                    console.log(
+                                                        "RED_PEPPER END"
+                                                    );
+                                                    gameRepository.setItemSpeed(
+                                                        200
+                                                    );
+                                                    this.localPlayer.removeItemEffect(
+                                                        "RED_PEPPER"
+                                                    );
+                                                }
+                                            );
+                                        } else if (
+                                            gameRepository.getItemQ() ===
                                             "MUSHROOM"
-                                        );
-                                        this.time.delayedCall(5 * 1000, () => {
-                                            gameRepository.setItemSpeed(200);
-                                            this.localPlayer.removeItemEffect(
+                                        ) {
+                                            this.localPlayer.applyItemEffect(
                                                 "MUSHROOM"
                                             );
-                                        });
+                                            this.time.delayedCall(
+                                                5 * 1000,
+                                                () => {
+                                                    gameRepository.setItemSpeed(
+                                                        200
+                                                    );
+                                                    this.localPlayer.removeItemEffect(
+                                                        "MUSHROOM"
+                                                    );
+                                                }
+                                            );
+                                        }
                                     }
                                 }
                             });
@@ -841,36 +928,77 @@ export class game extends Phaser.Scene {
                             )
                             .then(({ isSucceeded, speed }) => {
                                 if (isSucceeded) {
-                                    console.log("speed: " + speed);
-                                    gameRepository.setItemSpeed(speed);
                                     if (
-                                        gameRepository.getItemW() ===
-                                        "RED_PEPPER"
+                                        this.isInstallableItem(
+                                            gameRepository.getItemW()
+                                        )
                                     ) {
-                                        this.localPlayer.applyItemEffect(
-                                            "RED_PEPPER"
+                                        this.itemInstallSuccessEffect.setPosition(
+                                            closest.body.x + 10,
+                                            closest.body.y - 10
                                         );
-                                        this.time.delayedCall(10 * 1000, () => {
-                                            console.log("RED_PEPPER END");
-                                            gameRepository.setItemSpeed(200);
-                                            this.localPlayer.removeItemEffect(
+                                        this.itemInstallSuccessEffect.setVisible(
+                                            true
+                                        );
+                                        this.itemInstallSuccessEffect.play(
+                                            "item-install-effect-animation"
+                                        );
+                                        this.tweens.add({
+                                            targets:
+                                                this.itemInstallSuccessEffect,
+                                            alpha: 0,
+                                            duration: 2000,
+                                            ease: "Linear",
+                                            repeat: 0,
+                                            onComplete: () => {
+                                                this.itemInstallSuccessEffect.setVisible(
+                                                    false
+                                                );
+                                                this.itemInstallSuccessEffect.stop();
+                                            },
+                                        });
+                                    } else {
+                                        gameRepository.setItemSpeed(speed);
+                                        if (
+                                            gameRepository.getItemW() ===
+                                            "RED_PEPPER"
+                                        ) {
+                                            this.localPlayer.applyItemEffect(
                                                 "RED_PEPPER"
                                             );
-                                        });
-                                    }
-                                    if (
-                                        gameRepository.getItemW() !==
-                                        "RED_PEPPER"
-                                    ) {
-                                        this.localPlayer.applyItemEffect(
+                                            this.time.delayedCall(
+                                                10 * 1000,
+                                                () => {
+                                                    console.log(
+                                                        "RED_PEPPER END"
+                                                    );
+                                                    gameRepository.setItemSpeed(
+                                                        200
+                                                    );
+                                                    this.localPlayer.removeItemEffect(
+                                                        "RED_PEPPER"
+                                                    );
+                                                }
+                                            );
+                                        } else if (
+                                            gameRepository.getItemW() ===
                                             "MUSHROOM"
-                                        );
-                                        this.time.delayedCall(5 * 1000, () => {
-                                            gameRepository.setItemSpeed(200);
-                                            this.localPlayer.removeItemEffect(
+                                        ) {
+                                            this.localPlayer.applyItemEffect(
                                                 "MUSHROOM"
                                             );
-                                        });
+                                            this.time.delayedCall(
+                                                5 * 1000,
+                                                () => {
+                                                    gameRepository.setItemSpeed(
+                                                        200
+                                                    );
+                                                    this.localPlayer.removeItemEffect(
+                                                        "MUSHROOM"
+                                                    );
+                                                }
+                                            );
+                                        }
                                     }
                                 }
                             });
@@ -883,36 +1011,77 @@ export class game extends Phaser.Scene {
                             )
                             .then(({ isSucceeded, speed }) => {
                                 if (isSucceeded) {
-                                    console.log("speed: " + speed);
-                                    gameRepository.setItemSpeed(speed);
                                     if (
-                                        gameRepository.getItemW() ===
-                                        "RED_PEPPER"
+                                        this.isInstallableItem(
+                                            gameRepository.getItemW()
+                                        )
                                     ) {
-                                        this.localPlayer.applyItemEffect(
-                                            "RED_PEPPER"
+                                        this.itemInstallSuccessEffect.setPosition(
+                                            closest.body.x + 10,
+                                            closest.body.y - 10
                                         );
-                                        this.time.delayedCall(10 * 1000, () => {
-                                            console.log("RED_PEPPER END");
-                                            gameRepository.setItemSpeed(200);
-                                            this.localPlayer.removeItemEffect(
+                                        this.itemInstallSuccessEffect.setVisible(
+                                            true
+                                        );
+                                        this.itemInstallSuccessEffect.play(
+                                            "item-install-effect-animation"
+                                        );
+                                        this.tweens.add({
+                                            targets:
+                                                this.itemInstallSuccessEffect,
+                                            alpha: 0,
+                                            duration: 2000,
+                                            ease: "Linear",
+                                            repeat: 0,
+                                            onComplete: () => {
+                                                this.itemInstallSuccessEffect.setVisible(
+                                                    false
+                                                );
+                                                this.itemInstallSuccessEffect.stop();
+                                            },
+                                        });
+                                    } else {
+                                        gameRepository.setItemSpeed(speed);
+                                        if (
+                                            gameRepository.getItemW() ===
+                                            "RED_PEPPER"
+                                        ) {
+                                            this.localPlayer.applyItemEffect(
                                                 "RED_PEPPER"
                                             );
-                                        });
-                                    }
-                                    if (
-                                        gameRepository.getItemW() !==
-                                        "RED_PEPPER"
-                                    ) {
-                                        this.localPlayer.applyItemEffect(
+                                            this.time.delayedCall(
+                                                10 * 1000,
+                                                () => {
+                                                    console.log(
+                                                        "RED_PEPPER END"
+                                                    );
+                                                    gameRepository.setItemSpeed(
+                                                        200
+                                                    );
+                                                    this.localPlayer.removeItemEffect(
+                                                        "RED_PEPPER"
+                                                    );
+                                                }
+                                            );
+                                        } else if (
+                                            gameRepository.getItemW() ===
                                             "MUSHROOM"
-                                        );
-                                        this.time.delayedCall(5 * 1000, () => {
-                                            gameRepository.setItemSpeed(200);
-                                            this.localPlayer.removeItemEffect(
+                                        ) {
+                                            this.localPlayer.applyItemEffect(
                                                 "MUSHROOM"
                                             );
-                                        });
+                                            this.time.delayedCall(
+                                                5 * 1000,
+                                                () => {
+                                                    gameRepository.setItemSpeed(
+                                                        200
+                                                    );
+                                                    this.localPlayer.removeItemEffect(
+                                                        "MUSHROOM"
+                                                    );
+                                                }
+                                            );
+                                        }
                                     }
                                 }
                             });
