@@ -107,6 +107,18 @@ export class Preloader extends Scene {
             "pepper-effect-sound",
             "sounds/effect/etc/pepper-effect.mp3"
         );
+
+        // 방향 버섯 아이템 적용 효과
+        this.load.spritesheet({
+            key: "dynamic-mushroom-effect",
+            url: "assets/effect/S001_nyknck.png",
+            frameConfig: {
+                frameWidth: 32,
+                frameHeight: 32,
+                startFrame: 0,
+                endFrame: 3,
+            },
+        });
     }
 
     create() {
@@ -121,6 +133,15 @@ export class Preloader extends Scene {
             frameRate: 20,
             repeat: -1,
         });
+
+        this.anims.create({
+            key: "dynamic-mushroom-effect-animation",
+            frames: this.anims.generateFrameNumbers("dynamic-mushroom-effect", {
+                start: 0,
+                end: 3,
+            }),
+            frameRate: 5,
+            repeat: -1,
+        });
     }
 }
-
