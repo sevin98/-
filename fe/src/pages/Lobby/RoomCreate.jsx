@@ -16,7 +16,6 @@ export default function RoomCreate() {
 
     useEffect(() => {
         if (userProfile === null) {
-            console.error("유저 정보가 없습니다.");
             navigate("/");
         }
     }, []);

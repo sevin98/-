@@ -49,7 +49,6 @@ function RankingPage() {
                         reset ? data.results : [...prev, ...data.results]
                     );
                 } else {
-                    console.error("Unexpected API response format:", data);
                 }
 
                 if (
@@ -60,7 +59,6 @@ function RankingPage() {
                 }
             })
             .catch((error) => {
-                console.error("API Error:", error);
                 setError("Failed to load rankings. Please try again later.");
             });
     };
@@ -70,7 +68,6 @@ function RankingPage() {
             .get("/api/rankings/me")
             .then((response) => setMyRanking(response.data))
             .catch((error) => {
-                console.error("API Error:", error);
                 setError("Failed to load your ranking. Please try again later.");
             });
     };

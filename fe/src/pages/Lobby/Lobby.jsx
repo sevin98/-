@@ -26,7 +26,6 @@ export default function Lobby() {
 
     useEffect(() => {
         if (userProfile === null) {
-            console.error("유저 정보가 없습니다.");
             navigate("/");
         } else {
             setNickname(userProfile.nickname);
@@ -41,19 +40,16 @@ export default function Lobby() {
         //     nickname: currentNickname,
         // });
         // setUserProfile({ ...userProfile, nickname: currentNickname });
-        // console.log(`닉네임이 ${currentNickname}로 변경되었습니다`);
     };
 
     const onCreateRoomBtnClicked = (e) => {
         e.preventDefault();
         navigate(ROOM_CREATE_ROUTE_PATH);
-        console.log("새로운 방 생성");
     };
 
     const onExistRoomJoinBtnClicked = (e) => {
         e.preventDefault();
         navigate(ROOM_JOIN_ROUTE_PATH);
-        console.log("기존 방에 참여");
     };
 
     const onRandomRoomJoinBtnClicked = async (e) => {
@@ -89,7 +85,6 @@ export default function Lobby() {
     const onRankingPageBtnClicked = (e) => {
         e.preventDefault();
         navigate(RANKING_PAGE_ROUTE_PATH);
-        console.log("랭킹 페이지로 이동");
     };
 
     return (

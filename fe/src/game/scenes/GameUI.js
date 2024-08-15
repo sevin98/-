@@ -489,6 +489,27 @@ export default class GameUI extends Phaser.Scene {
                 } else {
                     this.updateTimer();
                 }
+
+                //  TODO:Q, W가 사용되었으면 화면에 이미지 추가
+                if (gameRepository.getItemQapplied()) {
+                    this.add
+                        .image(
+                            (this.cameras.main.width - 75) / 2 + 3,
+                            this.cameras.main.height - 45,
+                            "failed"
+                        )
+                        .setDepth(1000);
+                    gameRepository.setItemQapplied(false); // 원래대로 값 바꿔줌
+                } else if (gameRepository.getItemWapplied()) {
+                    this.add
+                        .image(
+                            (this.cameras.main.width + 75) / 2,
+                            this.cameras.main.height - 45,
+                            "failed"
+                        )
+                        .setDepth(1000);
+                    gameRepository.setItemWapplied(false); // 원래대로 값 바꿔줌
+                }
             });
     }
 
@@ -499,8 +520,6 @@ export default class GameUI extends Phaser.Scene {
         }
         // 전부 보이게 만들기
         if (seekFailCount > this.prevseekFailCount) {
-            console.log("실패이펙트 함수 실행");
-            console.log("카메라 찾기");
             const camera = this.cameras.main;
             const width = camera.width;
             const height = camera.height;
@@ -520,7 +539,6 @@ export default class GameUI extends Phaser.Scene {
                     x = width - 20;
                     y = height - 20;
             }
-            console.log("이미지추가");
             const newEffect = this.add
                 .image(x, y, "chickenEffectImage")
                 .setOrigin(0.5);

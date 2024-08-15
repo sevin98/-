@@ -8,7 +8,6 @@ const roomPassword = null;
 
 const HTTP_API_URL_PREFIX = "http://localhost:8081/api";
 const { accessToken, userProfile, webSocketConnectionToken } = (await axios.post(`${HTTP_API_URL_PREFIX}/auth/guest/sign-up`)).data;
-console.log("로그인한 게스트의 닉네임: ", userProfile.nickname);
 
 // Web Socket Client
 const client = new Client({
@@ -68,7 +67,6 @@ const client = new Client({
           updatedJoinedPlayers.forEach((player) => {
             if (!joinedPlayers.find((p) => p.playerId === player.playerId)) {
               joinedPlayers.push(player);
-              console.log(`[${player.playerNickname}]님이 입장했습니다.`, player);
             }
           });
         }
@@ -79,25 +77,20 @@ const client = new Client({
           updatedReadyPlayers.forEach((player) => {
             if (!readyPlayers.find((p) => p.playerId === player.playerId)) {
               readyPlayers.push(player);
-              console.log(`[${player.playerNickname}]님이 레디했습니다.`);
             }
           });
         }
         // 게임 시작 알림
         else if (message.type === "SUBSCRIBE_GAME") {
           const { subscriptionInfo, startsAfterMilliSec } = message.data;
-          console.log(`게임이 ${startsAfterMilliSec}ms 후 시작됩니다. 게임 토픽: ${subscriptionInfo.topic}`);
           // 게임 토픽 구독
           client.subscribe(
             subscriptionInfo.topic,
             (stompMessage) => {
               const message = JSON.parse(stompMessage.body);
               if (message.type === "GAME_INFO") {
-                console.log(`게임 정보: ${JSON.stringify(message.data)}`);
               } else if (message.type === "ROUND_CHANGE") {
-                console.log(`라운드 변경: ${message.data.nextRound}/${message.data.totalRound}`);
               } else if (message.type === "PHASE_CHANGE") {
-                console.log(`페이즈 변경: ${message.data.phase}, ${message.data.finishAfterMilliSec}ms 후 종료`);
               }
             },
             {
@@ -118,39 +111,16 @@ const client = new Client({
         const message = JSON.parse(stompMessage.body);
         if (message.type === "INITIALIZE_PLAYER") {
           const { teamCharacter, playerPositionInfo, teamSubscriptionInfo } = message.data;
-          console.log("팀:", teamCharacter);
-          console.log("플레이어 시작 위치:", playerPositionInfo);
 
           client.subscribe(
             teamSubscriptionInfo.topic,
             (stompMessage) => {
               const message = JSON.parse(stompMessage.body);
-              console.log(message);
               if (message.type === "SHARE_POSITION") {
-                console.log(`[${message.data.playerId}]의 위치: ${message.data.x}, ${message.data.y}`);
               }
             },
             { subscriptionToken: teamSubscriptionInfo.token }
           );
-
-          // // 팀 정보 수신
-          // client.subscribe(
-          //   {
-          //     destination: teamSubscriptionInfo.topic,
-          //   },
-          //   (stompMessage) => {
-          //     const message = JSON.parse(stompMessage.body);
-          //     console.log(message);
-          //     if (message.type === "SHARE_POSITION") {
-          //       console.log(`[${message.data.playerNickname}]의 위치: ${message.data.x}, ${message.data.y}`);
-          //     }
-          //   },
-          //   {
-          //     headers: {
-          //       Authorization: `Bearer ${accessToken}`,
-          //     },
-          //   }
-          // );
 
           setTimeout(() => {
             setInterval(() => {
@@ -172,7 +142,6 @@ const client = new Client({
     );
 
     // 레디
-    console.log("3초 후 레디...");
     setTimeout(() => {
       client.publish({
         destination: `/ws/rooms/${fixedRoomNumber || createdRoom.roomNumber}/ready`,
@@ -180,27 +149,11 @@ const client = new Client({
           Authorization: `Bearer ${accessToken}`,
         },
       });
-      // axios.post(`${HTTP_API_URL_PREFIX}/rooms/${fixedRoomNumber || createdRoom.roomNumber}/ready`, null, {
-      //   headers: {
-      //     Authorization: `Bearer ${accessToken}`,
-      //   },
-      // });
+    
     }, 3000);
-
-    // 메시지 수신 처리부터 해주고 (구독!!!)
-    // client.subscribe("/topic/messages", (message) => {
-    //   console.log(message.body);
-    // });
-
-    // // 메시지 전송해서 보낸 메시지가 그대로 돌아오면 성공
-    // client.publish({
-    //   destination: "/ws/send-message",
-    //   body: "Hello, STOMP",
-    // });
   },
   // 연결이 끊겼을 때 처리
   onDisconnect: () => {
-    console.log("disconnected");
   },
   // 토큰 만료, 누락 등의 이유로 연결이 실패했을 때 처리
   onWebSocketError: (event) => {
