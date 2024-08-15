@@ -215,10 +215,20 @@ export default class MyPlayerSprite extends Phaser.GameObjects.Container {
         const playerSprite = scene.add
             .sprite(0, 0, texture)
             .setDisplaySize(16, 16);
-        const nicknameText = scene.add.text(-20, -20, nickname, {
-            fontSize: "10px",
-            color: "#ffffff",
+        const nicknameText = scene.add.text(0, 14, nickname, {
+            fontSize: "6px",
+            color: "#ffffffcc",
+            backgroundColor: "#000000cc",
+            fontFamily: "Galmuri11",
+            resolution: 2,
+            padding: {
+                top: 0.5,
+                bottom: 0.5,
+                left: 1,
+                right: 1,
+            },
         });
+        nicknameText.setOrigin(0.5, 0.5);
 
         super(scene, x, y, [playerSprite, nicknameText]);
         this.scene = scene;
@@ -696,3 +706,4 @@ export default class MyPlayerSprite extends Phaser.GameObjects.Container {
         return this.#isFootstepSoundPlaying;
     }
 }
+
