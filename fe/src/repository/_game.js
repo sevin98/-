@@ -93,6 +93,9 @@ export default class GameRepository {
     #seekFailCatchCount = 0; // 기본값 0
     #itemAppliedFromObject; // 현재 적용중인 아이템 내용
 
+    #itemQapplied = false; // 아이템 사용시 true로 바꾸고 x이미지 추가
+    #itemWapplied = false; 
+
     constructor(room, roomNumber, gameSubscriptionInfo, startsAfterMilliSec) {
         this.#room = room;
         this.#roomNumber = roomNumber;
@@ -124,7 +127,6 @@ export default class GameRepository {
         if (!this.#isInitialized && type !== GAME_INFO) {
             await gameInitializationMutex.acquire();
         }
-        console.log("메시지타입", message.type);
         switch (type) {
             case GAME_START:
                 this.#handleGameStartEvent(data);
@@ -160,59 +162,45 @@ export default class GameRepository {
                     PLAYER_ELIMINATION_REASON.FAILED_TO_HIDE,
                     data
                 );
-                console.log(
-                    `플레이어 ${data.playerId}님이 숨지 못해 탈락하셨습니다.`
-                );
+           
                 break;
             case PLAYER_DISCONNECTED:
                 this.#handlePlayerDeath(
                     PLAYER_ELIMINATION_REASON.PLAYER_DISCONNECTED,
                     data
                 );
-                console.log(`플레이어 ${data.playerId}님이 이탈하셨습니다.`);
                 break;
             case ELIMINATION_OUT_OF_SAFE_ZONE:
                 this.#handlePlayerDeath(
                     PLAYER_ELIMINATION_REASON.OUT_OF_SAFE_ZONE,
                     data
                 );
-                console.log(
-                    `플레이어 ${data.playerId}님이 안전구역을 벗어나 탈락하셨습니다.`
-                );
+                
                 break;
             case SAFE_ZONE_UPDATE:
                 //맵축소
                 this.#handleSafeZoneUpdateEvent(data);
-                console.log(`안전 지역이 변경되었습니다.`);
                 break;
             case GAME_RESULT:
                 this.#handleGameResultEvent(data);
-                console.log("게임 결과를 수신했습니다.");
                 break;
             //아이템 메세지: 나중에 static으로 추가하기
             case "ITEM_APPLIED_TO_PLAYER":
-                console.log("1. 아이템 플레이어에 적용 성공");
-                console.log("or 6. 탐색시 아이템 적용 성공");
                 // 넘어온 data 확인해보니 message 그대로 넘겨줘야함
                 this.#handleItemAppliedPlayerSuccess(message);
                 break;
             case "ITEM_APPLIED_TO_OBJECT":
-                console.log("2. 아이템 오브젝트에 적용 성공");
                 this.#handleItemAppliedObjectSuccess(message);
                 break;
             case "ITEM_APPLICATION_FAILED_TO_PLAYER":
-                console.log("3. 이미 아이템이 적용된 플레이어");
                 break;
             case "ITEM_APPLICATION_FAILED_TO_OBJECT":
-                console.log("4. 이미 아이템이 설치된object or  5.object존재x");
                 this.#handleItemAppliedObjectFailed(message);
                 break;
             case "ITEM_CLEARED":
-                console.log("8. item 효과제거");
                 break;
 
             default:
-                console.error("Received unknown message:", message);
                 throw new Error(
                     "Unknown message type in GameRepository:" + type
                 );
@@ -220,7 +208,6 @@ export default class GameRepository {
     }
 
     #handleGameStartEvent() {
-        console.log(`게임 시작`);
         this.#startedAt = new Date();
     }
 
@@ -233,7 +220,6 @@ export default class GameRepository {
     }
 
     #handleRoundChangeEvent(data) {
-        console.log(`라운드 변경: ${data.nextRound}/${data.totalRound}`);
     }
 
     #handlePhaseChangeEvent(data) {
@@ -241,9 +227,7 @@ export default class GameRepository {
         this.#nextPhaseChangeAt = Date.parse(data.changeAt);
         this.#currentPhaseFinishAfterMilliSec = data.finishAfterMilliSec;
 
-        console.log(
-            `페이즈 변경: ${data.phase}, ${data.finishAfterMilliSec}ms 후 종료`
-        );
+
 
         if (this.#currentPhase === Phase.END) {
             // 한 라운드가 끝나면 역할 반전
@@ -265,9 +249,7 @@ export default class GameRepository {
             }
             if (this.#currentPhase === Phase.READY) {
                 if (await me.isHidingTeam()) {
-                    console.log(
-                        `당신의 팀이 숨을 차례입니다. ${data.finishAfterMilliSec}ms 안에 숨지 못하면 탈락합니다.`
-                    );
+
 
                     // 화면에 찾는 팀, 숨는 팀 플레이어들이 보이게 하기
                     this.#setTeamPlayersVisibility(this.getSeekingTeam(), true);
@@ -276,9 +258,6 @@ export default class GameRepository {
                     // 남은 찾는 횟수 UI 제거
                     uiControlQueue.addHideSeekCountUiMessage();
                 } else {
-                    console.log(
-                        `당신의 팀이 찾을 차례입니다. ${data.finishAfterMilliSec}ms 후에 상대 팀을 찾을 수 있습니다.`
-                    );
 
                     // 화면에 찾는 팀 플레이어들이 보이게 하기
                     this.#setTeamPlayersVisibility(this.getSeekingTeam(), true);
@@ -290,18 +269,14 @@ export default class GameRepository {
                 }
             } else if (this.#currentPhase === Phase.MAIN) {
                 if (await me.isHidingTeam()) {
-                    console.log(
-                        `앞으로 ${data.finishAfterMilliSec}ms 동안 들키지 않으면 생존합니다.`
-                    );
+
 
                     // 화면에 찾는 팀 플레이어들이 보이게 하기
                     this.#setTeamPlayersVisibility(this.getSeekingTeam(), true);
                     // 화면에 숨는 팀 플레이어들이 보이지 않게 하기
                     this.#setTeamPlayersVisibility(this.getHidingTeam(), false);
                 } else {
-                    console.log(
-                        `앞으로 ${data.finishAfterMilliSec}ms 동안 상대 팀을 찾아야 합니다.`
-                    );
+
 
                     // 화면에 찾는 팀 플레이어들이 보이게 하기
                     this.#setTeamPlayersVisibility(this.getSeekingTeam(), true);
@@ -352,7 +327,6 @@ export default class GameRepository {
         if (playerId === this.#me.getPlayerId()) {
             return;
         }
-        console.log(`플레이어 ${playerId}가 ${objectId}에 숨기 성공`);
     }
 
     #handleInteractHideFailEvent(data) {
@@ -361,7 +335,6 @@ export default class GameRepository {
         if (playerId === this.#me.getPlayerId()) {
             return;
         }
-        console.log(`플레이어 ${playerId}가 ${objectId}에 숨기 실패`);
     }
 
     #handleInteractSeekSuccessEvent(data) {
@@ -370,7 +343,6 @@ export default class GameRepository {
         if (playerId === this.#me.getPlayerId()) {
             return;
         }
-        console.log(`플레이어 ${playerId}가 ${objectId}를 찾기 성공`);
     }
 
     #handleInteractSeekFailEvent(data) {
@@ -380,7 +352,6 @@ export default class GameRepository {
             return;
         }
 
-        console.log(`플레이어 ${playerId}가 ${objectId}를 찾기 실패`);
     }
 
     initializePlayer(data) {
@@ -393,7 +364,6 @@ export default class GameRepository {
             playerNickname,
         } = data;
 
-        console.log(`내 정보 초기화: ${playerPositionInfo.playerId}`);
         this.#initialItems = items; // 초기 플레이어의 아이템 값
         this.#itemQ = items[0];
         this.#itemW = items[1];
@@ -456,7 +426,6 @@ export default class GameRepository {
     #handleGameResultEvent(data) {
         if (this.#gameResultFlag === true) return;
         this.#gameResultFlag = true;
-        console.log("게임 결과 수신 : " + data);
         Object.keys(data).forEach((team) => {
             data[team].forEach((player) => {
                 this.#gameResults.push({
@@ -637,7 +606,6 @@ export default class GameRepository {
     //맵축소
     #handleSafeZoneUpdateEvent(data) {
         const safeZone = data; //[0, 0, 1600, 1600],
-        console.log("안전구역", safeZone);
         this.#currentSafeZone = safeZone;
     }
     //맵축소
@@ -684,7 +652,6 @@ export default class GameRepository {
     }
 
     #handleItemAppliedObjectFailed(data) {
-        console.log("handle:아이템object에 적용 실패");
     }
     // 탐색결과로 아이템 찾은 플레이어에게 아이템 적용
     #handleItemAppliedPlayerSuccess(message) {
@@ -724,11 +691,9 @@ export default class GameRepository {
 
     // 아이템 object에 적용결과
     #handleItemAppliedObjectSuccess(data) {
-        console.log("handle:아이템object에 적용성공,결과:", data);
     }
 
     async requestItemUse(item, targetId) {
-        console.log(item, "사용,", targetId, "에 요청");
         const requestId = uuid();
 
         this.#stompClient.publish({
@@ -746,6 +711,19 @@ export default class GameRepository {
             this.setIsMushroomUsed(true);
         }
         const requestItemResult = await asyncResponses.get(requestId);
+
+        if (
+            // 아이템 성공적으로 적용시 q,i 바꿔놓기
+            requestItemResult.type === "ITEM_APPLIED_TO_PLAYER" ||
+            requestItemResult.type === "ITEM_APPLIED_TO_OBJECT"
+        ) {
+            // 아이템 확인해서 q랑같으면 바꿈,  w랑 같으면 바꿈
+            if (requestItemResult.data.item === this.#itemQ) {
+                this.#itemQapplied = true;
+            } else {
+                this.#itemWapplied = true;
+            }
+        }
         return Promise.resolve({
             isSucceeded:
                 requestItemResult.type === "ITEM_APPLIED_TO_PLAYER" ||
@@ -761,6 +739,20 @@ export default class GameRepository {
     getItemW() {
         return this.#itemW;
     }
+
+    getItemQapplied() {
+        return this.#itemQapplied;
+    }
+    getItemWapplied() {
+        return this.#itemWapplied;
+    }
+    setItemQapplied(value) {
+        this.#itemQapplied = value;
+    }
+    setItemWapplied(value) {
+        this.#itemWapplied = value;
+    }
+
     getItemSpeed() {
         return this.#itemSpeed;
     }
