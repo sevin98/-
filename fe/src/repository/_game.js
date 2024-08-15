@@ -691,7 +691,10 @@ export default class GameRepository {
         // 발견된 아이템값 저장
         this.#itemAppliedFromObject = message.data.item;
 
-        this.setItemSpeed(message.data.newSpeed);
+        if (message.data.item != undefined) {
+            this.setItemSpeed(message.data.newSpeed);
+        }
+
         if (message.data.item === "BEEHIVE") {
             setTimeout(() => {
                 this.setItemSpeed(200);
@@ -704,6 +707,9 @@ export default class GameRepository {
         }
         if (message.data.item === "POISON_MUSHROOM") {
             this.#isPoisonMushroomUsed = true;
+            setTimeout(() => {
+                this.#isPoisonMushroomUsed = false;
+            }, 10 * 1000);
         }
     }
 
@@ -741,7 +747,9 @@ export default class GameRepository {
         }
         const requestItemResult = await asyncResponses.get(requestId);
         return Promise.resolve({
-            isSucceeded: requestItemResult.type === "ITEM_APPLIED_TO_PLAYER",
+            isSucceeded:
+                requestItemResult.type === "ITEM_APPLIED_TO_PLAYER" ||
+                requestItemResult.type === "ITEM_APPLIED_TO_OBJECT",
             speed: requestItemResult.data.newSpeed,
         });
     }
