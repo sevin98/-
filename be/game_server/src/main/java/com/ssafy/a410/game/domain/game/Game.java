@@ -37,7 +37,7 @@ import static com.ssafy.a410.common.exception.ErrorDetail.PLAYER_NOT_IN_ROOM;
 @Slf4j
 public class Game extends Subscribable implements Runnable {
     // 60FPS
-    private static final long MOVEMENT_SHARE_INTERVAL = (1000/60) * 1L;
+    private static final long MOVEMENT_SHARE_INTERVAL = 1000 / 60;
     private static final int SAFE_ZONE_REDUCE_AMOUNT = 100;
     private static final int SAFE_ZONE_REDUCE_DURATION = 10;
     private static final int TOTAL_ROUND = 5;
@@ -274,7 +274,7 @@ public class Game extends Subscribable implements Runnable {
         final long TIME_TO_SWITCH = System.currentTimeMillis() + Phase.READY.getDuration() + additionalDurationMilliSec;
         while (!isTimeToSwitch(TIME_TO_SWITCH) && !isEnd()) {
             if (System.currentTimeMillis() - lastMovementShareTime >= MOVEMENT_SHARE_INTERVAL) {
-                for(Player player : hidingTeam.getPlayers().values()){
+                for (Player player : hidingTeam.getPlayers().values()) {
                     PlayerPositionMessage message = new PlayerPositionMessage(new PlayerPosition(player));
                     broadcastService.broadcastTo(hidingTeam, message);
                 }
@@ -391,7 +391,7 @@ public class Game extends Subscribable implements Runnable {
         final long TIME_TO_SWITCH = System.currentTimeMillis() + Phase.MAIN.getDuration();
         while (!isTimeToSwitch(TIME_TO_SWITCH) && !isEnd()) {
             if (System.currentTimeMillis() - lastMovementShareTime >= MOVEMENT_SHARE_INTERVAL) {
-                for(Player player : seekingTeam.getPlayers().values()){
+                for (Player player : seekingTeam.getPlayers().values()) {
                     PlayerPositionMessage message = new PlayerPositionMessage(new PlayerPosition(player));
                     broadcastService.broadcastTo(seekingTeam, message);
                     broadcastService.broadcastTo(hidingTeam, message);
@@ -649,7 +649,6 @@ public class Game extends Subscribable implements Runnable {
     }
 
 
-
     public void applyItemToHPObject(String objectId, Item item, Duration duration, String appliedById, String requestId) {
         if (objectId == null) objectId = appliedById;
         HPObject hpObject = gameMap.getHpObjects().get(objectId);
@@ -665,6 +664,7 @@ public class Game extends Subscribable implements Runnable {
             // 오브젝트가 비어있으면 성공
         } else {
             hpObject.applyItem(item, duration, appliedById);
+            player.setCurrentItem(null);
             player.useItem(item);
             ItemAppliedToHPObjectMessage message = new ItemAppliedToHPObjectMessage(itemInfo, requestId);
             broadcastService.broadcastTo(this, message);
