@@ -175,7 +175,19 @@ export class Preloader extends Scene {
                 frameWidth: 250,
                 frameHeight: 150,
                 startFrame: 0,
-                endFrame: 13,
+                endFrame: 16,
+            },
+        });
+
+        // 숨기 이펙트
+        this.load.spritesheet({
+            key: "hide-effect",
+            url: "assets/effect/hide-effect.png",
+            frameConfig: {
+                frameWidth: 64,
+                frameHeight: 71,
+                startFrame: 0,
+                endFrame: 15,
             },
         });
     }
@@ -231,9 +243,19 @@ export class Preloader extends Scene {
             frames: this.anims
                 .generateFrameNumbers("leaf-fullscreen-effect", {
                     start: 0,
-                    end: 13,
+                    end: 9,
                 })
                 .map((frame) => ({ ...frame, delay: 500 })), // Add a delay of 100ms between frames
+            frameRate: 10,
+            repeat: -1,
+        });
+
+        this.anims.create({
+            key: "hide-effect-animation",
+            frames: this.anims.generateFrameNumbers("hide-effect", {
+                start: 0,
+                end: 15,
+            }),
             frameRate: 10,
             repeat: -1,
         });

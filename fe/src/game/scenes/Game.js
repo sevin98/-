@@ -211,6 +211,12 @@ export class game extends Phaser.Scene {
         this.hideSuccessSound = this.sound.add("hide-success-sound", {
             volume: 1,
         });
+
+        this.hideSuccessEffect = this.add
+            .sprite(0, 0, "hide-effect")
+            .setDisplaySize(50, 50)
+            .setOrigin(0.5, 0.5);
+        this.hideSuccessEffect.setVisible(false);
     }
 
     update() {
@@ -563,6 +569,28 @@ export class game extends Phaser.Scene {
                                             closest.body.y - 40
                                         );
                                         this.hideSuccessSound.play();
+
+                                        this.hideSuccessEffect.setPosition(
+                                            closest.body.x + 10,
+                                            closest.body.y - 10
+                                        );
+                                        this.hideSuccessEffect.setVisible(true);
+                                        this.hideSuccessEffect.play(
+                                            "hide-effect-animation"
+                                        );
+                                        this.tweens.add({
+                                            targets: this.hideSuccessEffect,
+                                            alpha: 0,
+                                            duration: 4000,
+                                            ease: "Linear",
+                                            repeat: 0,
+                                            onComplete: () => {
+                                                this.hideSuccessEffect.setVisible(
+                                                    false
+                                                );
+                                                this.hideSuccessEffect.stop();
+                                            },
+                                        });
                                         //숨었을때 로컬플레이어 숨음으로 상태 변경
                                         // this.getGameRepository.getMe().setIsHiding();
                                     } else {
