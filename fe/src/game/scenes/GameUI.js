@@ -195,6 +195,15 @@ export default class GameUI extends Phaser.Scene {
         this.allyDeadSound = this.sound.add("hp-seek-fail", {
             volume: 1,
         });
+
+        // 나뭇잎 이펙트
+        this.leafEffect = this.add
+            .sprite(0, 0, "leaf-fullscreen-effect")
+            .setDisplaySize(this.scale.width, this.scale.height)
+            .setPosition(this.scale.width / 2, this.scale.height / 2)
+            .setAlpha(0.5)
+            .play("leaf-fullscreen-effect-animation");
+        this.leafEffect.visible = false;
     }
 
     // 아이템 이미지 화면에 렌더링
@@ -395,6 +404,23 @@ export default class GameUI extends Phaser.Scene {
     }
 
     update() {
+        // 1% 확률로 화면 전체에 나뭇잎 이펙트 재생
+        if (Math.random() < 0.01 && !this.leafEffect.visible) {
+            this.leafEffect.visible = true;
+            this.leafEffect.setAlpha(0.5);
+            this.leafEffect.play("leaf-fullscreen-effect-animation");
+
+            this.tweens.add({
+                targets: this.leafEffect,
+                alpha: 0,
+                duration: 2000,
+                ease: "Linear",
+                onComplete: () => {
+                    this.leafEffect.visible = false;
+                },
+            });
+        }
+
         // 화면에 띄우고 있는 킬 로그는 없는데 띄워야 할 킬 로그가 있을 때
         if (!this.isDisplayingKillLog && this.killLogQueue.length > 0) {
             // 화면에 킬 로그 띄우기

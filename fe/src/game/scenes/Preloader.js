@@ -156,6 +156,18 @@ export class Preloader extends Scene {
         this.load.image("keycap-Q", "assets/ui/keycaps/Q.png");
         this.load.image("keycap-W", "assets/ui/keycaps/W.png");
         this.load.image("keycap-space", "assets/ui/keycaps/space.png");
+
+        // 나뭇잎 흩날리는 이펙트
+        this.load.spritesheet({
+            key: "leaf-fullscreen-effect",
+            url: "assets/effect/Leaves-Sheet.png",
+            frameConfig: {
+                frameWidth: 250,
+                frameHeight: 150,
+                startFrame: 0,
+                endFrame: 13,
+            },
+        });
     }
 
     create() {
@@ -187,6 +199,18 @@ export class Preloader extends Scene {
                 start: 0,
                 end: 15,
             }),
+            frameRate: 10,
+            repeat: -1,
+        });
+
+        this.anims.create({
+            key: "leaf-fullscreen-effect-animation",
+            frames: this.anims
+                .generateFrameNumbers("leaf-fullscreen-effect", {
+                    start: 0,
+                    end: 13,
+                })
+                .map((frame) => ({ ...frame, delay: 500 })), // Add a delay of 100ms between frames
             frameRate: 10,
             repeat: -1,
         });
