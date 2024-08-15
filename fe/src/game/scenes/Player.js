@@ -539,8 +539,6 @@ export default class MyPlayerSprite extends Phaser.GameObjects.Container {
 
     update() {
         this.roomRepository.getGameRepository().then((gameRepository) => {
-            if (this.PLAYER_SPEED !== 200)
-                console.log(gameRepository.getItemSpeed());
             this.PLAYER_SPEED = gameRepository.getItemSpeed();
         });
     }

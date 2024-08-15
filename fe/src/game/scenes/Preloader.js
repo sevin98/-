@@ -190,6 +190,18 @@ export class Preloader extends Scene {
                 endFrame: 15,
             },
         });
+
+        // 아이템 설치 성공 이펙트
+        this.load.spritesheet({
+            key: "item-install-effect",
+            url: "assets/effect/Gravity-Sheet.png",
+            frameConfig: {
+                frameWidth: 96,
+                frameHeight: 80,
+                startFrame: 0,
+                endFrame: 19,
+            },
+        });
     }
 
     create() {
@@ -255,6 +267,16 @@ export class Preloader extends Scene {
             frames: this.anims.generateFrameNumbers("hide-effect", {
                 start: 0,
                 end: 15,
+            }),
+            frameRate: 10,
+            repeat: -1,
+        });
+
+        this.anims.create({
+            key: "item-install-effect-animation",
+            frames: this.anims.generateFrameNumbers("item-install-effect", {
+                start: 0,
+                end: 19,
             }),
             frameRate: 10,
             repeat: -1,
