@@ -678,7 +678,7 @@ export default class GameUI extends Phaser.Scene {
                     this.tweens.add({
                         targets: text,
                         alpha: 0,
-                        duration: 10000,
+                        duration: 15000,
                         ease: "Power1",
                         onComplete: () => {
                             text.destroy();
