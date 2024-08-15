@@ -708,9 +708,14 @@ export class game extends Phaser.Scene {
                                         gameRepository.getItemQ() !==
                                         "RED_PEPPER"
                                     ) {
-                                        //TODO: 방향버섯 아이템 사용 중일때 머리 위 아이템 띄우기
+                                        this.localPlayer.applyItemEffect(
+                                            "MUSHROOM"
+                                        );
                                         this.time.delayedCall(5 * 1000, () => {
                                             gameRepository.setItemSpeed(200);
+                                            this.localPlayer.removeItemEffect(
+                                                "MUSHROOM"
+                                            );
                                         });
                                     }
                                 }
@@ -745,9 +750,14 @@ export class game extends Phaser.Scene {
                                         gameRepository.getItemQ() !==
                                         "RED_PEPPER"
                                     ) {
-                                        //TODO: 방향버섯 아이템 사용 중일때 머리 위 아이템 띄우기
+                                        this.localPlayer.applyItemEffect(
+                                            "MUSHROOM"
+                                        );
                                         this.time.delayedCall(5 * 1000, () => {
                                             gameRepository.setItemSpeed(200);
+                                            this.localPlayer.removeItemEffect(
+                                                "MUSHROOM"
+                                            );
                                         });
                                     }
                                 }
@@ -787,9 +797,14 @@ export class game extends Phaser.Scene {
                                         gameRepository.getItemW() !==
                                         "RED_PEPPER"
                                     ) {
-                                        //TODO: 방향버섯 아이템 사용 중일때 머리 위 아이템 띄우기
+                                        this.localPlayer.applyItemEffect(
+                                            "MUSHROOM"
+                                        );
                                         this.time.delayedCall(5 * 1000, () => {
                                             gameRepository.setItemSpeed(200);
+                                            this.localPlayer.removeItemEffect(
+                                                "MUSHROOM"
+                                            );
                                         });
                                     }
                                 }
@@ -824,9 +839,14 @@ export class game extends Phaser.Scene {
                                         gameRepository.getItemW() !==
                                         "RED_PEPPER"
                                     ) {
-                                        //TODO: 방향버섯 아이템 사용 중일때 머리 위 아이템 띄우기
+                                        this.localPlayer.applyItemEffect(
+                                            "MUSHROOM"
+                                        );
                                         this.time.delayedCall(5 * 1000, () => {
                                             gameRepository.setItemSpeed(200);
+                                            this.localPlayer.removeItemEffect(
+                                                "MUSHROOM"
+                                            );
                                         });
                                     }
                                 }
@@ -1070,4 +1090,3 @@ export class game extends Phaser.Scene {
         });
     }
 }
-

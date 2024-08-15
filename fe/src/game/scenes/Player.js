@@ -238,6 +238,12 @@ export default class MyPlayerSprite extends Phaser.GameObjects.Container {
         redPepperEffectSprite.setDisplaySize(20, 20);
         itemEffectSprites.push(redPepperEffectSprite);
 
+        const mushroomEffectSprite = scene.add
+            .sprite(5, 0, "dynamic-mushroom-effect")
+            .play("dynamic-mushroom-effect-animation");
+        mushroomEffectSprite.setDisplaySize(20, 20);
+        itemEffectSprites.push(mushroomEffectSprite);
+
         // 아이템 적용 효과 모두 위쪽 가운데 정렬
         itemEffectSprites.forEach((sprite) => {
             sprite.setOrigin(0.5, 1);
@@ -254,6 +260,7 @@ export default class MyPlayerSprite extends Phaser.GameObjects.Container {
 
         this.isItemEffectDisplaying = false;
         this.redPepperEffectSprite = redPepperEffectSprite;
+        this.mushroomEffectSprite = mushroomEffectSprite;
 
         this.scene.physics.world.enable(this);
 
@@ -728,6 +735,9 @@ export default class MyPlayerSprite extends Phaser.GameObjects.Container {
             this.redPepperEffectSprite.visible = true;
             this.isItemEffectDisplaying = true;
             this.scene.sound.play("pepper-effect-sound");
+        } else if (itemName === "MUSHROOM") {
+            this.mushroomEffectSprite.visible = true;
+            this.isItemEffectDisplaying = true;
         }
     }
 
@@ -735,7 +745,9 @@ export default class MyPlayerSprite extends Phaser.GameObjects.Container {
         if (itemName === "RED_PEPPER") {
             this.redPepperEffectSprite.visible = false;
             this.isItemEffectDisplaying = false;
+        } else if (itemName === "MUSHROOM") {
+            this.mushroomEffectSprite.visible = false;
+            this.isItemEffectDisplaying = false;
         }
     }
 }
-
