@@ -254,6 +254,12 @@ export default class MyPlayerSprite extends Phaser.GameObjects.Container {
         beeHiveEffectSprite.setDisplaySize(40, 40);
         itemEffectSprites.push(beeHiveEffectSprite);
 
+        const poisonMushroomEffectSprite = scene.add
+            .sprite(0, -7, "dynamic-poison-mushroom-effect")
+            .play("dynamic-poison-mushroom-effect-animation");
+        poisonMushroomEffectSprite.setDisplaySize(20, 20);
+        itemEffectSprites.push(poisonMushroomEffectSprite);
+
         // 아이템 적용 효과 모두 위쪽 가운데 정렬
         itemEffectSprites.forEach((sprite) => {
             sprite.setOrigin(0.5, 1);
@@ -273,6 +279,7 @@ export default class MyPlayerSprite extends Phaser.GameObjects.Container {
         this.mushroomEffectSprite = mushroomEffectSprite;
         this.bananaEffectSprite = bananaEffectSprite;
         this.beeHiveEffectSprite = beeHiveEffectSprite;
+        this.poisonMushroomEffectSprite = poisonMushroomEffectSprite;
 
         this.scene.physics.world.enable(this);
 
@@ -756,6 +763,9 @@ export default class MyPlayerSprite extends Phaser.GameObjects.Container {
         } else if (itemName === "BEEHIVE") {
             this.beeHiveEffectSprite.visible = true;
             this.isItemEffectDisplaying = true;
+        } else if (itemName === "POISON_MUSHROOM") {
+            this.poisonMushroomEffectSprite.visible = true;
+            this.isItemEffectDisplaying = true;
         }
     }
 
@@ -771,6 +781,9 @@ export default class MyPlayerSprite extends Phaser.GameObjects.Container {
             this.isItemEffectDisplaying = false;
         } else if (itemName === "BEEHIVE") {
             this.beeHiveEffectSprite.visible = false;
+            this.isItemEffectDisplaying = false;
+        } else if (itemName === "POISON_MUSHROOM") {
+            this.poisonMushroomEffectSprite.visible = false;
             this.isItemEffectDisplaying = false;
         }
     }
