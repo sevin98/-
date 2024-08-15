@@ -15,7 +15,6 @@ import { WAITING_ROOM_ROUTE_PATH } from "../WaitingRoom/WaitingRoom";
 import { Link } from "react-router-dom";
 import { RANKING_PAGE_ROUTE_PATH } from "../RankingPage/RankingPage";
 
-
 export default function Lobby() {
     const navigate = useNavigate();
 
@@ -57,39 +56,41 @@ export default function Lobby() {
         console.log("기존 방에 참여");
     };
 
-        const onRandomRoomJoinBtnClicked = async (e) => {
-            e.preventDefault();
-            try {
-                const res = await axios.post(`/api/rooms/join`);
-                if (res.status === 200) {
-                    navigate(
-                        `${WAITING_ROOM_ROUTE_PATH}?room-number=${res.data.roomId}&room-password=`
-                    );
-                }
-            } catch (error) {
-                if (error.response) {
-                    if (error.response.status === 404) {
-                        toast.error("해당하는 방이 없습니다.");
-                    } else if (error.response.status === 401) {
-                        toast.error("비밀번호가 틀립니다.");
-                    } else if (error.response.status === 409) {
-                        toast.error("이미 8명이 참가한 방입니다.");
-                    } else {
-                        toast.error("방 참가 중 오류가 발생했습니다.");
-                    }
-                } else if (error.request) {
-                    toast.error("서버로부터 응답을 받지 못했습니다.");
-                } else {
-                    toast.error("요청을 보내는 중 오류가 발생했습니다.");
-                }
+    const onRandomRoomJoinBtnClicked = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await axios.post(`/api/rooms/join`);
+            if (res.status === 200) {
+                navigate(
+                    `${WAITING_ROOM_ROUTE_PATH}?room-number=${res.data.roomId}&room-password=`
+                );
+            } else {
+                toast.error("방을 새로 만들어 주세요.");
             }
+        } catch (error) {
+            if (error.response) {
+                if (error.response.status === 404) {
+                    toast.error("해당하는 방이 없습니다.");
+                } else if (error.response.status === 401) {
+                    toast.error("비밀번호가 틀립니다.");
+                } else if (error.response.status === 409) {
+                    toast.error("이미 8명이 참가한 방입니다.");
+                } else {
+                    toast.error("방 참가 중 오류가 발생했습니다.");
+                }
+            } else if (error.request) {
+                toast.error("서버로부터 응답을 받지 못했습니다.");
+            } else {
+                toast.error("요청을 보내는 중 오류가 발생했습니다.");
+            }
+        }
     };
-    
-    const onRankingPageBtnClicked = (e) => { 
+
+    const onRankingPageBtnClicked = (e) => {
         e.preventDefault();
         navigate(RANKING_PAGE_ROUTE_PATH);
         console.log("랭킹 페이지로 이동");
-    }
+    };
 
     return (
         <div id="container" className="rpgui-cursor-default">
@@ -103,7 +104,7 @@ export default function Lobby() {
                     </div>
                     <div className="button-box-lobby">
                         <button onClick={onCreateRoomBtnClicked}>
-                            click! 
+                            click!
                             <GiFastForwardButton />
                             <h2>새로운 방으로 시작하기</h2>
                         </button>
