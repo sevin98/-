@@ -565,13 +565,11 @@ export class game extends Phaser.Scene {
                     if (await me.isHidingTeam()) {
                         // 단, 레디 페이즈에만 숨을 수 있음
                         if (gameRepository.getCurrentPhase() !== Phase.READY) {
-                            console.log("READY 페이즈만 숨을 수 있습니다.");
                         } else {
                             gameRepository
                                 .requestHide(objectId)
                                 .then(({ isSucceeded }) => {
                                     if (isSucceeded) {
-                                        console.log("숨기 성공");
                                         me.setIsHiding(true);
                                         this.hideSuccessSound.play();
 
@@ -599,7 +597,6 @@ export class game extends Phaser.Scene {
                                         //숨었을때 로컬플레이어 숨음으로 상태 변경
                                         // this.getGameRepository.getMe().setIsHiding();
                                     } else {
-                                        console.log("숨기 실패");
                                         this.text.showTextFailHide(
                                             this,
                                             closest.body.x - 40,
@@ -613,11 +610,9 @@ export class game extends Phaser.Scene {
                     else {
                         // 단, 메인 페이즈에만 탐색할 수 있음
                         if (gameRepository.getCurrentPhase() !== Phase.MAIN) {
-                            console.log("MAIN 페이즈에만 탐색할 수 있습니다.");
                         }
                         // 찾을 수 있는 횟수가 남아 있어야 함
                         else if (!me.canSeek()) {
-                            console.log("탐색 횟수가 부족합니다.");
                             // 찾을 수 있는 남은 횟수가 없습니다 메세지
                             this.text.showTextNoAvaiblableCount(
                                 this,
@@ -629,7 +624,6 @@ export class game extends Phaser.Scene {
                                 .requestSeek(objectId)
                                 .then(({ isSucceeded }) => {
                                     if (isSucceeded) {
-                                        console.log("탐색 성공");
                                         this.hpSeekSuccessSound.play();
 
                                         //찾았습니다 메세지
@@ -644,10 +638,6 @@ export class game extends Phaser.Scene {
                                             closest.body.y + 10
                                         );
                                     } else {
-                                        console.log(
-                                            "obj에 아이템:",
-                                            gameRepository.getItemAppliedFromObject()
-                                        );
                                         this.hpSeekFailSound.play();
 
                                         if (
@@ -702,7 +692,6 @@ export class game extends Phaser.Scene {
                                                 );
                                             }, 10 * 1000); // 키반전이 더 빨리 풀리는것같은데 ?
                                         } else {
-                                            console.log("탐색실패");
                                             this.text.showTextFailFind(
                                                 this,
                                                 closest.body.x - 40,
@@ -798,9 +787,6 @@ export class game extends Phaser.Scene {
                                             this.time.delayedCall(
                                                 10 * 1000,
                                                 () => {
-                                                    console.log(
-                                                        "RED_PEPPER END"
-                                                    );
                                                     gameRepository.setItemSpeed(
                                                         200
                                                     );
@@ -881,9 +867,6 @@ export class game extends Phaser.Scene {
                                             this.time.delayedCall(
                                                 10 * 1000,
                                                 () => {
-                                                    console.log(
-                                                        "RED_PEPPER END"
-                                                    );
                                                     gameRepository.setItemSpeed(
                                                         200
                                                     );
@@ -969,9 +952,6 @@ export class game extends Phaser.Scene {
                                             this.time.delayedCall(
                                                 10 * 1000,
                                                 () => {
-                                                    console.log(
-                                                        "RED_PEPPER END"
-                                                    );
                                                     gameRepository.setItemSpeed(
                                                         200
                                                     );
@@ -1052,9 +1032,6 @@ export class game extends Phaser.Scene {
                                             this.time.delayedCall(
                                                 10 * 1000,
                                                 () => {
-                                                    console.log(
-                                                        "RED_PEPPER END"
-                                                    );
                                                     gameRepository.setItemSpeed(
                                                         200
                                                     );
@@ -1096,7 +1073,6 @@ export class game extends Phaser.Scene {
     }
 
     showEndGameModal() {
-        console.log("End Game Modal");
         const gameEndSoundAudio = new Audio("/sounds/effect/etc/ddt.mp3");
         gameEndSoundAudio.play();
 
@@ -1262,7 +1238,6 @@ export class game extends Phaser.Scene {
                 this.lastWallPos.x !== currentSafeZone[0] ||
                 this.lastWallPos.y !== currentSafeZone[1]
             ) {
-                console.log("맵이 줄어듭니다");
                 const [startX, startY, endX, endY] = currentSafeZone;
                 const tileSize = 32; // 타일의 크기를 고정된 값으로 설정 (예: 32x32 픽셀)
 

@@ -106,9 +106,6 @@ export default class RoomRepository {
                     this.#updatePlayers(joinedPlayers);
                 })
                 .catch((error) => {
-                    console.log(
-                        "존재하지 않는 방에 대한 참가자 조회 요청 감지"
-                    );
                     clearInterval(this.#joinedPlayerIntervalId);
                 });
         }, UPDATE_INTERVAL);
@@ -161,7 +158,6 @@ export default class RoomRepository {
                 this.handleItemApplyToObject(requestId, result);
                 break;
             case "ITEM_CLEARED":
-                // console.log("8. item 효과제거-room");
                 break;
         }
     }
@@ -246,8 +242,6 @@ export default class RoomRepository {
         asyncResponses.set(requestId, result);
     }
     #handleDirectionHintEvent(requestId, result) {
-        console.log("위치 힌트 정보입니다.");
-        console.log(result.data.directions);
         this.#directionHints = result.data.directions;
     }
 
