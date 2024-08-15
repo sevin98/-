@@ -514,15 +514,16 @@ export class game extends Phaser.Scene {
                     if (!this.interactionEffect) {
                         this.interactionEffect = this.add.image(
                             closest.body.center.x,
-                            closest.body.center.y - 20,
-                            "interactionEffect"
+                            closest.body.center.y - 10,
+                            "keycap-space"
                         );
-                        this.interactionEffect.setScale(0.03);
+                        this.interactionEffect.setOrigin(0.5, 1);
+                        this.interactionEffect.setScale(0.8);
                     } else {
                         // 이미 존재하는 경우 위치만 업데이트
                         this.interactionEffect.setPosition(
                             closest.body.center.x,
-                            closest.body.center.y - 20
+                            closest.body.center.y - 10
                         );
                     }
                 } else {
