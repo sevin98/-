@@ -12,7 +12,7 @@ public enum Phase {
     // 게임이 시작할 준비가 된 상태
     INITIALIZED(1000, 0L),
     // 숨는 팀이 숨을 곳을 찾는 상태
-    READY(2000, 20L * MilliSecOf.SECONDS),
+    READY(2000, 10L * MilliSecOf.SECONDS),
     // 찾는 팀이 숨은 팀을 찾고 있는 상태
     MAIN(3000, 20L * MilliSecOf.SECONDS),
     // 다음 라운드를 위해 기존의 게임 상태를 정리 하고 있는 상태
