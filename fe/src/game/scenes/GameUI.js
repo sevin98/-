@@ -643,14 +643,14 @@ export default class GameUI extends Phaser.Scene {
                     const message = messageTokens.join(" ");
                     const text = this.add.text(
                         this.cameras.main.width / 2,
-                        this.cameras.main.height / 10,
+                        this.cameras.main.height / 6,
                         message,
                         {
-                            font: "30px Arial",
                             color: "#ffffff",
                             backgroundColor: "#000000aa",
                             align: "center",
                             fontSize: 20,
+                            fontFamily: "Galmuri11",
                             padding: {
                                 left: 8,
                                 right: 8,
@@ -659,7 +659,7 @@ export default class GameUI extends Phaser.Scene {
                             },
                         }
                     );
-                    text.setOrigin(0.6, 0.6);
+                    text.setOrigin(0.5, 0.5);
 
                     this.tweens.add({
                         targets: text,
@@ -702,11 +702,12 @@ export default class GameUI extends Phaser.Scene {
     #showGameEndMessage(redirectAfter) {
         // 게임 종료 후 안내 메시지
         const gameEndMessage = this.add.text(
-            this.cameras.main.width / 2,
-            this.cameras.main.height * 0.9,
+            this.cameras.main.width,
+            0,
             `${Math.ceil(redirectAfter / 1000)}초 후에 로비로 이동합니다`,
             {
                 fontSize: 30,
+                fontFamily: "Galmuri11",
                 color: "#ffffff",
                 backgroundColor: "#000000aa",
                 align: "center",
@@ -718,7 +719,8 @@ export default class GameUI extends Phaser.Scene {
                 },
             }
         );
-        gameEndMessage.setOrigin(0.5, 0.5);
+        gameEndMessage.setOrigin(1, 0);
+        gameEndMessage.setDepth(1000);
 
         this.tweens.add({
             targets: gameEndMessage,
@@ -773,7 +775,7 @@ export default class GameUI extends Phaser.Scene {
             this.cameras.main.height / 5,
             messageText,
             {
-                fontFamily: "m6x11",
+                fontFamily: "Galmuri11",
                 color: "#ffffff",
                 backgroundColor: "#ff0000aa",
                 align: "center",
