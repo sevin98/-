@@ -248,6 +248,12 @@ export default class MyPlayerSprite extends Phaser.GameObjects.Container {
         bananaEffectSprite.setDisplaySize(15, 15);
         itemEffectSprites.push(bananaEffectSprite);
 
+        const beeHiveEffectSprite = scene.add
+            .sprite(0, 10, "dynamic-bee-hive-effect")
+            .play("dynamic-bee-hive-effect-animation");
+        beeHiveEffectSprite.setDisplaySize(40, 40);
+        itemEffectSprites.push(beeHiveEffectSprite);
+
         // 아이템 적용 효과 모두 위쪽 가운데 정렬
         itemEffectSprites.forEach((sprite) => {
             sprite.setOrigin(0.5, 1);
@@ -266,6 +272,7 @@ export default class MyPlayerSprite extends Phaser.GameObjects.Container {
         this.redPepperEffectSprite = redPepperEffectSprite;
         this.mushroomEffectSprite = mushroomEffectSprite;
         this.bananaEffectSprite = bananaEffectSprite;
+        this.beeHiveEffectSprite = beeHiveEffectSprite;
 
         this.scene.physics.world.enable(this);
 
@@ -746,6 +753,9 @@ export default class MyPlayerSprite extends Phaser.GameObjects.Container {
         } else if (itemName === "BANANA") {
             this.bananaEffectSprite.visible = true;
             this.isItemEffectDisplaying = true;
+        } else if (itemName === "BEEHIVE") {
+            this.beeHiveEffectSprite.visible = true;
+            this.isItemEffectDisplaying = true;
         }
     }
 
@@ -758,6 +768,9 @@ export default class MyPlayerSprite extends Phaser.GameObjects.Container {
             this.isItemEffectDisplaying = false;
         } else if (itemName === "BANANA") {
             this.bananaEffectSprite.visible = false;
+            this.isItemEffectDisplaying = false;
+        } else if (itemName === "BEEHIVE") {
+            this.beeHiveEffectSprite.visible = false;
             this.isItemEffectDisplaying = false;
         }
     }

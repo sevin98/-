@@ -622,7 +622,17 @@ export class game extends Phaser.Scene {
                                             gameRepository.getItemAppliedFromObject() ===
                                             "BEEHIVE"
                                         ) {
-                                            //TODO:아이템이 obj에서 발견됐을때 애니메이션 추가, 머리 위 아이템 이미지 띄우기
+                                            this.localPlayer.applyItemEffect(
+                                                "BEEHIVE"
+                                            );
+                                            this.time.delayedCall(
+                                                5 * 1000,
+                                                () => {
+                                                    this.localPlayer.removeItemEffect(
+                                                        "BEEHIVE"
+                                                    );
+                                                }
+                                            );
                                         }
                                         // 독버섯
                                         else if (

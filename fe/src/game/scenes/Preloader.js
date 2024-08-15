@@ -127,6 +127,16 @@ export class Preloader extends Scene {
 
         // 벌통: 속도 0(멈춤)
         this.load.image("beeHive", "assets/object/item/beehiveItem.png");
+        this.load.spritesheet({
+            key: "dynamic-bee-hive-effect",
+            url: "assets/effect/Bee_Attack.png",
+            frameConfig: {
+                frameWidth: 64,
+                frameHeight: 64,
+                startFrame: 0,
+                endFrame: 15,
+            },
+        });
 
         // 독버섯: 키반전
         this.load.image(
@@ -169,6 +179,16 @@ export class Preloader extends Scene {
                 { key: "banana-effect-4" },
             ],
             frameRate: 5,
+            repeat: -1,
+        });
+
+        this.anims.create({
+            key: "dynamic-bee-hive-effect-animation",
+            frames: this.anims.generateFrameNumbers("dynamic-bee-hive-effect", {
+                start: 0,
+                end: 15,
+            }),
+            frameRate: 10,
             repeat: -1,
         });
     }
