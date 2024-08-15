@@ -177,18 +177,6 @@ export class Preloader extends Scene {
         });
 
         this.anims.create({
-            key: "dynamic-banana-effect-animation",
-            frames: [
-                { key: "banana-effect-1" },
-                { key: "banana-effect-2" },
-                { key: "banana-effect-3" },
-                { key: "banana-effect-4" },
-            ],
-            frameRate: 5,
-            repeat: -1,
-        });
-
-        this.anims.create({
             key: "dynamic-bee-hive-effect-animation",
             frames: this.anims.generateFrameNumbers("dynamic-bee-hive-effect", {
                 start: 0,
