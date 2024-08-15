@@ -151,6 +151,11 @@ export class Preloader extends Scene {
         );
 
         // 나뭇잎: 다른 물체로 변신
+
+        // 키캡 이미지
+        this.load.image("keycap-Q", "assets/ui/keycaps/Q.png");
+        this.load.image("keycap-W", "assets/ui/keycaps/W.png");
+        this.load.image("keycap-space", "assets/ui/keycaps/space.png");
     }
 
     create() {

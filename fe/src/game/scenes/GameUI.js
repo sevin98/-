@@ -212,27 +212,26 @@ export default class GameUI extends Phaser.Scene {
             // 키다운 글자 Q,E 화면 생성
             width = (this.cameras.main.width - spacing) / 2; //첫번쨰 아이템
             this.add
-                .text(width - 30, height + 10, "Q", {
-                    font: "bold 20px sans-serif",
-                    fill: "#000000",
-                })
+                .image(width - 20, height + 26, "keycap-Q")
+                .setScale(2)
                 .setDepth(1);
         } else {
             width = (this.cameras.main.width + spacing) / 2; // 두번째 아이템
             this.add
-                .text(width - 30, height + 10, "W", {
-                    font: "bold 20px sans-serif",
-                    fill: "#000000",
-                })
+                .image(width - 20, height + 26, "keycap-W")
+                .setScale(2)
                 .setDepth(1);
         }
         switch (itemName) {
             // 바나나
             case "BANANA":
-                this.add.image(width, height, "banana").setScale(1.8);
+                this.add
+                    .image(width, height, "banana")
+                    .setOrigin(0.5, 0.5)
+                    .setScale(1.8);
                 box.fillRoundedRect(
                     width - boxSize / 2,
-                    height - boxSize / 2,
+                    height - boxSize / 2 + 5,
                     boxSize,
                     boxSize,
                     cornerRadius
@@ -240,10 +239,13 @@ export default class GameUI extends Phaser.Scene {
                 break;
             // 벌통
             case "BEEHIVE":
-                this.add.image(width, height, "beeHive").setScale(1.8);
+                this.add
+                    .image(width, height, "beeHive")
+                    .setOrigin(0.5, 0.5)
+                    .setScale(1.8);
                 box.fillRoundedRect(
                     width - boxSize / 2,
-                    height - boxSize / 2,
+                    height - boxSize / 2 + 5,
                     boxSize,
                     boxSize,
                     cornerRadius
@@ -254,7 +256,7 @@ export default class GameUI extends Phaser.Scene {
                 this.add.image(width, height, "poisonMushroom").setScale(0.6);
                 box.fillRoundedRect(
                     width - boxSize / 2,
-                    height - boxSize / 2,
+                    height - boxSize / 2 + 5,
                     boxSize,
                     boxSize,
                     cornerRadius
@@ -262,10 +264,13 @@ export default class GameUI extends Phaser.Scene {
                 break;
             // 고추
             case "RED_PEPPER":
-                this.add.image(width, height, "pepper").setScale(1.8);
+                this.add
+                    .image(width, height, "pepper")
+                    .setOrigin(0.5, 0.5)
+                    .setScale(1.8);
                 box.fillRoundedRect(
                     width - boxSize / 2,
-                    height - boxSize / 2,
+                    height - boxSize / 2 + 5,
                     boxSize,
                     boxSize,
                     cornerRadius
@@ -273,10 +278,13 @@ export default class GameUI extends Phaser.Scene {
                 break;
             // 표고버섯
             case "MUSHROOM":
-                this.add.image(width, height, "mushroom").setScale(1.8);
+                this.add
+                    .image(width, height, "mushroom")
+                    .setOrigin(0.5, 0.5)
+                    .setScale(1.8);
                 box.fillRoundedRect(
                     width - boxSize / 2,
-                    height - boxSize / 2,
+                    height - boxSize / 2 + 5,
                     boxSize,
                     boxSize,
                     cornerRadius
@@ -286,7 +294,7 @@ export default class GameUI extends Phaser.Scene {
             case "LEAF":
                 box.fillRoundedRect(
                     width - boxSize / 2,
-                    height - boxSize / 2,
+                    height - boxSize / 2 + 5,
                     boxSize,
                     boxSize,
                     cornerRadius
