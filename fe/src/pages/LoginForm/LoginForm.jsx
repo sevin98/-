@@ -112,6 +112,7 @@ export default function LoginForm() {
 
             // 인증 및 사용자 정보 초기화
             updateAxiosAccessToken(accessToken);
+            userRepository.setUserProfile(loginResp.data.userProfile);
 
             // STOMP Client 초기화
             getStompClient(webSocketConnectionToken);
@@ -135,9 +136,7 @@ export default function LoginForm() {
                     "※비밀번호는 최소 4자리 이상이어야 합니다."
                 );
             } else {
-                setRegisterErrormessage(
-                    "※네트워크 오류가 발생했습니다."
-                );
+                setRegisterErrormessage("※네트워크 오류가 발생했습니다.");
             }
         }
     };
