@@ -21,7 +21,7 @@ function RankingPage() {
         if (inView && hasMore) {
             loadMoreRankings();
         }
-    }, [inView]);
+    }, [inView, hasMore]);
 
     useEffect(() => {
         setPage(1);
@@ -37,7 +37,6 @@ function RankingPage() {
         axios
             .get(apiUrl)
             .then((response) => {
-                // console.log(response);
                 const data = response.data;
 
                 if (Array.isArray(data)) {
@@ -65,7 +64,10 @@ function RankingPage() {
     const loadMyRanking = () => {
         axios
             .get("/api/rankings/me")
-            .then((response) => setMyRanking(response.data));
+            .then((response) => setMyRanking(response.data))
+            .catch((error) => {
+                console.error("API 에러:", error);
+            });
     };
 
     const onBackToLobbyBtnClicked = () => {
@@ -75,7 +77,6 @@ function RankingPage() {
     return (
             <div className="ranking-wrapper rpgui-content">
                 <BackToLobbyButton onClick={onBackToLobbyBtnClicked} />
-                <div className="ranking-section">
                 <ul>
                     {Array.isArray(ranking) &&
                         ranking.map((user, index) => (
@@ -87,7 +88,6 @@ function RankingPage() {
                         ))}
                     <div ref={ref} />
                     </ul>
-                </div>
 
             {myRanking && (
                 <div className="my-ranking rpgui-container framed">
@@ -98,7 +98,7 @@ function RankingPage() {
                     <p>Survival Time: {myRanking.survivalTime}</p>
                 </div>
                     )}
-            <div className="ranking-controls">
+                <div className="ranking-controls">
                 <button
                     className="rpgui-button"
                     onClick={() => setSortCriteria("wins")}
@@ -115,7 +115,7 @@ function RankingPage() {
                     className="rpgui-button"
                     onClick={() => setSortCriteria("survival-time")}
                 >
-                    <h2>생존 시간 순</h2>
+                    <h2>생존시간 순</h2>
                 </button>
             </div>
     </div>
