@@ -630,7 +630,7 @@ export class game extends Phaser.Scene {
                                                     false
                                                 );
                                                 console.log("키반전 취소");
-                                            }, 5 * 1000); // 키반전이 더 빨리 풀리는것같은데 ? 
+                                            }, 5 * 1000); // 키반전이 더 빨리 풀리는것같은데 ?
                                         } else {
                                             console.log("탐색실패");
                                             this.text.showTextFailFind(
@@ -1033,20 +1033,13 @@ export class game extends Phaser.Scene {
     }
 
     createFogTile(x, y, tileSize) {
-        const color = 0xffffff;
         const alpha = 0.4;
         const width = tileSize;
         const height = tileSize;
 
-        const graphics = this.add.graphics();
-        graphics.fillStyle(color, alpha);
-        graphics.fillRect(0, 0, width, height);
-
-        graphics.generateTexture("fogTile", width, height);
-
-        const fogTile = this.mapWalls
-            .create(x, y, "fogTile")
-            .setDisplaySize(width, height);
+        const fogTile = this.add.image(x, y, "fog-image");
+        fogTile.setDisplaySize(width, height);
+        fogTile.setAlpha(alpha);
 
         // 안개 타일 애니메이션 효과
         this.tweens.add({
@@ -1057,3 +1050,4 @@ export class game extends Phaser.Scene {
         });
     }
 }
+
