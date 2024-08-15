@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import axios from "../../network/AxiosClient";
 import { useInView } from "react-intersection-observer";
 import { BackToLobbyButton } from "../WaitingRoom/WaitingRoomComponents";
 import "./RankingPage.css";
@@ -14,6 +14,7 @@ function RankingPage() {
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
     const [sortCriteria, setSortCriteria] = useState("wins");
+    const [error, setError] = useState(null);
     const { ref, inView } = useInView();
     const navigate = useNavigate();
 
@@ -39,6 +40,8 @@ function RankingPage() {
             .then((response) => {
                 const data = response.data;
 
+                //let slicedData = data.sort((a, b) => b.timestamp - a.timestamp).slice(0, 10);
+
                 if (Array.isArray(data)) {
                     setRanking((prev) => (reset ? data : [...prev, ...data]));
                 } else if (data.results && Array.isArray(data.results)) {
@@ -58,6 +61,7 @@ function RankingPage() {
             })
             .catch((error) => {
                 console.error("API Error:", error);
+                setError("Failed to load rankings. Please try again later.");
             });
     };
 
@@ -66,7 +70,8 @@ function RankingPage() {
             .get("/api/rankings/me")
             .then((response) => setMyRanking(response.data))
             .catch((error) => {
-                console.error("API 에러:", error);
+                console.error("API Error:", error);
+                setError("Failed to load your ranking. Please try again later.");
             });
     };
 
@@ -75,30 +80,37 @@ function RankingPage() {
     };
 
     return (
-            <div className="ranking-wrapper rpgui-content">
-                <BackToLobbyButton onClick={onBackToLobbyBtnClicked} />
+        <div className="ranking-wrapper rpgui-content">
+            <BackToLobbyButton onClick={onBackToLobbyBtnClicked} isDisabled={false} />
+            {/*{error && <div className="error-message">{error}</div>} */}
+             <div className="ranking-board my-ranking rpgui-container framed" style={{ overflow: "auto" }}>
+                    <h2>Your Ranking</h2>
+                    {myRanking ? (
+                        <>
+                            <span className="nickname-style">Nickname : {myRanking.nickname}</span>
+                            <p>Wins : {myRanking.wins}</p>
+                            <p>Catch Count: {myRanking.catchCount}</p>
+                            <p>Survival Time: {myRanking.formattedSurvivalTime}</p>
+                        </>
+                    ) : (
+                        <span className="nickname-style">데이터가 없습니다</span>
+                    )}
+                </div>
+
+                <div className="ranking-board ranking-log rpgui-container framed" style={{ overflow: "auto" }}>
                 <ul>
                     {Array.isArray(ranking) &&
-                        ranking.map((user, index) => (
-                            <li key={index}>
-                                {index + 1}. {user.nickname} - Wins: {user.wins}
-                                , Catch Count: {user.catchCount}, Survival Time:{" "}
-                                {user.survivalTime}
+                        ranking.slice(0, 10).map((user, index) => (
+                            <li key={index} className="ranking-item">
+                                {index + 1}. <span className="nickname-style">{user.nickname}</span> - Wins: {user.wins}
+                                , Catch Count: {user.catchCount}, Survival Time: {user.formattedSurvivalTime}
                             </li>
                         ))}
                     <div ref={ref} />
-                    </ul>
+                </ul>
+            </div>
 
-            {myRanking && (
-                <div className="my-ranking rpgui-container framed">
-                    <h2>Your Ranking</h2>
-                    <p>Nickname : {myRanking.nickname}</p>
-                    <p>Wins : {myRanking.wins}</p>
-                    <p>Catch Count: {myRanking.catchCount}</p>
-                    <p>Survival Time: {myRanking.survivalTime}</p>
-                </div>
-                    )}
-                <div className="ranking-controls">
+            <div className="ranking-controls">
                 <button
                     className="rpgui-button"
                     onClick={() => setSortCriteria("wins")}
@@ -118,7 +130,7 @@ function RankingPage() {
                     <h2>생존시간 순</h2>
                 </button>
             </div>
-    </div>
+        </div>
     );
 }
 
