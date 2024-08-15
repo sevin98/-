@@ -51,26 +51,6 @@ export default class GameUI extends Phaser.Scene {
         );
 
         this.load.image("magnifier-item", "assets/object/item/glassItem.png");
-
-        //바나나: 속도 100
-        this.load.image("banana", "assets/object/item/bananaItem.png");
-
-        // 벌통: 속도 0(멈춤)
-        this.load.image("beeHive", "assets/object/item/beehiveItem.png");
-
-        // 표고 버섯: 다른 플레이어 위치 화살표 다시 보여줌
-        this.load.image("mushroom", "assets/object/item/mushroomItem.png");
-
-        // 매운고추: 속도 빨라짐
-        this.load.image("pepper", "assets/object/item/pepperItem.png");
-
-        // 독버섯: 키반전
-        this.load.image(
-            "poisonMushroom",
-            "assets/object/item/poisonMushroomItem.png"
-        );
-
-        // 나뭇잎: 다른 물체로 변신
     }
 
     async #getNumOfRacoons() {
@@ -802,4 +782,3 @@ export default class GameUI extends Phaser.Scene {
         });
     }
 }
-
