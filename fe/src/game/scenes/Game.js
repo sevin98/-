@@ -199,6 +199,10 @@ export class game extends Phaser.Scene {
         this.hpSeekFailSound = this.sound.add("hp-seek-fail", {
             volume: 1,
         });
+
+        this.hideSuccessSound = this.sound.add("hide-success-sound", {
+            volume: 1,
+        });
     }
 
     update() {
@@ -549,6 +553,7 @@ export class game extends Phaser.Scene {
                                             closest.body.x - 40,
                                             closest.body.y - 40
                                         );
+                                        this.hideSuccessSound.play();
                                         //숨었을때 로컬플레이어 숨음으로 상태 변경
                                         // this.getGameRepository.getMe().setIsHiding();
                                     } else {
@@ -607,12 +612,32 @@ export class game extends Phaser.Scene {
                                             gameRepository.getItemAppliedFromObject() ===
                                             "BANANA"
                                         ) {
-                                            //TODO:아이템이 obj에서 발견됐을때 애니메이션 추가, 머리 위 아이템 이미지 띄우기
+                                            this.localPlayer.applyItemEffect(
+                                                "BANANA"
+                                            );
+                                            this.time.delayedCall(
+                                                5 * 1000,
+                                                () => {
+                                                    this.localPlayer.removeItemEffect(
+                                                        "BANANA"
+                                                    );
+                                                }
+                                            );
                                         } else if (
                                             gameRepository.getItemAppliedFromObject() ===
                                             "BEEHIVE"
                                         ) {
-                                            //TODO:아이템이 obj에서 발견됐을때 애니메이션 추가, 머리 위 아이템 이미지 띄우기
+                                            this.localPlayer.applyItemEffect(
+                                                "BEEHIVE"
+                                            );
+                                            this.time.delayedCall(
+                                                5 * 1000,
+                                                () => {
+                                                    this.localPlayer.removeItemEffect(
+                                                        "BEEHIVE"
+                                                    );
+                                                }
+                                            );
                                         }
                                         // 독버섯
                                         else if (
@@ -630,7 +655,7 @@ export class game extends Phaser.Scene {
                                                     false
                                                 );
                                                 console.log("키반전 취소");
-                                            }, 5 * 1000); // 키반전이 더 빨리 풀리는것같은데 ? 
+                                            }, 5 * 1000); // 키반전이 더 빨리 풀리는것같은데 ?
                                         } else {
                                             console.log("탐색실패");
                                             this.text.showTextFailFind(
@@ -693,19 +718,29 @@ export class game extends Phaser.Scene {
                                         gameRepository.getItemQ() ===
                                         "RED_PEPPER"
                                     ) {
-                                        //TODO: 고추 아이템 사용 중일때 머리 위 아이템 띄우기
+                                        this.localPlayer.applyItemEffect(
+                                            "RED_PEPPER"
+                                        );
                                         this.time.delayedCall(10 * 1000, () => {
                                             console.log("RED_PEPPER END");
                                             gameRepository.setItemSpeed(200);
+                                            this.localPlayer.removeItemEffect(
+                                                "RED_PEPPER"
+                                            );
                                         });
                                     }
                                     if (
                                         gameRepository.getItemQ() !==
                                         "RED_PEPPER"
                                     ) {
-                                        //TODO: 방향버섯 아이템 사용 중일때 머리 위 아이템 띄우기
+                                        this.localPlayer.applyItemEffect(
+                                            "MUSHROOM"
+                                        );
                                         this.time.delayedCall(5 * 1000, () => {
                                             gameRepository.setItemSpeed(200);
+                                            this.localPlayer.removeItemEffect(
+                                                "MUSHROOM"
+                                            );
                                         });
                                     }
                                 }
@@ -725,19 +760,29 @@ export class game extends Phaser.Scene {
                                         gameRepository.getItemQ() ===
                                         "RED_PEPPER"
                                     ) {
-                                        //TODO: 고추 아이템 사용 중일때 머리 위 아이템 띄우기
+                                        this.localPlayer.applyItemEffect(
+                                            "RED_PEPPER"
+                                        );
                                         this.time.delayedCall(10 * 1000, () => {
                                             console.log("RED_PEPPER END");
                                             gameRepository.setItemSpeed(200);
+                                            this.localPlayer.removeItemEffect(
+                                                "RED_PEPPER"
+                                            );
                                         });
                                     }
                                     if (
                                         gameRepository.getItemQ() !==
                                         "RED_PEPPER"
                                     ) {
-                                        //TODO: 방향버섯 아이템 사용 중일때 머리 위 아이템 띄우기
+                                        this.localPlayer.applyItemEffect(
+                                            "MUSHROOM"
+                                        );
                                         this.time.delayedCall(5 * 1000, () => {
                                             gameRepository.setItemSpeed(200);
+                                            this.localPlayer.removeItemEffect(
+                                                "MUSHROOM"
+                                            );
                                         });
                                     }
                                 }
@@ -762,19 +807,29 @@ export class game extends Phaser.Scene {
                                         gameRepository.getItemW() ===
                                         "RED_PEPPER"
                                     ) {
-                                        //TODO: 고추 아이템 사용 중일때 머리 위 아이템 띄우기
+                                        this.localPlayer.applyItemEffect(
+                                            "RED_PEPPER"
+                                        );
                                         this.time.delayedCall(10 * 1000, () => {
                                             console.log("RED_PEPPER END");
                                             gameRepository.setItemSpeed(200);
+                                            this.localPlayer.removeItemEffect(
+                                                "RED_PEPPER"
+                                            );
                                         });
                                     }
                                     if (
                                         gameRepository.getItemW() !==
                                         "RED_PEPPER"
                                     ) {
-                                        //TODO: 방향버섯 아이템 사용 중일때 머리 위 아이템 띄우기
+                                        this.localPlayer.applyItemEffect(
+                                            "MUSHROOM"
+                                        );
                                         this.time.delayedCall(5 * 1000, () => {
                                             gameRepository.setItemSpeed(200);
+                                            this.localPlayer.removeItemEffect(
+                                                "MUSHROOM"
+                                            );
                                         });
                                     }
                                 }
@@ -794,19 +849,29 @@ export class game extends Phaser.Scene {
                                         gameRepository.getItemW() ===
                                         "RED_PEPPER"
                                     ) {
-                                        //TODO: 고추 아이템 사용 중일때 머리 위 아이템 띄우기
+                                        this.localPlayer.applyItemEffect(
+                                            "RED_PEPPER"
+                                        );
                                         this.time.delayedCall(10 * 1000, () => {
                                             console.log("RED_PEPPER END");
                                             gameRepository.setItemSpeed(200);
+                                            this.localPlayer.removeItemEffect(
+                                                "RED_PEPPER"
+                                            );
                                         });
                                     }
                                     if (
                                         gameRepository.getItemW() !==
                                         "RED_PEPPER"
                                     ) {
-                                        //TODO: 방향버섯 아이템 사용 중일때 머리 위 아이템 띄우기
+                                        this.localPlayer.applyItemEffect(
+                                            "MUSHROOM"
+                                        );
                                         this.time.delayedCall(5 * 1000, () => {
                                             gameRepository.setItemSpeed(200);
+                                            this.localPlayer.removeItemEffect(
+                                                "MUSHROOM"
+                                            );
                                         });
                                     }
                                 }
@@ -1033,20 +1098,13 @@ export class game extends Phaser.Scene {
     }
 
     createFogTile(x, y, tileSize) {
-        const color = 0xffffff;
         const alpha = 0.4;
         const width = tileSize;
         const height = tileSize;
 
-        const graphics = this.add.graphics();
-        graphics.fillStyle(color, alpha);
-        graphics.fillRect(0, 0, width, height);
-
-        graphics.generateTexture("fogTile", width, height);
-
-        const fogTile = this.mapWalls
-            .create(x, y, "fogTile")
-            .setDisplaySize(width, height);
+        const fogTile = this.add.image(x, y, "fog-image");
+        fogTile.setDisplaySize(width, height);
+        fogTile.setAlpha(alpha);
 
         // 안개 타일 애니메이션 효과
         this.tweens.add({

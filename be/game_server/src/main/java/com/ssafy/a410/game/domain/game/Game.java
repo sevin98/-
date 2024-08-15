@@ -248,9 +248,11 @@ public class Game extends Subscribable implements Runnable {
     }
 
     private void runReadyPhase() {
+        long additionalDurationMilliSec = this.round == 1 ? 5L * MilliSecOf.SECONDS : 0L;
+
         // 상태 전환
         this.currentPhase = Phase.READY;
-        broadcastService.broadcastTo(this, new PhaseChangeControlMessage(Phase.READY));
+        broadcastService.broadcastTo(this, new PhaseChangeControlMessage(Phase.READY, additionalDurationMilliSec));
 
         // 숨는 팀만 움직일 수 있으며, 화면 가리기 해제 설정
         broadcastService.broadcastTo(hidingTeam, new PlayerUnfreezeMessage());
@@ -266,7 +268,7 @@ public class Game extends Subscribable implements Runnable {
         hidingTeamRequests.clear();
 
         // 제한 시간이 끝날 때까지 루프 반복
-        final long TIME_TO_SWITCH = System.currentTimeMillis() + Phase.READY.getDuration();
+        final long TIME_TO_SWITCH = System.currentTimeMillis() + Phase.READY.getDuration() + additionalDurationMilliSec;
         while (!isTimeToSwitch(TIME_TO_SWITCH) && !isEnd()) {
             // 현 시점까지 들어와 있는 요청까지만 처리
             final int NUM_OF_MESSAGES = hidingTeamRequests.size();
