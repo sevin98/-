@@ -399,7 +399,7 @@ export default class GameUI extends Phaser.Scene {
             .getGameRepository()
             .then((gameRepository) => {
                 this.updateImage();
-                if (uiControlQueue.hasGameUiControlMessage()) {
+                while (uiControlQueue.hasGameUiControlMessage()) {
                     const message = uiControlQueue.getGameUiControlMessage();
                     switch (message.type) {
                         case MESSAGE_TYPE.TOP_CENTER_MESSAGE:
