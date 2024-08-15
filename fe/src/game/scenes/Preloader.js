@@ -90,11 +90,37 @@ export class Preloader extends Scene {
 
         // 좁혀지는 벽 이미지
         this.load.image("fog-image", "assets/effect/fog.png");
+
+        // 고추 아이템 적용 효과
+        this.load.spritesheet({
+            key: "dynamic-pepper-effect",
+            url: "assets/effect/Fire+Sparks-Sheet.png",
+            frameConfig: {
+                frameWidth: 96,
+                frameHeight: 96,
+                startFrame: 0,
+                endFrame: 18,
+            },
+        });
+
+        this.load.audio(
+            "pepper-effect-sound",
+            "sounds/effect/etc/pepper-effect.mp3"
+        );
     }
 
     create() {
         this.scene.start("game");
-        // this.scene.start("MainMenu");
+
+        this.anims.create({
+            key: "dynamic-pepper-effect-animation",
+            frames: this.anims.generateFrameNumbers("dynamic-pepper-effect", {
+                start: 0,
+                end: 18,
+            }),
+            frameRate: 20,
+            repeat: -1,
+        });
     }
 }
 

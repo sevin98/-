@@ -230,13 +230,30 @@ export default class MyPlayerSprite extends Phaser.GameObjects.Container {
         });
         nicknameText.setOrigin(0.5, 0.5);
 
-        super(scene, x, y, [playerSprite, nicknameText]);
+        // 아이템 적용 효과
+        const itemEffectSprites = [];
+        const redPepperEffectSprite = scene.add
+            .sprite(0, -5, "dynamic-pepper-effect")
+            .play("dynamic-pepper-effect-animation");
+        redPepperEffectSprite.setDisplaySize(20, 20);
+        itemEffectSprites.push(redPepperEffectSprite);
+
+        // 아이템 적용 효과 모두 위쪽 가운데 정렬
+        itemEffectSprites.forEach((sprite) => {
+            sprite.setOrigin(0.5, 1);
+            sprite.setVisible(false);
+        });
+
+        super(scene, x, y, [playerSprite, nicknameText, ...itemEffectSprites]);
         this.scene = scene;
         this.scene.add.existing(this);
 
         this.playerSprite = playerSprite;
         this.nicknameText = nicknameText;
         this.PLAYER_SPEED = 200;
+
+        this.isItemEffectDisplaying = false;
+        this.redPepperEffectSprite = redPepperEffectSprite;
 
         this.scene.physics.world.enable(this);
 
@@ -704,6 +721,21 @@ export default class MyPlayerSprite extends Phaser.GameObjects.Container {
 
     getIsFootstepSoundPlaying() {
         return this.#isFootstepSoundPlaying;
+    }
+
+    applyItemEffect(itemName) {
+        if (itemName === "RED_PEPPER") {
+            this.redPepperEffectSprite.visible = true;
+            this.isItemEffectDisplaying = true;
+            this.scene.sound.play("pepper-effect-sound");
+        }
+    }
+
+    removeItemEffect(itemName) {
+        if (itemName === "RED_PEPPER") {
+            this.redPepperEffectSprite.visible = false;
+            this.isItemEffectDisplaying = false;
+        }
     }
 }
 

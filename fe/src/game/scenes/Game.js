@@ -693,10 +693,15 @@ export class game extends Phaser.Scene {
                                         gameRepository.getItemQ() ===
                                         "RED_PEPPER"
                                     ) {
-                                        //TODO: 고추 아이템 사용 중일때 머리 위 아이템 띄우기
+                                        this.localPlayer.applyItemEffect(
+                                            "RED_PEPPER"
+                                        );
                                         this.time.delayedCall(10 * 1000, () => {
                                             console.log("RED_PEPPER END");
                                             gameRepository.setItemSpeed(200);
+                                            this.localPlayer.removeItemEffect(
+                                                "RED_PEPPER"
+                                            );
                                         });
                                     }
                                     if (
@@ -725,10 +730,15 @@ export class game extends Phaser.Scene {
                                         gameRepository.getItemQ() ===
                                         "RED_PEPPER"
                                     ) {
-                                        //TODO: 고추 아이템 사용 중일때 머리 위 아이템 띄우기
+                                        this.localPlayer.applyItemEffect(
+                                            "RED_PEPPER"
+                                        );
                                         this.time.delayedCall(10 * 1000, () => {
                                             console.log("RED_PEPPER END");
                                             gameRepository.setItemSpeed(200);
+                                            this.localPlayer.removeItemEffect(
+                                                "RED_PEPPER"
+                                            );
                                         });
                                     }
                                     if (
@@ -762,10 +772,15 @@ export class game extends Phaser.Scene {
                                         gameRepository.getItemW() ===
                                         "RED_PEPPER"
                                     ) {
-                                        //TODO: 고추 아이템 사용 중일때 머리 위 아이템 띄우기
+                                        this.localPlayer.applyItemEffect(
+                                            "RED_PEPPER"
+                                        );
                                         this.time.delayedCall(10 * 1000, () => {
                                             console.log("RED_PEPPER END");
                                             gameRepository.setItemSpeed(200);
+                                            this.localPlayer.removeItemEffect(
+                                                "RED_PEPPER"
+                                            );
                                         });
                                     }
                                     if (
@@ -794,10 +809,15 @@ export class game extends Phaser.Scene {
                                         gameRepository.getItemW() ===
                                         "RED_PEPPER"
                                     ) {
-                                        //TODO: 고추 아이템 사용 중일때 머리 위 아이템 띄우기
+                                        this.localPlayer.applyItemEffect(
+                                            "RED_PEPPER"
+                                        );
                                         this.time.delayedCall(10 * 1000, () => {
                                             console.log("RED_PEPPER END");
                                             gameRepository.setItemSpeed(200);
+                                            this.localPlayer.removeItemEffect(
+                                                "RED_PEPPER"
+                                            );
                                         });
                                     }
                                     if (
