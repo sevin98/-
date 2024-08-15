@@ -1,11 +1,13 @@
 package com.ssafy.a410.game.domain.game.message.control.item;
 
 import com.ssafy.a410.game.domain.game.Item;
+import lombok.Getter;
 
 import java.time.Duration;
 
 public record ItemInfo(
         String roomId,
+        @Getter
         String playerId,
         String targetId, // 오브젝트 아이디 혹은 자기 자신
         Item item,
@@ -25,4 +27,7 @@ public record ItemInfo(
             playerId = appliedById;
         }
     }
+//    public String getPlayerId(){
+//        return playerId;
+//    }
 }

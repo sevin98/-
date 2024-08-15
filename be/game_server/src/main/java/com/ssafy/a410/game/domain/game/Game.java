@@ -586,27 +586,69 @@ public class Game extends Subscribable implements Runnable {
         userService.updateUserProfileEntity(userProfile);
     }
 
-    // 자기 자신에게 아이템 적용
-    public void applyItemToPlayer(String playerId, Item item, Duration duration, String appliedById, String requestId) {
-        Player player = room.getPlayerWith(playerId);
-//        ItemInfo itemInfo = new ItemInfo(room.getRoomNumber(), playerId, playerId, item, duration, player.getSpeed(), appliedById);
+//    // 자기 자신에게 아이템 적용
+//    public void applyItemToPlayer(String playerId, Item item, Duration duration, String appliedById, String requestId) {
+//        Player player = room.getPlayerWith(playerId);
+//
+//        // 만약 아이템이 방향버섯이고, 플레이어가 찾는팀이 아니라면 아이템 적용 실패 메시지
+//        if(item == Item.MUSHROOM && !seekingTeam.has(player)){
+//            ItemInfo itemInfo = new ItemInfo(room.getRoomNumber(), playerId, playerId, item, duration, player.getSpeed(), appliedById);
+//            ItemApplicationFailedToPlayerMessage message = new ItemApplicationFailedToPlayerMessage(itemInfo, requestId);
+//            broadcastService.broadcastTo(this, message);
+//            broadcastService.unicastTo(player, message);
+//        }
+//        // 플레이어에게 현재 적용된 아이템이 없다면 아이템을 적용시킨다.
+//        else if (player.getCurrentItem() == null && player.useItem(item)) {
+//            player.applyItem(item, duration, appliedById);
+//            ItemInfo itemInfo = new ItemInfo(room.getRoomNumber(), playerId, playerId, item, duration, player.getSpeed(), appliedById);
+//            ItemAppliedMessage message = new ItemAppliedMessage(itemInfo, requestId);
+//            broadcastService.broadcastTo(this, message);
+//            broadcastService.unicastTo(player, message);
+//
+//            // 이미 적용된 아이템이 있다면 아이템 적용 실패
+//        } else {
+//            ItemInfo itemInfo = new ItemInfo(room.getRoomNumber(), playerId, playerId, item, duration, player.getSpeed(), appliedById);
+//            ItemApplicationFailedToPlayerMessage message = new ItemApplicationFailedToPlayerMessage(itemInfo, requestId);
+//            broadcastService.broadcastTo(this, message);
+//            broadcastService.unicastTo(player, message);
+//        }
+//    }
 
-        // 플레이어에게 현재 적용된 아이템이 없다면 아이템을 적용시킨다.
-        if (player.getCurrentItem() == null && player.useItem(item)) {
-            player.applyItem(item, duration, appliedById);
-            ItemInfo itemInfo = new ItemInfo(room.getRoomNumber(), playerId, playerId, item, duration, player.getSpeed(), appliedById);
+    private void sendItemApplicationResultMessage(ItemInfo itemInfo, String requestId, boolean isSuccess) {
+        // 성공 메시지와 실패 메시지를 분리하여 처리
+        if (isSuccess) {
             ItemAppliedMessage message = new ItemAppliedMessage(itemInfo, requestId);
             broadcastService.broadcastTo(this, message);
-            broadcastService.unicastTo(player, message);
-
-            // 이미 적용된 아이템이 있다면 아이템 적용 실패
+            broadcastService.unicastTo(room.getPlayerWith(itemInfo.playerId()), message);
         } else {
-            ItemInfo itemInfo = new ItemInfo(room.getRoomNumber(), playerId, playerId, item, duration, player.getSpeed(), appliedById);
             ItemApplicationFailedToPlayerMessage message = new ItemApplicationFailedToPlayerMessage(itemInfo, requestId);
             broadcastService.broadcastTo(this, message);
-            broadcastService.unicastTo(player, message);
+            broadcastService.unicastTo(room.getPlayerWith(itemInfo.playerId()), message);
         }
     }
+
+    // 아이템을 플레이어에게 적용하는 메서드
+    public void applyItemToPlayer(String playerId, Item item, Duration duration, String appliedById, String requestId) {
+        Player player = room.getPlayerWith(playerId);
+
+        ItemInfo itemInfo = new ItemInfo(room.getRoomNumber(), playerId, playerId, item, duration, player.getSpeed(), appliedById);
+
+        // 만약 아이템이 방향버섯이고, 플레이어가 찾는팀이 아니라면 아이템 적용 실패 메시지
+        if (item == Item.MUSHROOM && !seekingTeam.has(player)) {
+            sendItemApplicationResultMessage(itemInfo, requestId, false);
+        }
+        // 플레이어에게 현재 적용된 아이템이 없다면 아이템을 적용시킨다.
+        else if (player.getCurrentItem() == null && player.useItem(item)) {
+            player.applyItem(item, duration, appliedById);
+            sendItemApplicationResultMessage(itemInfo, requestId, true);
+        }
+        // 이미 적용된 아이템이 있다면 아이템 적용 실패
+        else {
+            sendItemApplicationResultMessage(itemInfo, requestId, false);
+        }
+    }
+
+
 
     public void applyItemToHPObject(String objectId, Item item, Duration duration, String appliedById, String requestId) {
         if (objectId == null) objectId = appliedById;
