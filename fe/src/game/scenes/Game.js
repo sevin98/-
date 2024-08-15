@@ -19,6 +19,8 @@ export class game extends Phaser.Scene {
     //cursor = this.cursor.c
     //cursors = Phaser.Input.Keyboard.KeyboardPlugin;
     //fauna = Phaser.Physics.Arcade.Sprite;
+
+    #createdFogTileCoordinates = [];
     constructor() {
         super("game");
 
@@ -36,6 +38,12 @@ export class game extends Phaser.Scene {
         this.updatePaused = false;
         this.gameResults = [];
         this.winningTeam = null;
+    }
+
+    #isAlreadyFogCreatedCoordinate(x, y) {
+        return this.#createdFogTileCoordinates.some(
+            (coordinate) => coordinate.x === x && coordinate.y === y
+        );
     }
 
     preload() {
@@ -1054,9 +1062,6 @@ export class game extends Phaser.Scene {
                 this.lastWallPos.y !== currentSafeZone[1]
             ) {
                 console.log("맵이 줄어듭니다");
-                if (this.mapWalls) {
-                    this.mapWalls.clear(); // 이전 맵 없애기
-                }
                 const [startX, startY, endX, endY] = currentSafeZone;
                 const tileSize = 32; // 타일의 크기를 고정된 값으로 설정 (예: 32x32 픽셀)
 
@@ -1098,6 +1103,11 @@ export class game extends Phaser.Scene {
     }
 
     createFogTile(x, y, tileSize) {
+        if (this.#isAlreadyFogCreatedCoordinate(x, y)) {
+            return;
+        }
+        this.#createdFogTileCoordinates.push({ x, y });
+
         const alpha = 0.4;
         const width = tileSize;
         const height = tileSize;
