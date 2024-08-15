@@ -84,6 +84,9 @@ export class Preloader extends Scene {
 
         // HP 탐색 실패
         this.load.audio("hp-seek-fail", "sounds/effect/etc/hp-seek-fail.wav");
+
+        // 남은 시간 타이머
+        this.load.image("timer-background", "assets/ui/timer.png");
     }
 
     create() {
@@ -91,3 +94,4 @@ export class Preloader extends Scene {
         // this.scene.start("MainMenu");
     }
 }
+
