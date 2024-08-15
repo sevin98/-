@@ -602,64 +602,76 @@ export class game extends Phaser.Scene {
                                             closest.body.y + 10
                                         );
                                     } else {
-                                        console.log("탐색 실패");
+                                        console.log(
+                                            "obj에 아이템:",
+                                            gameRepository.getItemAppliedFromObject()
+                                        );
                                         this.hpSeekFailSound.play();
 
-                                        //여기 숨은 사람 없습니다 메세지
-                                        this.text.showTextFailFind(
-                                            this,
-                                            closest.body.x - 40,
-                                            closest.body.y - 40
-                                        );
-                                        // 이미지 넣었다가 사라지기
-                                        this.showFailedImage(
-                                            closest.body.x + 10,
-                                            closest.body.y + 10
-                                        );
+                                        if (
+                                            gameRepository.getItemAppliedFromObject() ===
+                                            "BANANA"
+                                        ) {
+                                            this.localPlayer.applyItemEffect(
+                                                "BANANA"
+                                            );
+                                            this.time.delayedCall(
+                                                5 * 1000,
+                                                () => {
+                                                    this.localPlayer.removeItemEffect(
+                                                        "BANANA"
+                                                    );
+                                                }
+                                            );
+                                        } else if (
+                                            gameRepository.getItemAppliedFromObject() ===
+                                            "BEEHIVE"
+                                        ) {
+                                            this.localPlayer.applyItemEffect(
+                                                "BEEHIVE"
+                                            );
+                                            this.time.delayedCall(
+                                                5 * 1000,
+                                                () => {
+                                                    this.localPlayer.removeItemEffect(
+                                                        "BEEHIVE"
+                                                    );
+                                                }
+                                            );
+                                        }
+                                        // 독버섯
+                                        else if (
+                                            gameRepository.getItemAppliedFromObject() ===
+                                            "POISON_MUSHROOM"
+                                        ) {
+                                            //TODO:아이템이 obj에서 발견됐을때 애니메이션 추가, 머리 위 아이템 이미지 띄우기
+                                            console.log("키반전");
+                                            this.playerMoveHandler.setReversed(
+                                                true
+                                            );
+                                            setTimeout(() => {
+                                                // 이후 set false
+                                                this.playerMoveHandler.setReversed(
+                                                    false
+                                                );
+                                                console.log("키반전 취소");
+                                            }, 5 * 1000); // 키반전이 더 빨리 풀리는것같은데 ?
+                                        } else {
+                                            console.log("탐색실패");
+                                            this.text.showTextFailFind(
+                                                this,
+                                                closest.body.x - 40,
+                                                closest.body.y - 40
+                                            );
+                                            this.showFailedImage(
+                                                closest.body.x + 10,
+                                                closest.body.y + 10
+                                            );
 
-                                        // 50% 확률로 닭 출현
-                                        if (Math.random() < 0.5) {
-                                            uiControlQueue.addSurpriseChickenMessage();
-                                        }
-                                        // true면 잠깐동안 키반전
-                                        if (
-                                            gameRepository.getIsPoisonMushroomUsed()
-                                        ) {
-                                            // 키반전 이벤트
-                                            console.log("키반전");
-                                            this.playerMoveHandler.setReversed(
-                                                true
-                                            );
-                                            setTimeout(() => {
-                                                // 이후 set false
-                                                this.playerMoveHandler.setReversed(
-                                                    false
-                                                );
-                                                gameRepository.setIsPoisonMushroomUsed(
-                                                    false
-                                                );
-                                                console.log("키반전 취소");
-                                            }, 5 * 1000);
-                                        }
-                                        // true면 잠깐동안 키반전
-                                        if (
-                                            gameRepository.getIsPoisonMushroomUsed()
-                                        ) {
-                                            // 키반전 이벤트
-                                            console.log("키반전");
-                                            this.playerMoveHandler.setReversed(
-                                                true
-                                            );
-                                            setTimeout(() => {
-                                                // 이후 set false
-                                                this.playerMoveHandler.setReversed(
-                                                    false
-                                                );
-                                                gameRepository.setIsPoisonMushroomUsed(
-                                                    false
-                                                );
-                                                console.log("키반전 취소");
-                                            }, 5 * 1000);
+                                            // 50% 확률로 닭 출현
+                                            if (Math.random() < 0.5) {
+                                                uiControlQueue.addSurpriseChickenMessage();
+                                            }
                                         }
                                     }
                                 });
@@ -689,9 +701,7 @@ export class game extends Phaser.Scene {
                         );
                     });
                 }
-
-                // 이미 상위에서 gamerespo 생성되어있음,
-                // 아이템 사용 코드추가: Q눌렀을때
+                // 아이템 사용 코드
                 if (Phaser.Input.Keyboard.JustDown(this.m_cursorKeys.Q)) {
                     if (this.interactionEffect) {
                         // interactionEFFECT있을때 가장 가까운 objectid전달
@@ -708,17 +718,29 @@ export class game extends Phaser.Scene {
                                         gameRepository.getItemQ() ===
                                         "RED_PEPPER"
                                     ) {
+                                        this.localPlayer.applyItemEffect(
+                                            "RED_PEPPER"
+                                        );
                                         this.time.delayedCall(10 * 1000, () => {
                                             console.log("RED_PEPPER END");
                                             gameRepository.setItemSpeed(200);
+                                            this.localPlayer.removeItemEffect(
+                                                "RED_PEPPER"
+                                            );
                                         });
                                     }
                                     if (
                                         gameRepository.getItemQ() !==
                                         "RED_PEPPER"
                                     ) {
+                                        this.localPlayer.applyItemEffect(
+                                            "MUSHROOM"
+                                        );
                                         this.time.delayedCall(5 * 1000, () => {
                                             gameRepository.setItemSpeed(200);
+                                            this.localPlayer.removeItemEffect(
+                                                "MUSHROOM"
+                                            );
                                         });
                                     }
                                 }
@@ -738,17 +760,29 @@ export class game extends Phaser.Scene {
                                         gameRepository.getItemQ() ===
                                         "RED_PEPPER"
                                     ) {
+                                        this.localPlayer.applyItemEffect(
+                                            "RED_PEPPER"
+                                        );
                                         this.time.delayedCall(10 * 1000, () => {
                                             console.log("RED_PEPPER END");
                                             gameRepository.setItemSpeed(200);
+                                            this.localPlayer.removeItemEffect(
+                                                "RED_PEPPER"
+                                            );
                                         });
                                     }
                                     if (
                                         gameRepository.getItemQ() !==
                                         "RED_PEPPER"
                                     ) {
+                                        this.localPlayer.applyItemEffect(
+                                            "MUSHROOM"
+                                        );
                                         this.time.delayedCall(5 * 1000, () => {
                                             gameRepository.setItemSpeed(200);
+                                            this.localPlayer.removeItemEffect(
+                                                "MUSHROOM"
+                                            );
                                         });
                                     }
                                 }
@@ -773,17 +807,29 @@ export class game extends Phaser.Scene {
                                         gameRepository.getItemW() ===
                                         "RED_PEPPER"
                                     ) {
+                                        this.localPlayer.applyItemEffect(
+                                            "RED_PEPPER"
+                                        );
                                         this.time.delayedCall(10 * 1000, () => {
                                             console.log("RED_PEPPER END");
                                             gameRepository.setItemSpeed(200);
+                                            this.localPlayer.removeItemEffect(
+                                                "RED_PEPPER"
+                                            );
                                         });
                                     }
                                     if (
                                         gameRepository.getItemW() !==
                                         "RED_PEPPER"
                                     ) {
+                                        this.localPlayer.applyItemEffect(
+                                            "MUSHROOM"
+                                        );
                                         this.time.delayedCall(5 * 1000, () => {
                                             gameRepository.setItemSpeed(200);
+                                            this.localPlayer.removeItemEffect(
+                                                "MUSHROOM"
+                                            );
                                         });
                                     }
                                 }
@@ -803,17 +849,29 @@ export class game extends Phaser.Scene {
                                         gameRepository.getItemW() ===
                                         "RED_PEPPER"
                                     ) {
+                                        this.localPlayer.applyItemEffect(
+                                            "RED_PEPPER"
+                                        );
                                         this.time.delayedCall(10 * 1000, () => {
                                             console.log("RED_PEPPER END");
                                             gameRepository.setItemSpeed(200);
+                                            this.localPlayer.removeItemEffect(
+                                                "RED_PEPPER"
+                                            );
                                         });
                                     }
                                     if (
                                         gameRepository.getItemW() !==
                                         "RED_PEPPER"
                                     ) {
+                                        this.localPlayer.applyItemEffect(
+                                            "MUSHROOM"
+                                        );
                                         this.time.delayedCall(5 * 1000, () => {
                                             gameRepository.setItemSpeed(200);
+                                            this.localPlayer.removeItemEffect(
+                                                "MUSHROOM"
+                                            );
                                         });
                                     }
                                 }
@@ -1040,20 +1098,13 @@ export class game extends Phaser.Scene {
     }
 
     createFogTile(x, y, tileSize) {
-        const color = 0xffffff;
         const alpha = 0.4;
         const width = tileSize;
         const height = tileSize;
 
-        const graphics = this.add.graphics();
-        graphics.fillStyle(color, alpha);
-        graphics.fillRect(0, 0, width, height);
-
-        graphics.generateTexture("fogTile", width, height);
-
-        const fogTile = this.mapWalls
-            .create(x, y, "fogTile")
-            .setDisplaySize(width, height);
+        const fogTile = this.add.image(x, y, "fog-image");
+        fogTile.setDisplaySize(width, height);
+        fogTile.setAlpha(alpha);
 
         // 안개 타일 애니메이션 효과
         this.tweens.add({

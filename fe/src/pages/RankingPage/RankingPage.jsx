@@ -21,7 +21,7 @@ function RankingPage() {
         if (inView && hasMore) {
             loadMoreRankings();
         }
-    }, [inView]);
+    }, [inView, hasMore]);
 
     useEffect(() => {
         setPage(1);
@@ -37,7 +37,6 @@ function RankingPage() {
         axios
             .get(apiUrl)
             .then((response) => {
-                // console.log(response);
                 const data = response.data;
 
                 if (Array.isArray(data)) {
@@ -65,7 +64,10 @@ function RankingPage() {
     const loadMyRanking = () => {
         axios
             .get("/api/rankings/me")
-            .then((response) => setMyRanking(response.data));
+            .then((response) => setMyRanking(response.data))
+            .catch((error) => {
+                console.error("API 에러:", error);
+            });
     };
 
     const onBackToLobbyBtnClicked = () => {
@@ -73,10 +75,30 @@ function RankingPage() {
     };
 
     return (
-        <div id="container" className="rpgui-cursor-default ranking-page">
-            <h1>Ranking</h1>
+            <div className="ranking-wrapper rpgui-content">
+                <BackToLobbyButton onClick={onBackToLobbyBtnClicked} />
+                <ul>
+                    {Array.isArray(ranking) &&
+                        ranking.map((user, index) => (
+                            <li key={index}>
+                                {index + 1}. {user.nickname} - Wins: {user.wins}
+                                , Catch Count: {user.catchCount}, Survival Time:{" "}
+                                {user.survivalTime}
+                            </li>
+                        ))}
+                    <div ref={ref} />
+                    </ul>
 
-            <div className="ranking-controls">
+            {myRanking && (
+                <div className="my-ranking rpgui-container framed">
+                    <h2>Your Ranking</h2>
+                    <p>Nickname : {myRanking.nickname}</p>
+                    <p>Wins : {myRanking.wins}</p>
+                    <p>Catch Count: {myRanking.catchCount}</p>
+                    <p>Survival Time: {myRanking.survivalTime}</p>
+                </div>
+                    )}
+                <div className="ranking-controls">
                 <button
                     className="rpgui-button"
                     onClick={() => setSortCriteria("wins")}
@@ -93,44 +115,10 @@ function RankingPage() {
                     className="rpgui-button"
                     onClick={() => setSortCriteria("survival-time")}
                 >
-                    <h2>생존 시간 순</h2>
+                    <h2>생존시간 순</h2>
                 </button>
             </div>
-
-            <BackToLobbyButton
-                onClick={onBackToLobbyBtnClicked}
-                className="rpgui-button"
-                isDisabled={false}
-            />
-
-            <div className="ranking-section">
-                <ul>
-                    {Array.isArray(ranking) &&
-                        ranking.map((user, index) => (
-                            <li key={index}>
-                                {index + 1}. {user.nickname} - Wins: {user.wins}
-                                , Catch Count: {user.catchCount}, Survival Time:{" "}
-                                {user.survivalTime}
-                            </li>
-                        ))}
-                    <div ref={ref} />
-                </ul>
-            </div>
-
-            {myRanking && (
-                <div className="my-ranking">
-                    <h2>Your Ranking</h2>
-                    <ul>
-                        <li>
-                            나의 전적 - {myRanking.nickname} - Wins:{" "}
-                            {myRanking.wins}, Catch Count:{" "}
-                            {myRanking.catchCount}, Survival Time:{" "}
-                            {myRanking.survivalTime}
-                        </li>
-                    </ul>
-                </div>
-            )}
-        </div>
+    </div>
     );
 }
 

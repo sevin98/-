@@ -91,6 +91,7 @@ export default class GameRepository {
     #isPoisonMushroomUsed = false;
 
     #seekFailCatchCount = 0; // 기본값 0
+    #itemAppliedFromObject; // 현재 적용중인 아이템 내용
 
     constructor(room, roomNumber, gameSubscriptionInfo, startsAfterMilliSec) {
         this.#room = room;
@@ -194,7 +195,6 @@ export default class GameRepository {
                 console.log("or 6. 탐색시 아이템 적용 성공");
                 // 넘어온 data 확인해보니 message 그대로 넘겨줘야함
                 this.#handleItemAppliedPlayerSuccess(message);
-                // console.log(message);
                 break;
             case "ITEM_APPLIED_TO_OBJECT":
                 console.log("2. 아이템 오브젝트에 적용 성공");
@@ -578,8 +578,7 @@ export default class GameRepository {
         });
 
         const seekResult = await asyncResponses.get(requestId);
-
-        if (seekResult.type === "INTERACT_SEEK_SUCCESS") {
+        if (seekResult.type === INTERACT_SEEK_SUCCESS) {
             this.#handleSeekSuccessResult(seekResult.data);
         } else {
             this.#handleSeekFailResult(seekResult.data);
@@ -606,8 +605,6 @@ export default class GameRepository {
         requestedPlayer.increaseCatchCount();
 
         uiControlQueue.addUpdateSeekCountUiMessage(restCatchCount);
-
-        // TODO : HP에 뭔 짓을 해줘야 함?
     }
 
     // 찾기 실패 결과 반영
@@ -623,9 +620,6 @@ export default class GameRepository {
         this.#seekFailCatchCount = data.catchCount;
 
         uiControlQueue.addUpdateSeekCountUiMessage(restCatchCount);
-
-        // TODO : HP에 뭔 짓을 해줘야 함?
-        // TODO : 아이템 처리 필요
     }
 
     getSeekFailCount() {
@@ -693,6 +687,9 @@ export default class GameRepository {
     }
     // 탐색결과로 아이템 찾은 플레이어에게 아이템 적용
     #handleItemAppliedPlayerSuccess(message) {
+        // 발견된 아이템값 저장
+        this.#itemAppliedFromObject = message.data.item;
+
         this.setItemSpeed(message.data.newSpeed);
         if (message.data.item === "BEEHIVE") {
             setTimeout(() => {
@@ -709,13 +706,22 @@ export default class GameRepository {
         }
     }
 
+    getItemAppliedFromObject() {
+        return this.#itemAppliedFromObject;
+    }
+
+    setItemAppliedFromObject(now) {
+        // 적용중인 아이템 초기화
+        this.#itemAppliedFromObject = now;
+    }
+
     // 아이템 object에 적용결과
     #handleItemAppliedObjectSuccess(data) {
         console.log("handle:아이템object에 적용성공,결과:", data);
     }
 
     async requestItemUse(item, targetId) {
-        console.log("_game에 들어옴:", item, targetId);
+        console.log(item, "사용,", targetId, "에 요청");
         const requestId = uuid();
 
         this.#stompClient.publish({
@@ -732,7 +738,6 @@ export default class GameRepository {
         if (item === "MUSHROOM") {
             this.setIsMushroomUsed(true);
         }
-
         const requestItemResult = await asyncResponses.get(requestId);
         return Promise.resolve({
             isSucceeded: requestItemResult.type === "ITEM_APPLIED_TO_PLAYER",

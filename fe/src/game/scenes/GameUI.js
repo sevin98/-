@@ -3,12 +3,9 @@ import Phaser from "phaser";
 import uiControlQueue, { MESSAGE_TYPE } from "../../util/UIControlQueue";
 import { getRoomRepository } from "../../repository";
 import { Phase } from "../../repository/_game";
-import { game } from "./Game";
-import { isFirstPress } from "../../util/keyStroke";
 import { PLAYER_ELIMINATION_REASON } from "../../repository/interface";
 
 export default class GameUI extends Phaser.Scene {
-    static progressBarAssetPrefix = "progress-bar-01-";
     static DEFAULT_SEEK_COUNT = 5;
 
     constructor() {
@@ -49,36 +46,11 @@ export default class GameUI extends Phaser.Scene {
         this.load.image("failed", "assets/object/failed.png");
 
         this.load.image(
-            "timer-progress-bar-background",
-            `assets/ui/timer-progress-bar/background.png`
-        );
-
-        this.load.image(
             "chickenEffectPhoto",
             "assets/object/chickenEffectPhoto.png"
         );
 
         this.load.image("magnifier-item", "assets/object/item/glassItem.png");
-
-        //바나나: 속도 100
-        this.load.image("banana", "assets/object/item/bananaItem.png");
-
-        // 벌통: 속도 0(멈춤)
-        this.load.image("beeHive", "assets/object/item/beehiveItem.png");
-
-        // 표고 버섯: 다른 플레이어 위치 화살표 다시 보여줌
-        this.load.image("mushroom", "assets/object/item/mushroomItem.png");
-
-        // 매운고추: 속도 빨라짐
-        this.load.image("pepper", "assets/object/item/pepperItem.png");
-
-        // 독버섯: 키반전
-        this.load.image(
-            "poisonMushroom",
-            "assets/object/item/poisonMushroomItem.png"
-        );
-
-        // 나뭇잎: 다른 물체로 변신
     }
 
     async #getNumOfRacoons() {
@@ -130,26 +102,52 @@ export default class GameUI extends Phaser.Scene {
         this.groupRacoon = this.add.group();
         this.groupFox = this.add.group();
 
-        //프로그래스 바
-        this.groupTimer = this.add
-            .image(
-                this.cameras.main.width / 2,
-                this.cameras.main.height,
-                "timer-progress-bar-background"
-            )
-            .setOrigin(0.5, 1)
-            .setDisplaySize(this.cameras.main.width * 0.76, 60);
+        // Add timer background
+        this.timerBackground = this.add
+            .image(this.cameras.main.width / 2, 20, "timer-background")
+            .setOrigin(0.5, 0)
+            .setDisplaySize(
+                this.cameras.main.width * 0.1,
+                this.cameras.main.width * 0.05
+            );
 
-        // Add progress bar(red rectangle) on bar background
-        this.progressBar = this.add
-            .rectangle(
-                this.cameras.main.width * 0.184,
-                this.cameras.main.height - 27,
-                this.getProgressBarFullWidth(),
-                29.5,
-                "0x00ff00"
-            )
-            .setOrigin(0, 0.6);
+        const horizontalCenterOfTimerBackground = this.timerBackground.x;
+        const verticalCenterOfTimerBackground =
+            this.timerBackground.y + this.timerBackground.displayHeight / 2;
+
+        this.timerDigit1 = this.add.text(0, 0, "-", {
+            fontSize: this.timerBackground.height,
+            fill: "#fff",
+            fontFamily: "m6x11",
+        });
+        this.timerDigit2 = this.add.text(0, 0, "-", {
+            fontSize: this.timerBackground.height,
+            fill: "#fff",
+            fontFamily: "m6x11",
+        });
+
+        // Calculate the width of the timer digits
+        const timerDigitWidth = this.timerDigit1.width;
+
+        const horizontalGap = this.timerBackground.width / 8;
+        const horizontalAdjustment = 8;
+
+        // Position timer digits relative to the center of timerBackground
+        this.timerDigit1.setPosition(
+            horizontalCenterOfTimerBackground -
+                timerDigitWidth / 2 -
+                horizontalGap -
+                horizontalAdjustment, // Adjust the -5 to fine-tune spacing
+            verticalCenterOfTimerBackground - this.timerDigit1.height / 2
+        );
+
+        this.timerDigit2.setPosition(
+            horizontalCenterOfTimerBackground +
+                timerDigitWidth / 2 +
+                horizontalGap -
+                horizontalAdjustment, // Adjust the +5 to fine-tune spacing
+            verticalCenterOfTimerBackground - this.timerDigit2.height / 2
+        );
 
         this.magnifierIcon = this.add
             .image(
@@ -208,7 +206,7 @@ export default class GameUI extends Phaser.Scene {
         box.fillStyle(0xcccccc, 0.7); // 연한 회색, 50% 투명도
 
         const spacing = 75; // 아이템 두개 사이의 간격
-        const height = this.cameras.main.height - 90; // 맨밑보다 좀 위에 띄우기
+        const height = this.cameras.main.height - 45; // 맨밑보다 좀 위에 띄우기
         let width;
         if (itemIndex === 0) {
             // 키다운 글자 Q,E 화면 생성
@@ -302,9 +300,6 @@ export default class GameUI extends Phaser.Scene {
         getRoomRepository()
             .getGameRepository()
             .then((gameRepository) => {
-                // console.log(
-                //     `async함수내 반환:${gameRepository.getInitialItems()}`
-                // );
                 const items = gameRepository.getInitialItems();
                 items.forEach((item, idx) => {
                     this.createInitialItemImage(item, idx);
@@ -362,66 +357,33 @@ export default class GameUI extends Phaser.Scene {
         });
     }
 
-    updateProgressBar() {
+    updateTimer() {
         getRoomRepository()
             .getGameRepository()
             .then((gameRepository) => {
+                if (gameRepository.getIsEnd()) {
+                    this.timerDigit1.setText("-");
+                    this.timerDigit2.setText("-");
+                    return;
+                }
+
                 const nextPhaseChangeAt = gameRepository.getNextPhaseChangeAt();
                 if (nextPhaseChangeAt) {
                     const now = new Date().getTime();
                     const remainMilliSec = nextPhaseChangeAt - now;
-                    const percentage =
-                        remainMilliSec /
-                        gameRepository.getCurrentPhaseFinishAfterMilliSec();
-                    this.progressBar.width =
-                        this.getProgressBarFullWidth() * percentage;
-
-                    const color = this.interpolateColor(
-                        0xff0000, // Red
-                        0xffff00, // Yellow
-                        0x00ff00, // Green
-                        percentage
-                    );
-                    this.progressBar.fillColor = color;
+                    const remainSec = Math.floor(remainMilliSec / 1000);
+                    if (
+                        !this.lastDisplayedRemainSec ||
+                        this.lastDisplayedRemainSec !== remainSec
+                    ) {
+                        this.lastDisplayedRemainSec = remainSec;
+                        // 십의 자리 업데이트
+                        this.timerDigit1.setText(Math.floor(remainSec / 10));
+                        // 일의 자리 업데이트
+                        this.timerDigit2.setText(remainSec % 10);
+                    }
                 }
             });
-    }
-
-    interpolateColor(color1, color2, color3, factor) {
-        //progress 색깔조정
-        let r1, g1, b1, r2, g2, b2;
-
-        if (factor <= 0.5) {
-            // Interpolate between color1 (red) and color2 (yellow)
-            factor *= 2;
-            r1 = (color1 >> 16) & 0xff;
-            g1 = (color1 >> 8) & 0xff;
-            b1 = color1 & 0xff;
-
-            r2 = (color2 >> 16) & 0xff;
-            g2 = (color2 >> 8) & 0xff;
-            b2 = color2 & 0xff;
-        } else {
-            // Interpolate between color2 (yellow) and color3 (green)
-            factor = (factor - 0.5) * 2;
-            r1 = (color2 >> 16) & 0xff;
-            g1 = (color2 >> 8) & 0xff;
-            b1 = color2 & 0xff;
-
-            r2 = (color3 >> 16) & 0xff;
-            g2 = (color3 >> 8) & 0xff;
-            b2 = color3 & 0xff;
-        }
-
-        const r = Math.round(r1 + factor * (r2 - r1));
-        const g = Math.round(g1 + factor * (g2 - g1));
-        const b = Math.round(b1 + factor * (b2 - b1));
-
-        return (r << 16) | (g << 8) | b;
-    }
-
-    getProgressBarFullWidth() {
-        return this.cameras.main.width * 0.635;
     }
 
     update() {
@@ -477,10 +439,6 @@ export default class GameUI extends Phaser.Scene {
                     })
                 )
                     if (uiControlQueue.hasGameUiControlMessage()) {
-                        // } else{
-                        // '찾는팀'
-                        // }
-
                         const message =
                             uiControlQueue.getGameUiControlMessage();
                         switch (message.type) {
@@ -495,7 +453,7 @@ export default class GameUI extends Phaser.Scene {
                 if (gameRepository.getIsEnd()) {
                     this.progressBar.width = 0;
                 } else {
-                    this.updateProgressBar();
+                    this.updateTimer();
                 }
             });
     }
@@ -665,14 +623,14 @@ export default class GameUI extends Phaser.Scene {
                     const message = messageTokens.join(" ");
                     const text = this.add.text(
                         this.cameras.main.width / 2,
-                        this.cameras.main.height / 10,
+                        this.cameras.main.height / 6,
                         message,
                         {
-                            font: "30px Arial",
                             color: "#ffffff",
                             backgroundColor: "#000000aa",
                             align: "center",
                             fontSize: 20,
+                            fontFamily: "Galmuri11",
                             padding: {
                                 left: 8,
                                 right: 8,
@@ -681,7 +639,7 @@ export default class GameUI extends Phaser.Scene {
                             },
                         }
                     );
-                    text.setOrigin(0.6, 0.6);
+                    text.setOrigin(0.5, 0.5);
 
                     this.tweens.add({
                         targets: text,
@@ -724,11 +682,12 @@ export default class GameUI extends Phaser.Scene {
     #showGameEndMessage(redirectAfter) {
         // 게임 종료 후 안내 메시지
         const gameEndMessage = this.add.text(
-            this.cameras.main.width / 2,
-            this.cameras.main.height * 0.9,
+            this.cameras.main.width,
+            0,
             `${Math.ceil(redirectAfter / 1000)}초 후에 로비로 이동합니다`,
             {
                 fontSize: 30,
+                fontFamily: "Galmuri11",
                 color: "#ffffff",
                 backgroundColor: "#000000aa",
                 align: "center",
@@ -740,7 +699,8 @@ export default class GameUI extends Phaser.Scene {
                 },
             }
         );
-        gameEndMessage.setOrigin(0.5, 0.5);
+        gameEndMessage.setOrigin(1, 0);
+        gameEndMessage.setDepth(1000);
 
         this.tweens.add({
             targets: gameEndMessage,
@@ -795,7 +755,7 @@ export default class GameUI extends Phaser.Scene {
             this.cameras.main.height / 5,
             messageText,
             {
-                fontFamily: "m6x11",
+                fontFamily: "Galmuri11",
                 color: "#ffffff",
                 backgroundColor: "#ff0000aa",
                 align: "center",
