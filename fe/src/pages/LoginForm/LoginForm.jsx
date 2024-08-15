@@ -51,7 +51,6 @@ export default function LoginForm() {
                 navigate(LOBBY_ROUTE_PATH);
             })
             .catch((error) => {
-                console.error(error);
                 throw new Error("게스트 로그인 실패");
             });
     };

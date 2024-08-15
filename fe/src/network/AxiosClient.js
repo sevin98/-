@@ -10,10 +10,6 @@ instance.interceptors.response.use(
         return response;
     },
     (error) => {
-        console.error(
-            "Error has occurred in Axios response interceptor: ",
-            error
-        );
         return Promise.reject(error);
     }
 );

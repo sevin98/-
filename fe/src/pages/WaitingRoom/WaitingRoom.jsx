@@ -31,7 +31,6 @@ export default function WaitingRoom() {
     const roomPassword = searchParams.get("room-password");
 
     if (hasFalsy(roomNumber)) {
-        console.error("필수 정보가 없습니다.");
         navigate(LOGIN_FORM_ROUTE_PATH);
     }
 
