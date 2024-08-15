@@ -87,6 +87,9 @@ export class Preloader extends Scene {
 
         // 남은 시간 타이머
         this.load.image("timer-background", "assets/ui/timer.png");
+
+        // 좁혀지는 벽 이미지
+        this.load.image("fog-image", "assets/effect/fog.png");
     }
 
     create() {
