@@ -215,18 +215,64 @@ export default class MyPlayerSprite extends Phaser.GameObjects.Container {
         const playerSprite = scene.add
             .sprite(0, 0, texture)
             .setDisplaySize(16, 16);
-        const nicknameText = scene.add.text(-20, -20, nickname, {
-            fontSize: "10px",
-            color: "#ffffff",
+        const nicknameText = scene.add.text(0, 14, nickname, {
+            fontSize: "6px",
+            color: "#ffffffcc",
+            backgroundColor: "#000000cc",
+            fontFamily: "Galmuri11",
+            resolution: 2,
+            padding: {
+                top: 0.5,
+                bottom: 0.5,
+                left: 1,
+                right: 1,
+            },
+        });
+        nicknameText.setOrigin(0.5, 0.5);
+
+        // 아이템 적용 효과
+        const itemEffectSprites = [];
+        const redPepperEffectSprite = scene.add
+            .sprite(0, -5, "dynamic-pepper-effect")
+            .play("dynamic-pepper-effect-animation");
+        redPepperEffectSprite.setDisplaySize(20, 20);
+        itemEffectSprites.push(redPepperEffectSprite);
+
+        const mushroomEffectSprite = scene.add
+            .sprite(5, 0, "dynamic-mushroom-effect")
+            .play("dynamic-mushroom-effect-animation");
+        mushroomEffectSprite.setDisplaySize(20, 20);
+        itemEffectSprites.push(mushroomEffectSprite);
+
+        const bananaEffectSprite = scene.add.image(0, -3, "banana");
+        bananaEffectSprite.setDisplaySize(15, 15);
+        itemEffectSprites.push(bananaEffectSprite);
+
+        const beeHiveEffectSprite = scene.add
+            .sprite(0, 10, "dynamic-bee-hive-effect")
+            .play("dynamic-bee-hive-effect-animation");
+        beeHiveEffectSprite.setDisplaySize(40, 40);
+        itemEffectSprites.push(beeHiveEffectSprite);
+
+        // 아이템 적용 효과 모두 위쪽 가운데 정렬
+        itemEffectSprites.forEach((sprite) => {
+            sprite.setOrigin(0.5, 1);
+            sprite.setVisible(false);
         });
 
-        super(scene, x, y, [playerSprite, nicknameText]);
+        super(scene, x, y, [playerSprite, nicknameText, ...itemEffectSprites]);
         this.scene = scene;
         this.scene.add.existing(this);
 
         this.playerSprite = playerSprite;
         this.nicknameText = nicknameText;
         this.PLAYER_SPEED = 200;
+
+        this.isItemEffectDisplaying = false;
+        this.redPepperEffectSprite = redPepperEffectSprite;
+        this.mushroomEffectSprite = mushroomEffectSprite;
+        this.bananaEffectSprite = bananaEffectSprite;
+        this.beeHiveEffectSprite = beeHiveEffectSprite;
 
         this.scene.physics.world.enable(this);
 
@@ -694,5 +740,38 @@ export default class MyPlayerSprite extends Phaser.GameObjects.Container {
 
     getIsFootstepSoundPlaying() {
         return this.#isFootstepSoundPlaying;
+    }
+
+    applyItemEffect(itemName) {
+        if (itemName === "RED_PEPPER") {
+            this.redPepperEffectSprite.visible = true;
+            this.isItemEffectDisplaying = true;
+            this.scene.sound.play("pepper-effect-sound");
+        } else if (itemName === "MUSHROOM") {
+            this.mushroomEffectSprite.visible = true;
+            this.isItemEffectDisplaying = true;
+        } else if (itemName === "BANANA") {
+            this.bananaEffectSprite.visible = true;
+            this.isItemEffectDisplaying = true;
+        } else if (itemName === "BEEHIVE") {
+            this.beeHiveEffectSprite.visible = true;
+            this.isItemEffectDisplaying = true;
+        }
+    }
+
+    removeItemEffect(itemName) {
+        if (itemName === "RED_PEPPER") {
+            this.redPepperEffectSprite.visible = false;
+            this.isItemEffectDisplaying = false;
+        } else if (itemName === "MUSHROOM") {
+            this.mushroomEffectSprite.visible = false;
+            this.isItemEffectDisplaying = false;
+        } else if (itemName === "BANANA") {
+            this.bananaEffectSprite.visible = false;
+            this.isItemEffectDisplaying = false;
+        } else if (itemName === "BEEHIVE") {
+            this.beeHiveEffectSprite.visible = false;
+            this.isItemEffectDisplaying = false;
+        }
     }
 }

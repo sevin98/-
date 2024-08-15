@@ -4,9 +4,9 @@ export default class TextGroup extends Phaser.GameObjects.Group {
     constructor() {
         super(TextGroup);
         this.styles = {
-            style1: { font: "10px Arial", fill: "#F8EDED" }, // 흰글씨, 숨기 승인
-            style2: { font: "10px Arial", fill: "#B43F3F" }, // 빨간글씨, 워닝
-            style3: { font: "10px Arial", fill: "#173B45" }, // 중간, 상황 알림
+            style1: { fontSize: 10, fontFamily: "Galmuri11", fill: "#F8EDED" }, // 흰글씨, 숨기 승인
+            style2: { fontSize: 10, fontFamily: "Galmuri11", fill: "#B43F3F" }, // 빨간글씨, 워닝
+            style3: { fontSize: 10, fontFamily: "Galmuri11", fill: "#173B45" }, // 중간, 상황 알림
         };
     }
     // 이후 아이템 배치 불가 추가
@@ -118,3 +118,4 @@ export default class TextGroup extends Phaser.GameObjects.Group {
         });
     }
 }
+

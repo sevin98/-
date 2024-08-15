@@ -9,8 +9,8 @@ public record PhaseInfo(
         long finishAfterMilliSec,
         LocalDateTime changeAt
 ) {
-    public static PhaseInfo of(Phase phase) {
+    public static PhaseInfo of(Phase phase, long finishAfterMilliSec) {
         // Set changeAt the time after finishAfterMilliSec
-        return new PhaseInfo(phase, phase.getDuration(), LocalDateTime.now().plusNanos(phase.getDuration() * 1_000_000));
+        return new PhaseInfo(phase, phase.getDuration() + finishAfterMilliSec, LocalDateTime.now().plusNanos((phase.getDuration() + finishAfterMilliSec) * 1_000_000));
     }
 }
