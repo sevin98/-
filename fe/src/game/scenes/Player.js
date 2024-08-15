@@ -244,6 +244,10 @@ export default class MyPlayerSprite extends Phaser.GameObjects.Container {
         mushroomEffectSprite.setDisplaySize(20, 20);
         itemEffectSprites.push(mushroomEffectSprite);
 
+        const bananaEffectSprite = scene.add.image(0, -3, "banana");
+        bananaEffectSprite.setDisplaySize(15, 15);
+        itemEffectSprites.push(bananaEffectSprite);
+
         // 아이템 적용 효과 모두 위쪽 가운데 정렬
         itemEffectSprites.forEach((sprite) => {
             sprite.setOrigin(0.5, 1);
@@ -261,6 +265,7 @@ export default class MyPlayerSprite extends Phaser.GameObjects.Container {
         this.isItemEffectDisplaying = false;
         this.redPepperEffectSprite = redPepperEffectSprite;
         this.mushroomEffectSprite = mushroomEffectSprite;
+        this.bananaEffectSprite = bananaEffectSprite;
 
         this.scene.physics.world.enable(this);
 
@@ -738,6 +743,9 @@ export default class MyPlayerSprite extends Phaser.GameObjects.Container {
         } else if (itemName === "MUSHROOM") {
             this.mushroomEffectSprite.visible = true;
             this.isItemEffectDisplaying = true;
+        } else if (itemName === "BANANA") {
+            this.bananaEffectSprite.visible = true;
+            this.isItemEffectDisplaying = true;
         }
     }
 
@@ -747,6 +755,9 @@ export default class MyPlayerSprite extends Phaser.GameObjects.Container {
             this.isItemEffectDisplaying = false;
         } else if (itemName === "MUSHROOM") {
             this.mushroomEffectSprite.visible = false;
+            this.isItemEffectDisplaying = false;
+        } else if (itemName === "BANANA") {
+            this.bananaEffectSprite.visible = false;
             this.isItemEffectDisplaying = false;
         }
     }

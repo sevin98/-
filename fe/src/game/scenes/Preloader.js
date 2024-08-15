@@ -91,7 +91,8 @@ export class Preloader extends Scene {
         // 좁혀지는 벽 이미지
         this.load.image("fog-image", "assets/effect/fog.png");
 
-        // 고추 아이템 적용 효과
+        // 고추 아이템 적용 효과 : 속도 빨라짐
+        this.load.image("pepper", "assets/object/item/pepperItem.png");
         this.load.spritesheet({
             key: "dynamic-pepper-effect",
             url: "assets/effect/Fire+Sparks-Sheet.png",
@@ -108,7 +109,8 @@ export class Preloader extends Scene {
             "sounds/effect/etc/pepper-effect.mp3"
         );
 
-        // 방향 버섯 아이템 적용 효과
+        // 방향 버섯 아이템 적용 효과 : 다른 플레이어 위치 화살표 다시 보여줌
+        this.load.image("mushroom", "assets/object/item/mushroomItem.png");
         this.load.spritesheet({
             key: "dynamic-mushroom-effect",
             url: "assets/effect/S001_nyknck.png",
@@ -119,6 +121,20 @@ export class Preloader extends Scene {
                 endFrame: 3,
             },
         });
+
+        // 바나나 아이템 적용 효과: 속도 감소
+        this.load.image("banana", "assets/object/item/bananaItem.png");
+
+        // 벌통: 속도 0(멈춤)
+        this.load.image("beeHive", "assets/object/item/beehiveItem.png");
+
+        // 독버섯: 키반전
+        this.load.image(
+            "poisonMushroom",
+            "assets/object/item/poisonMushroomItem.png"
+        );
+
+        // 나뭇잎: 다른 물체로 변신
     }
 
     create() {
@@ -140,6 +156,18 @@ export class Preloader extends Scene {
                 start: 0,
                 end: 3,
             }),
+            frameRate: 5,
+            repeat: -1,
+        });
+
+        this.anims.create({
+            key: "dynamic-banana-effect-animation",
+            frames: [
+                { key: "banana-effect-1" },
+                { key: "banana-effect-2" },
+                { key: "banana-effect-3" },
+                { key: "banana-effect-4" },
+            ],
             frameRate: 5,
             repeat: -1,
         });
