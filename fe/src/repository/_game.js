@@ -598,13 +598,13 @@ export default class GameRepository {
         const requestedPlayer = this.getPlayerWithId(requestedPlayerId);
 
         // 찾은 플레이어를 죽은 상태로 변경
-        foundPlayer.setDead();
-        // 남은 시도 횟수 갱신
-        requestedPlayer.setRestSeekCount(restCatchCount);
-        // 찾은 횟수 갱신
-        requestedPlayer.increaseCatchCount();
-
-        uiControlQueue.addUpdateSeekCountUiMessage(restCatchCount);
+        foundPlayer.setDead().then(() => {
+            // 남은 시도 횟수 갱신
+            requestedPlayer.setRestSeekCount(restCatchCount);
+            // 찾은 횟수 갱신
+            requestedPlayer.increaseCatchCount();
+            uiControlQueue.addUpdateSeekCountUiMessage(restCatchCount);
+        });
     }
 
     // 찾기 실패 결과 반영
@@ -652,12 +652,12 @@ export default class GameRepository {
     #handlePlayerDeath(reasonType, data) {
         const { playerId, foundPlayerId } = data;
 
-        this.getMe().then((me) => {
+        this.getMe().then(async (me) => {
             // 잡혀서 죽은거면
             if (reasonType === PLAYER_ELIMINATION_REASON.CAUGHT) {
                 // 해당 플레이어를 탈락 처리
                 const player = this.getPlayerWithId(foundPlayerId);
-                player.setDead();
+                await player.setDead();
                 data.victimPlayerNickname = player.getPlayerNickname();
                 // 공격자 정보 추가
                 data.attackerNickname = this.getPlayerWithId(
@@ -667,13 +667,14 @@ export default class GameRepository {
             // 발견 당한 플레이어 정보가 없는데 playerId가 나이면
             else if (me.getPlayerId() === playerId) {
                 // 나를 탈락 처리
-                me.setDead();
+                await me.setDead();
+                await this.getPlayerWithId(playerId).setDead();
                 data.victimPlayerNickname = me.getPlayerNickname();
             }
             // 이외의 경우 다른 플레이어의 탈락을 의미함
             else {
                 const player = this.getPlayerWithId(playerId);
-                player.setDead();
+                await player.setDead();
                 data.victimPlayerNickname = player.getPlayerNickname();
             }
 

@@ -553,7 +553,7 @@ export default class MyPlayerSprite extends Phaser.GameObjects.Container {
     async setDead() {
         const gameRepository = await this.roomRepository.getGameRepository();
         const me = await gameRepository.getMe();
-        me.setDead();
+        await me.setDead();
     }
 
     async isDead() {

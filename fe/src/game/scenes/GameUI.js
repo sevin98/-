@@ -395,10 +395,10 @@ export default class GameUI extends Phaser.Scene {
             this.#showKillLog(killLog);
         }
 
+        this.updateImage();
         getRoomRepository()
             .getGameRepository()
             .then((gameRepository) => {
-                this.updateImage();
                 while (uiControlQueue.hasGameUiControlMessage()) {
                     const message = uiControlQueue.getGameUiControlMessage();
                     switch (message.type) {
