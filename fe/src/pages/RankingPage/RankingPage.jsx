@@ -83,20 +83,7 @@ function RankingPage() {
         <div className="ranking-wrapper rpgui-content">
             <BackToLobbyButton onClick={onBackToLobbyBtnClicked} isDisabled={false} />
             {/*{error && <div className="error-message">{error}</div>} */}
-            <div className="ranking-board ranking-log rpgui-container framed" style={{ overflow: "auto" }}>
-                <ul>
-                    {Array.isArray(ranking) &&
-                        ranking.slice(0, 10).map((user, index) => (
-                            <li key={index} className="ranking-item">
-                                {index + 1}. <span className="nickname-style">{user.nickname}</span> - Wins: {user.wins}
-                                , Catch Count: {user.catchCount}, Survival Time: {user.formattedSurvivalTime}
-                            </li>
-                        ))}
-                    <div ref={ref} />
-                </ul>
-            </div>
-
-            <div className="ranking-board my-ranking rpgui-container framed" style={{ overflow: "auto" }}>
+             <div className="ranking-board my-ranking rpgui-container framed" style={{ overflow: "auto" }}>
                     <h2>Your Ranking</h2>
                     {myRanking ? (
                         <>
@@ -109,6 +96,19 @@ function RankingPage() {
                         <span className="nickname-style">데이터가 없습니다</span>
                     )}
                 </div>
+
+                <div className="ranking-board ranking-log rpgui-container framed" style={{ overflow: "auto" }}>
+                <ul>
+                    {Array.isArray(ranking) &&
+                        ranking.slice(0, 10).map((user, index) => (
+                            <li key={index} className="ranking-item">
+                                {index + 1}. <span className="nickname-style">{user.nickname}</span> - Wins: {user.wins}
+                                , Catch Count: {user.catchCount}, Survival Time: {user.formattedSurvivalTime}
+                            </li>
+                        ))}
+                    <div ref={ref} />
+                </ul>
+            </div>
 
             <div className="ranking-controls">
                 <button
