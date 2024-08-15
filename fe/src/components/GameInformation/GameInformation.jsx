@@ -39,7 +39,7 @@ const GameInformation = () => {
     return (
         <div className='information-container'>
             <button onClick={openInformation} className='info-button'>
-                <img src="/image/A_Sellect1.png" alt="게임 설명" />
+                <img src="/image/menu-button-ui.png" alt="게임 설명" />
             </button>
             <Modal
                 isOpen={informationIsOpen}
@@ -49,17 +49,17 @@ const GameInformation = () => {
                 closeTimeoutMS={300}
             >
                 <button onClick={closeInformation} className="close-button">
-                    <img src="/image/A_Close1.png" alt="닫기" />
+                    <img src="/image/close-button-ui.png" alt="닫기" />
                 </button>
                 <div className="slide">
                     <p>{slides[currentSlide].text}</p>
                     <img src={slides[currentSlide].image} alt={`Slide ${currentSlide}`} className="slide-image" />
                 </div>
                 <button className="prev-button" onClick={handlePrev}>
-                    <img src="/image/A_Left1.png" alt="이전" />
+                    <img src="/image/left-button-ui.png" alt="이전" />
                 </button>
                 <button className="next-button" onClick={handleNext}>
-                    <img src="/image/A_Right1.png" alt="다음" />
+                    <img src="/image/right-button-ui.png" alt="다음" />
                 </button>
             </Modal>
         </div>
