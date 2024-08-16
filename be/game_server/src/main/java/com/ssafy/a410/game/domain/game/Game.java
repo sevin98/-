@@ -167,7 +167,7 @@ public class Game extends Subscribable implements Runnable {
 
         // 클라이언트가 초기화 할 시간 주기
         try {
-            Thread.sleep(2L * MilliSecOf.SECONDS);
+            Thread.sleep(5L * MilliSecOf.SECONDS);
         } catch (InterruptedException e) {
             throw new UnhandledException("Game start interrupted");
         }
