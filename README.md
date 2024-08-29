@@ -1,5 +1,7 @@
 # 굴 안의 너굴이
 
+![image](https://github.com/user-attachments/assets/b9d93d73-cd97-461d-ab78-b1cd142ecda7)
+
 
 # 실행 환경 정보
 
